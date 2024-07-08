@@ -2,8 +2,9 @@ import numpy as np
 from .sem import element_interpolator_c
 from ..datatypes.msh import msh_c
 
-class p_refiner_c():
-    def __init__(self, n_old = 8, n_new = 8):
+
+class p_refiner_c:
+    def __init__(self, n_old=8, n_new=8):
 
         # Order of the element
         self.n = n_new
@@ -13,9 +14,8 @@ class p_refiner_c():
         self.ei_new = element_interpolator_c(n_new)
 
         return
-    
 
-    def get_new_mesh(self, comm, msh = None):
+    def get_new_mesh(self, comm, msh=None):
 
         # See the points per element in the new mesh
         self.lx = self.n
@@ -35,18 +35,22 @@ class p_refiner_c():
         w_gll = self.ei_new.x_gll
 
         for e in range(0, msh.nelv):
-            x[e,:,:,:] = self.ei_old.interpolate_field_at_rst_vector(x_gll, y_gll, w_gll, msh.x[e,:,:,:])
-            y[e,:,:,:] = self.ei_old.interpolate_field_at_rst_vector(x_gll, y_gll, w_gll, msh.y[e,:,:,:])
-            z[e,:,:,:] = self.ei_old.interpolate_field_at_rst_vector(x_gll, y_gll, w_gll, msh.z[e,:,:,:])
+            x[e, :, :, :] = self.ei_old.interpolate_field_at_rst_vector(
+                x_gll, y_gll, w_gll, msh.x[e, :, :, :]
+            )
+            y[e, :, :, :] = self.ei_old.interpolate_field_at_rst_vector(
+                x_gll, y_gll, w_gll, msh.y[e, :, :, :]
+            )
+            z[e, :, :, :] = self.ei_old.interpolate_field_at_rst_vector(
+                x_gll, y_gll, w_gll, msh.z[e, :, :, :]
+            )
 
         # Create the msh object
-        new_msh = msh_c(comm, x = x, y = y, z = z)
-        
-        
+        new_msh = msh_c(comm, x=x, y=y, z=z)
+
         return new_msh
 
-
-    def interpolate_from_field_list(self, comm, field_list = []):
+    def interpolate_from_field_list(self, comm, field_list=[]):
 
         # check the number of fields to interpolate
         number_of_fields = len(field_list)
@@ -63,11 +67,14 @@ class p_refiner_c():
 
         ff = 0
         for field in field_list:
-            
+
             for e in range(0, self.nelv):
-                interpolated_fields[ff][e,:,:,:] = self.ei_old.interpolate_field_at_rst_vector(x_gll, y_gll, w_gll, field[e,:,:,:])
-            
+                interpolated_fields[ff][e, :, :, :] = (
+                    self.ei_old.interpolate_field_at_rst_vector(
+                        x_gll, y_gll, w_gll, field[e, :, :, :]
+                    )
+                )
+
             ff += 1
 
         return interpolated_fields
-        

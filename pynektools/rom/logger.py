@@ -1,6 +1,8 @@
 import logging
 import sys
+
 # Retrieved from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output
+
 
 class CustomFormatter(logging.Formatter):
 
@@ -9,14 +11,16 @@ class CustomFormatter(logging.Formatter):
     red = "\x1b[31;20m"
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
-    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    format = (
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+    )
 
     FORMATS = {
         logging.DEBUG: grey + format + reset,
         logging.INFO: grey + format + reset,
         logging.WARNING: yellow + format + reset,
         logging.ERROR: red + format + reset,
-        logging.CRITICAL: bold_red + format + reset
+        logging.CRITICAL: bold_red + format + reset,
     }
 
     def format(self, record):
@@ -25,17 +29,17 @@ class CustomFormatter(logging.Formatter):
         return formatter.format(record)
 
 
-class logger_c():
-    def __init__(self, level: None, comm: None, module_name = None ):
+class logger_c:
+    def __init__(self, level: None, comm: None, module_name=None):
 
         self.level = level
         self.comm = comm
 
-        #Instanciate
+        # Instanciate
         if module_name:
-            logger = logging.getLogger(module_name)     
-        else:        
-            logger = logging.getLogger(__name__)     
+            logger = logging.getLogger(module_name)
+        else:
+            logger = logging.getLogger(__name__)
         logger.setLevel(level)
 
         # create console handler with a higher log level
@@ -47,24 +51,28 @@ class logger_c():
 
         self.log = logger
 
-    def write(self,level, message):
-        
+    def write(self, level, message):
+
         comm = self.comm
-        rank     = comm.Get_rank()
-        size     = comm.Get_size()
+        rank = comm.Get_rank()
+        size = comm.Get_size()
 
         if level == "debug":
-            if rank == 0: self.log.debug(message)
-        
+            if rank == 0:
+                self.log.debug(message)
+
         if level == "info":
-            if rank == 0: self.log.info(message)
+            if rank == 0:
+                self.log.info(message)
 
         if level == "warning":
-            if rank == 0: self.log.warning(message)
+            if rank == 0:
+                self.log.warning(message)
 
         if level == "error":
-            if rank == 0: self.log.error(message)
+            if rank == 0:
+                self.log.error(message)
 
         if level == "critical":
-            if rank == 0: self.log.critical(message)
-
+            if rank == 0:
+                self.log.critical(message)
