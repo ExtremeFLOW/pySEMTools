@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Coef &#8212; PyNekTools develop documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css?v=def86cc0" />
+    
+    <script src="../_static/documentation_options.js?v=16816911"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Coef</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="coef">
+<h1>Coef<a class="headerlink" href="#coef" title="Link to this heading">¶</a></h1>
+<p>Descriptions of the contents of the Coef class, which cotntains matrices to perform operation on SEM data.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.coef.</span></span><span class="sig-name descname"><span class="pre">Coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef" title="Link to this definition">¶</a></dt>
+<dd><p>Class that contains arrays like mass matrix, jacobian, jacobian inverse, etc.</p>
+<p>This class can be used when mathematical operations such as derivation and integration is needed on the sem mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>Mesh object.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI comminicator object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"></dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a mesh object and MPI communicator object, you can initialize the Coef object as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools</span> <span class="kn">import</span> <span class="n">Coef</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>drdx</strong><span class="classifier">ndarray</span></dt><dd><p>component [0,0] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>drdy</strong><span class="classifier">ndarray</span></dt><dd><p>component [0,1] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>drdz</strong><span class="classifier">ndarray</span></dt><dd><p>component [0,2] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dsdx</strong><span class="classifier">ndarray</span></dt><dd><p>component [1,0] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dsdy</strong><span class="classifier">ndarray</span></dt><dd><p>component [1,1] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dsdz</strong><span class="classifier">ndarray</span></dt><dd><p>component [1,2] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dtdx</strong><span class="classifier">ndarray</span></dt><dd><p>component [2,0] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dtdy</strong><span class="classifier">ndarray</span></dt><dd><p>component [2,1] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dtdz</strong><span class="classifier">ndarray</span></dt><dd><p>component [2,2] of the jacobian inverse tensor for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>B</strong><span class="classifier">ndarray</span></dt><dd><p>Mass matrix for each point. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>area</strong><span class="classifier">ndarray</span></dt><dd><p>Area integration weight for each point in the facets. shape is (nelv, 6, ly, lx).</p>
+</dd>
+<dt><strong>nx</strong><span class="classifier">ndarray</span></dt><dd><p>x component of the normal vector for each point in the facets. shape is (nelv, 6, ly, lx).</p>
+</dd>
+<dt><strong>ny</strong><span class="classifier">ndarray</span></dt><dd><p>y component of the normal vector for each point in the facets. shape is (nelv, 6, ly, lx).</p>
+</dd>
+<dt><strong>nz</strong><span class="classifier">ndarray</span></dt><dd><p>z component of the normal vector for each point in the facets. shape is (nelv, 6, ly, lx).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dssum" title="pynektools.datatypes.coef.Coef.dssum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum</span></code></a>(field, msh)</p></td>
+<td><p>Peform average of given field over shared points in each rank.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst" title="pynektools.datatypes.coef.Coef.dudrst"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst</span></code></a>(field, dr)</p></td>
+<td><p>Perform derivative with respect to reference coordinate r.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudxyz" title="pynektools.datatypes.coef.Coef.dudxyz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudxyz</span></code></a>(field, drdx, dsdx[, dtdx])</p></td>
+<td><p>Perform derivative with respect to physical coordinate x,y,z.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.glsum" title="pynektools.datatypes.coef.Coef.glsum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glsum</span></code></a>(a, comm[, datype])</p></td>
+<td><p>Peform global summatin of given qunaitity a using MPI.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dssum">
+<span class="sig-name descname"><span class="pre">dssum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dssum" title="Link to this definition">¶</a></dt>
+<dd><p>Peform average of given field over shared points in each rank.</p>
+<p>This method averages the field over shared points in the same rank. It uses the connectivity data in the mesh object.
+dssum might be a missleading name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to average over shared points.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>Pynektools Mesh object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Input field with shared points averaged with shared points in the SAME rank.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a Coef object and are working on a 3d field:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dudx</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dssum</span><span class="p">(</span><span class="n">dudx</span><span class="p">,</span> <span class="n">msh</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dudrst">
+<span class="sig-name descname"><span class="pre">dudrst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudrst" title="Link to this definition">¶</a></dt>
+<dd><p>Perform derivative with respect to reference coordinate r.</p>
+<p>This method uses derivation matrices from the lagrange polynomials at the GLL points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to take derivative of. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dr</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative matrix in the r/s/t direction to apply to each element. Shape should be (lx*ly*lz, lx*ly*lz).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Derivative of the field with respect to r/s/t. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a Coef object</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dxdr</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudrst</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dr</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dudxyz">
+<span class="sig-name descname"><span class="pre">dudxyz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drdx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsdx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtdx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudxyz" title="Link to this definition">¶</a></dt>
+<dd><p>Perform derivative with respect to physical coordinate x,y,z.</p>
+<p>This method uses the chain rule, first evaluating derivatives with respect to
+rst, then multiplying by the inverse of the jacobian to map to xyz.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to take derivative of. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>drdx</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative of the reference coordinates with respect to x, i.e.,
+first entry in the appropiate row of the jacobian inverse.
+Shape should be the same as the field.</p>
+</dd>
+<dt><strong>dsdx</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative of the reference coordinates with respect to y, i.e.,
+second entry in the appropiate row of the jacobian inverse.
+Shape should be the same as the field.</p>
+</dd>
+<dt><strong>dtdx</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative of the reference coordinates with respect to z, i.e.,
+third entry in the appropiate row of the jacobian inverse.
+Shape should be the same as the field.
+(Default value = None)
+Only valid for 3D fields.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Derivative of the field with respect to x,y,z. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a Coef object and are working on a 3d field:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dudx</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dtdx</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.glsum">
+<span class="sig-name descname"><span class="pre">glsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.glsum" title="Link to this definition">¶</a></dt>
+<dd><p>Peform global summatin of given qunaitity a using MPI.</p>
+<p>This method uses MPI to sum over all MPI ranks. It works with any numpy array shape and returns one value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>a</strong><span class="classifier">ndarray</span></dt><dd><p>Quantity to sum over all mpiranks.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator object.</p>
+</dd>
+<dt><strong>datype</strong><span class="classifier">numpy.dtype</span></dt><dd><p>(Default value = np.double).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Sum of the quantity a over all MPI ranks.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a Coef object and are working on a 3d field:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">volume</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">glsum</span><span class="p">(</span><span class="n">coef</span><span class="o">.</span><span class="n">B</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Coef</a><ul>
+<li><a class="reference internal" href="#pynektools.datatypes.coef.Coef"><code class="docutils literal notranslate"><span class="pre">Coef</span></code></a><ul>
+<li><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dssum"><code class="docutils literal notranslate"><span class="pre">Coef.dssum()</span></code></a></li>
+<li><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst"><code class="docutils literal notranslate"><span class="pre">Coef.dudrst()</span></code></a></li>
+<li><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudxyz"><code class="docutils literal notranslate"><span class="pre">Coef.dudxyz()</span></code></a></li>
+<li><a class="reference internal" href="#pynektools.datatypes.coef.Coef.glsum"><code class="docutils literal notranslate"><span class="pre">Coef.glsum()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pages/coef.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Coef</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Neko authors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    </div>
+  </body>
+</html>

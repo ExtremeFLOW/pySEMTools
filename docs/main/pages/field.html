@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Field &#8212; PyNekTools develop documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/classic.css?v=def86cc0" />
+    
+    <script src="../_static/documentation_options.js?v=16816911"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Field</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="field">
+<h1>Field<a class="headerlink" href="#field" title="Link to this heading">¶</a></h1>
+<p>Descriptions of the contents of the Field class, which is used to collect data to be post-processed.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.datatypes.field.Field">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.field.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.Field" title="Link to this definition">¶</a></dt>
+<dd><p>Class that contains fields.</p>
+<p>This is the main class used to contain data that can be used for post processing.
+The data does not generarly need to be present in this class, as it is typically enough to have
+the data as ndarrays of shape (nelv, lz, ly, lx) for each field. However this class
+provides a easy interface to collect data tha is somehow associated.</p>
+<p>It also allows to easily write data to disk. As all the data in this class will be stored in the same file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI comminicator object.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">HexaData, optional</span></dt><dd><p>HexaData object that contains the coordinates of the domain.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"></dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>If a hexadata object: data is read from disk, the field object can be created directly from it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If one wishes to use the data in the fields. It is possible to reference it with a ndarray of shape (nelv, lz, ly, lx)
+as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vel_magnitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">u</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">v</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">w</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A field object can be created empty and then fields can be added to it. Useful to write data to disk.
+if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">update_vars</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This fld object can then be used to write fld files from field u created in the code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fields</strong><span class="classifier">dict</span></dt><dd><p>Dictionary that contains the fields. The keys are the field names and the values are lists of ndarrays.
+The keys for these dictionaries are the same as for Hexadata objects, i.e. vel, pres, temp, scal.</p>
+</dd>
+<dt><strong>vel_fields</strong><span class="classifier">int</span></dt><dd><p>Number of velocity fields.</p>
+</dd>
+<dt><strong>pres_fields</strong><span class="classifier">int</span></dt><dd><p>Number of pressure fields.</p>
+</dd>
+<dt><strong>temp_fields</strong><span class="classifier">int</span></dt><dd><p>Number of temperature fields.</p>
+</dd>
+<dt><strong>scal_fields</strong><span class="classifier">int</span></dt><dd><p>Number of scalar fields.</p>
+</dd>
+<dt><strong>t</strong><span class="classifier">float</span></dt><dd><p>Time of the data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.field.Field.update_vars" title="pynektools.datatypes.field.Field.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
+<td><p>Update number of fields.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.field.Field.update_vars">
+<span class="sig-name descname"><span class="pre">update_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.Field.update_vars" title="Link to this definition">¶</a></dt>
+<dd><p>Update number of fields.</p>
+<p>Update the number of fields in the class in the event that
+it has been modified. This is needed for writing data properly if more arrays are added to the class.</p>
+<p class="rubric">Examples</p>
+<p>A field object can be created empty and then fields can be added to it. Useful to write data to disk.
+if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">update_vars</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This fld object can then be used to write fld files from field u created in the code.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Field</a><ul>
+<li><a class="reference internal" href="#pynektools.datatypes.field.Field"><code class="docutils literal notranslate"><span class="pre">Field</span></code></a><ul>
+<li><a class="reference internal" href="#pynektools.datatypes.field.Field.update_vars"><code class="docutils literal notranslate"><span class="pre">Field.update_vars()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/pages/field.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Field</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Neko authors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
+    </div>
+  </body>
+</html>
