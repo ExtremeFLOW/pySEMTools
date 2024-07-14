@@ -84,6 +84,280 @@
   <section id="adios2">
 <h1>adios2<a class="headerlink" href="#adios2" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the adios2 module.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.stream.</span></span><span class="sig-name descname"><span class="pre">DataStreamer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_nek</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer" title="Link to this definition"></a></dt>
+<dd><p>Class used to communicate data between codes using adios2.</p>
+<p>Use this to send and recieve data.</p>
+<p>The data is always transported as a 1d array, so it is necessary to reshape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>from_nek</strong><span class="classifier">bool</span></dt><dd><p>Define if the data that is being stream comes from a nek-like code.
+(Default value = True).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This type must be paired with another streaming in the other executable/code.
+The codes will not start if the streams are not paired.</p>
+<p>A full of example of recieving data is shown below. It is possible to pair
+with other classes to, for example, write data to disk.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">data_streamer_c</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">get_fld_from_ndarray</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">recieve</span><span class="p">(),</span> <span class="n">ds</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">ly</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lz</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">nelv</span><span class="p">)</span> <span class="c1"># Recieve and reshape x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">get_fld_from_ndarray</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">recieve</span><span class="p">(),</span> <span class="n">ds</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">ly</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lz</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">nelv</span><span class="p">)</span> <span class="c1"># Recieve and reshape y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">get_fld_from_ndarray</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">recieve</span><span class="p">(),</span> <span class="n">ds</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">ly</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">lz</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">nelv</span><span class="p">)</span> <span class="c1"># Recieve and reshape z</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">finalize</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msh</span> <span class="o">=</span> <span class="n">msh_c</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">write_fld_file_from_list</span><span class="p">(</span><span class="s2">&quot;field0.f00001&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To send data to the other code, use the stream method.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>glb_nelv</strong><span class="classifier">int</span></dt><dd><p>Total number of elements in the global domain.</p>
+</dd>
+<dt><strong>lxyz</strong><span class="classifier">int</span></dt><dd><p>Number of points per element.</p>
+</dd>
+<dt><strong>gdim</strong><span class="classifier">int</span></dt><dd><p>Problem dimension.</p>
+</dd>
+<dt><strong>nelv</strong><span class="classifier">int</span></dt><dd><p>Number of elements that this rank has.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.finalize" title="pynektools.io.adios2.stream.DataStreamer.finalize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finalize</span></code></a>()</p></td>
+<td><p>Finalize the execution of the module.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.recieve" title="pynektools.io.adios2.stream.DataStreamer.recieve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recieve</span></code></a>([fld, variable])</p></td>
+<td><p>Recieve data from another code using adios2.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.stream" title="pynektools.io.adios2.stream.DataStreamer.stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream</span></code></a>(fld)</p></td>
+<td><p>Send data to another code using adios2.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.finalize" title="Link to this definition"></a></dt>
+<dd><p>Finalize the execution of the module.</p>
+<p>Used to close reader and writer. The stream will end and the code will not be coupled.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.recieve">
+<span class="sig-name descname"><span class="pre">recieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f2py_field'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.recieve" title="Link to this definition"></a></dt>
+<dd><p>Recieve data from another code using adios2.</p>
+<p>The data is always transported as a 1d array, so it is necessary to reshape to deinred shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fld</strong><span class="classifier">ndarray</span></dt><dd><p>Buffer to contain the data. If None, it will be created.
+(Default value = None).</p>
+</dd>
+<dt><strong>variable</strong><span class="classifier">str</span></dt><dd><p>Name of the adios2 variable to be read. Neko used default name. Change as needed.
+This name can remain the same during the execution even if different quantities are being transported.
+(Default value = “f2py_field”).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Returns the field that was recieved.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.stream">
+<span class="sig-name descname"><span class="pre">stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.stream" title="Link to this definition"></a></dt>
+<dd><p>Send data to another code using adios2.</p>
+<p>Couple 2 code or executables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fld</strong><span class="classifier">ndarray</span></dt><dd><p>Field to be sent. Must be a 1d array.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">DataCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor" title="Link to this definition"></a></dt>
+<dd><p>Class used to write compressed data to disk.</p>
+<p>This Assumes that the input data has a msh object available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>mesh_info</strong><span class="classifier">dict</span></dt><dd><p>Dictionary with mesh information.</p>
+</dd>
+<dt><strong>wrd_size</strong><span class="classifier">int</span></dt><dd><p>Word size to write data. (Default value = 4). Single precsiion is 4, double is 8.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"></dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This class is used to write data to disk. The data is compressed using bzip2.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mesh_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;glb_nelv&quot;</span><span class="p">:</span> <span class="n">msh</span><span class="o">.</span><span class="n">glb_nelv</span><span class="p">,</span> <span class="s2">&quot;lxyz&quot;</span><span class="p">:</span> <span class="n">msh</span><span class="o">.</span><span class="n">lxyz</span><span class="p">,</span> <span class="s2">&quot;gdim&quot;</span><span class="p">:</span> <span class="n">msh</span><span class="o">.</span><span class="n">gdim</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dc</span> <span class="o">=</span> <span class="n">DataCompressor</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">mesh_info</span> <span class="o">=</span> <span class="n">mesh_info</span><span class="p">,</span> <span class="n">wrd_size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.compress.DataCompressor.read" title="pynektools.io.adios2.compress.DataCompressor.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(comm[, fname, variable_names])</p></td>
+<td><p>Read data from disk using adios2.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.io.adios2.compress.DataCompressor.write" title="pynektools.io.adios2.compress.DataCompressor.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(comm[, fname, variable_names, data])</p></td>
+<td><p>Write data to disk using adios2.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor.read" title="Link to this definition"></a></dt>
+<dd><p>Read data from disk using adios2.</p>
+<p>Read compressed data and internally decompress it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>File name to read. (Default value = “compress.bp”).</p>
+</dd>
+<dt><strong>variable_names</strong><span class="classifier">list</span></dt><dd><p>List of string with the names of the variables to read.
+These names NEED to match the names adios2 used to write the data.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>List of numpy arrays with the data read.
+the ndarrays in the list are 1d.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This function is used to read data from disk. The data is compressed using bzip2.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">variable_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;compress.bp&quot;</span><span class="p">,</span> <span class="n">variable_names</span> <span class="o">=</span> <span class="n">variable_names</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor.write" title="Link to this definition"></a></dt>
+<dd><p>Write data to disk using adios2.</p>
+<p>Lossless compression with bzip2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>File name to write. (Default value = “compress.bp”).</p>
+</dd>
+<dt><strong>variable_names</strong><span class="classifier">list</span></dt><dd><p>List of string with the names of the variables to write.
+This is very important, as adios2 will use these names to process the data.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">list</span></dt><dd><p>List of numpy arrays with the data to write. Corresponding in index to variable_names.
+The arrays must be 1d.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This function is used to write data to disk. The data is compressed using bzip2.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">variable_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">msh</span><span class="o">.</span><span class="n">z</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dc</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;compress.bp&quot;</span><span class="p">,</span> <span class="n">variable_names</span> <span class="o">=</span> <span class="n">variable_names</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.adios2.compress.write_field">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">write_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.write_field" title="Link to this definition"></a></dt>
+<dd><p>Wrapper to data compressor writer.</p>
+<p>Writes nek like data compressed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>Mesh object to write. (Default value = None).</p>
+</dd>
+<dt><strong>fld</strong><span class="classifier">Field</span></dt><dd><p>Field object to write. (Default value = None).</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>File name to write. (Default value = “compressed_field0.f00001”).</p>
+</dd>
+<dt><strong>wrd_size</strong><span class="classifier">int</span></dt><dd><p>Word size to write data. (Default value = 4). Single precsiion is 4, double is 8.</p>
+</dd>
+<dt><strong>write_mesh</strong><span class="classifier">bool</span></dt><dd><p>Flag to write the mesh. (Default value = True).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This function is used to write data to disk. The data is compressed using bzip2.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">write_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;compressed_field0.f00001&quot;</span><span class="p">,</span> <span class="n">wrd_size</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">write_mesh</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.adios2.compress.read_field">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">read_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.read_field" title="Link to this definition"></a></dt>
+<dd><p>Wrapper to data compressor reader.</p>
+<p>Reads nek like data compressed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>File name to read. (Default value = “compressed_field0.f00001”).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>msh: Mesh</dt><dd><p>Mesh object read.</p>
+</dd>
+<dt><strong>fld</strong><span class="classifier">Field</span></dt><dd><p>Field object read.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This function is used to read data from disk. The data is compressed using bzip2.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">read_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;compressed_field0.f00001&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 
 
