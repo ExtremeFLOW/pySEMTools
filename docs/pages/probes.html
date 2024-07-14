@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Probes &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=16816911"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/derivation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/pod.html">POD of data in disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1d_data_processing.html">1D data processing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Probes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pages/probes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="probes">
+<h1>Probes<a class="headerlink" href="#probes" title="Link to this heading"></a></h1>
+<p>Descriptions of the contents of the Probes class.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.interpolation.probes.Probes">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.interpolation.probes.</span></span><span class="sig-name descname"><span class="pre">Probes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">progress_bar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_interpolator_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'single_point_legendre'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">find_points_comm_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'point_to_point'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elem_percent_expansion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.interpolation.probes.Probes" title="Link to this definition"></a></dt>
+<dd><p>Class to interpolate fields at probes from a SEM mesh.</p>
+<p>Main interpolation class. This works in parallel, however, the probes are held at rank 0.
+therefore if initializing from file, the probes file should be read at rank 0 and then
+scattered to all ranks.</p>
+<p>If the probes are passed as an argument, they should be passed to all ranks, however only the
+data in rank 0 will be relevant (an scatter to all other ranks). See example below to observe
+how to avoid unnecessary replication of data in all ranks when passing probes as argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI communicator</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>filename</strong><span class="classifier">str, optional</span></dt><dd><p>Path to JSON file containing paths for probes, mesh and output data. Default is None.
+If probes are passed as agrument, the JSON part containing this is ignored.
+If msh is passed as argument, the JSON part containing this is ignored.
+If this file is not passed, the output data is written to the current directory.
+If this file is not passed, the msh and probes must be arguments.</p>
+</dd>
+<dt><strong>probes</strong><span class="classifier">ndarray, optional</span></dt><dd><p>2D array of probe coordinates. shape = (n_probes, 3). Default is None.
+If this is passed, the probes are scattered to all ranks from rank 0.
+any probe object that was not passed in rank 0 will be ignored.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh, optional</span></dt><dd><p>If this is passed, the mesh is assigned from this object.
+The mesh object is by default a distributed data type and it is treated as so.
+In other words, the mesh is not scattered to all ranks.</p>
+</dd>
+<dt><strong>write_coords</strong><span class="classifier">bool</span></dt><dd><p>If True, the probe coordinates are written to a csv file. Default is True.</p>
+</dd>
+<dt><strong>progress_bar</strong><span class="classifier">bool</span></dt><dd><p>If True, a progress bar is displayed. Default is False.</p>
+</dd>
+<dt><strong>point_interpolator_type</strong><span class="classifier">str</span></dt><dd><p>Type of point interpolator. Default is single_point_legendre.
+options are: single_point_legendre, single_point_lagrange, 
+multiple_point_legendre_numpy, multiple_point_legendre_torch.</p>
+</dd>
+<dt><strong>max_pts</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum number of points to interpolate. Default is 128. Used if multiple point interpolator is selected.</p>
+</dd>
+<dt><strong>find_points_comm_pattern</strong><span class="classifier">str</span></dt><dd><p>Communication pattern for finding points. Default is point_to_point.
+options are: point_to_point, collective.</p>
+</dd>
+<dt><strong>elem_percent_expansion</strong><span class="classifier">float</span></dt><dd><p>Percentage expansion of the element bounding box. Default is 0.01.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>A sample input file can be found in the examples folder of the main repository,
+However, the file is not used in said example.</p>
+<p class="rubric">Examples</p>
+<ol class="arabic simple">
+<li><p>Initialize from file:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.interpolation.probes</span> <span class="kn">import</span> <span class="n">Probes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probes</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;path/to/params.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>2. Initialize from code, passing everything as arguments.
+Assume msh is created. One must then create the probe data in
+rank 0. A dummy probe_data must be created in all other ranks</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.interpolation.probes</span> <span class="kn">import</span> <span class="n">Probes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">probes_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">probes_data</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probes</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">probes</span><span class="o">=</span><span class="n">probes_data</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that probes is initialized in all ranks, but the probe_data containing
+the coordinates are only relevant in rank 0. They are scattered internally.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>probes</strong><span class="classifier">ndarray</span></dt><dd><p>2D array of probe coordinates. shape = (n_probes, 3). Held at Rank 0.</p>
+</dd>
+<dt><strong>interpolated_fields</strong><span class="classifier">ndarray</span></dt><dd><p>2D array of interpolated fields at probes. shape = (n_probes, n_fields + 1). Held at Rank 0.
+The first column is always time, the rest are the interpolated fields.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.interpolation.probes.Probes.IoData" title="pynektools.interpolation.probes.Probes.IoData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IoData</span></code></a>(params_file)</p></td>
+<td><p>Class to store the input/output data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.interpolation.probes.Probes.interpolate_from_field_list" title="pynektools.interpolation.probes.Probes.interpolate_from_field_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_from_field_list</span></code></a>(t, field_list, comm)</p></td>
+<td><p>Interpolate the probes from a list of fields.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.interpolation.probes.Probes.interpolate_from_hexadata_and_writecsv" title="pynektools.interpolation.probes.Probes.interpolate_from_hexadata_and_writecsv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_from_hexadata_and_writecsv</span></code></a>(...)</p></td>
+<td><p>Method to interpolate fields from a hexadata object and write to a csv file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.interpolation.probes.Probes.read_fld_file" title="pynektools.interpolation.probes.Probes.read_fld_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_fld_file</span></code></a>(file_number, comm)</p></td>
+<td><p>Method to read an fld file and return a hexadata object.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.interpolation.probes.Probes.IoData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">IoData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.interpolation.probes.Probes.IoData" title="Link to this definition"></a></dt>
+<dd><p>Class to store the input/output data.</p>
+<p>Support class to hold paths to probe, msh, and output data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>params_file</strong><span class="classifier">dict</span></dt><dd><p>Dictionary containing the paths to the data. Extracted from JSON input.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.interpolation.probes.Probes.interpolate_from_field_list">
+<span class="sig-name descname"><span class="pre">interpolate_from_field_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.interpolation.probes.Probes.interpolate_from_field_list" title="Link to this definition"></a></dt>
+<dd><p>Interpolate the probes from a list of fields.</p>
+<p>This method interpolates from a list of fields (ndarrays of shape (nelv, lz, ly, lx)).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>t</strong><span class="classifier">float</span></dt><dd><p>Time of the field data.</p>
+</dd>
+<dt><strong>field_list</strong><span class="classifier">list</span></dt><dd><p>List of fields to interpolate. Each field is an ndarray of shape (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>write_data</strong><span class="classifier">bool</span></dt><dd><p>If True, the interpolated data is written to a csv file. Default is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This method can be used to interpolate fields from a list of fields. If you have 
+previosly obtained a set of fields u,v,w as ndarrays of shape (nelv, lz, ly, lx), you can:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">probes</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">[</span><span class="n">u</span><span class="p">,</span><span class="n">v</span><span class="p">,</span><span class="n">w</span><span class="p">],</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The results are stored in probes.interpolated_fields attribute.
+Remember: the first column of this attribute is always the time t given.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.interpolation.probes.Probes.interpolate_from_hexadata_and_writecsv">
+<span class="sig-name descname"><span class="pre">interpolate_from_hexadata_and_writecsv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rst'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.interpolation.probes.Probes.interpolate_from_hexadata_and_writecsv" title="Link to this definition"></a></dt>
+<dd><p>Method to interpolate fields from a hexadata object and write to a csv file.</p>
+<p>This method interpolates the fields with key and index specified in the input json file.</p>
+<p>The result of the interpolation results are both held in rank 0 and also written to a csv file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fld_data</strong><span class="classifier">hexadata</span></dt><dd><p>Hexadata object containing the field data.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>Mode of interpolation. only rst. This should be removed as an option.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>This method can be used in conjuction to the read_fld_file method to interpolate and write to a csv file.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fld_data</span> <span class="o">=</span> <span class="n">probes</span><span class="o">.</span><span class="n">read_fld_file</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">probes</span><span class="o">.</span><span class="n">interpolate_from_hexadata_and_writecsv</span><span class="p">(</span><span class="n">fld_data</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.interpolation.probes.Probes.read_fld_file">
+<span class="sig-name descname"><span class="pre">read_fld_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.interpolation.probes.Probes.read_fld_file" title="Link to this definition"></a></dt>
+<dd><p>Method to read an fld file and return a hexadata object.</p>
+<p>This method wraps the preadnek function from the io.neksuite module.
+Here we use the same file name as specified in the input json.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_number</strong><span class="classifier">int</span></dt><dd><p>The file number to read. 
+This is the number that is appended to the file name given at init.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>hexadata</dt><dd><p>Hexadata object containing the field data.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

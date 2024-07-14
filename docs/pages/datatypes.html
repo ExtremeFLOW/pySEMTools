@@ -1,43 +1,99 @@
 <!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<html lang="en" data-content_root="../">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data types &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
-    <title>Data types &#8212; PyNekTools develop documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
-    <link rel="stylesheet" type="text/css" href="../_static/classic.css?v=def86cc0" />
-    
-    <script src="../_static/documentation_options.js?v=16816911"></script>
-    <script src="../_static/doctools.js?v=9a2dae69"></script>
-    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-    
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=16816911"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interpolation" href="interpolation.html" />
     <link rel="prev" title="PyNekTools" href="../index.html" /> 
-  </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../index.html" title="PyNekTools"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Data types</a></li> 
-      </ul>
-    </div>  
+</head>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_angular_rotation_tensor"><code class="docutils literal notranslate"><span class="pre">get_angular_rotation_tensor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_gradient"><code class="docutils literal notranslate"><span class="pre">get_gradient()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_strain_tensor"><code class="docutils literal notranslate"><span class="pre">get_strain_tensor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.write_fld_file_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_file_from_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.write_fld_subdomain_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_subdomain_from_list()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/derivation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/pod.html">POD of data in disk</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1d_data_processing.html">1D data processing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data types</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pages/datatypes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
   <section id="data-types">
-<h1>Data types<a class="headerlink" href="#data-types" title="Link to this heading">¶</a></h1>
+<h1>Data types<a class="headerlink" href="#data-types" title="Link to this heading"></a></h1>
 <p>The data types module contains class definition to hold SEM data.</p>
 <p>The main classes are:</p>
 <blockquote>
@@ -47,57 +103,219 @@
 <li><p><a class="reference internal" href="coef.html"><span class="doc">Coef</span></a></p></li>
 </ul>
 </div></blockquote>
+<p>Some functions using these classes are in the utils module. Here we show them:</p>
+<hr class="docutils" />
+<p id="module-pynektools.datatypes.utils">Module for utility functions for the datatypes module</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_angular_rotation_tensor">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_angular_rotation_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_angular_rotation_tensor" title="Link to this definition"></a></dt>
+<dd><p>Calculate the antisymetric part of the gradient.</p>
+<p>Calculate the antisymetric part of the gradient tensor, defined as:</p>
+<div class="math notranslate nohighlight">
+\[1/2 (G(u) - G(u)^T).\]</div>
+<p>Typically known in fluids as the angular rotation tensor.</p>
+<p>Another notation is: <span class="math notranslate nohighlight">\(1/2 (\partial{u_i}/\partial{x}_j - \partial{u}_j/\partial{x}_i)\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>grad_u</strong><span class="classifier">ndarray</span></dt><dd><p>Gradient of a field. A 6D ndarray with the shape (nelv, lz, ly, lx, 3, 3) for 3d data.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>A 6D ndarrays with the shape (nelv, lz, ly, lx, 3, 3).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>For grad</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aij</span> <span class="o">=</span> <span class="n">get_angular_rotation_tensor</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">msh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Useful for postprocessing</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_gradient">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_gradient" title="Link to this definition"></a></dt>
+<dd><p>Get gradient from a 3D field vector field wrt x, y, z directions.</p>
+<p>The gradient of a vector field is a tensor. The gradient of a scalar field is a vector field.</p>
+<p>For each point in a vector field <span class="math notranslate nohighlight">\(u_i = [u_1, u_2, u_3]\)</span> in space with coordinates
+<span class="math notranslate nohighlight">\(x_j = [x, y, z]\)</span>, the gradient is a 3x3 tensor <span class="math notranslate nohighlight">\(G(u)_{i,j}\)</span> with:</p>
+<div class="math notranslate nohighlight">
+\[G(u)_{i,j} = \partial{u_i}/\partial{x_j}.\]</div>
+<p>whith <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(j\)</span> being the rows and columns of the matrix, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+<dt><strong>coef</strong><span class="classifier">Coef</span></dt><dd><p>A coef object.</p>
+</dd>
+<dt><strong>field_list</strong><span class="classifier">list</span></dt><dd><p>A list of the vector/scalar fields to calcule the 3D gradient to.
+Each entry in the list should be a 4D ndarray with the shape (nelv, lz, ly, lx).
+(Default value = None).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>A 6D ndarray with the shape (nelv, lz, ly, lx, number_of_fields, 3).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Each point in a vector field u(x,y,z), v(x,y,z), w(x,y,z) has a gradient (jacobian) that is a 3x3 tensor.</p>
+<p>Each point in a scalar field s(x,y,z) has a gradient (jacobian) that is a 1x3 tensor.</p>
+<p>The resulting gradient is a 6D tensor with the shape (nelv, lz, ly, lx, number_of_fields, 3).</p>
+<p class="rubric">Examples</p>
+<p>For fields grad_u</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">grad</span> <span class="o">=</span> <span class="n">get_gradient</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">coef</span><span class="p">,</span> <span class="p">[</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_strain_tensor">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_strain_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_strain_tensor" title="Link to this definition"></a></dt>
+<dd><p>Calculate the symetric part of the gradient.</p>
+<p>Calculate the symetric part of the gradient tensor, defined as:</p>
+<div class="math notranslate nohighlight">
+\[1/2 (G(u) + G(u)^T).\]</div>
+<p>Typically known in fluids as the strain tensor.</p>
+<p>Another notation is: <span class="math notranslate nohighlight">\(1/2 (\partial{u_i}/\partial{x}_j + \partial{u}_j/\partial{x}_i)\)</span>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>grad_u</strong><span class="classifier">ndarray</span></dt><dd><p>Gradient of a field. A 6D ndarray with the shape (nelv, lz, ly, lx, 3, 3) for 3d data.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>A 6D ndarrays with the shape (nelv, lz, ly, lx, 3, 3).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>For grad</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sij</span> <span class="o">=</span> <span class="n">get_strain_tensor</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">msh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Useful for postprocessing</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.write_fld_file_from_list">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_file_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.write_fld_file_from_list" title="Link to this definition"></a></dt>
+<dd><p>Write fld file from a field list, each field written as a scalar.</p>
+<p>This function writes a fld from a field list in the scalar positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the file to be written.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>A communicator object.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+<dt><strong>field_list</strong><span class="classifier">list</span></dt><dd><dl class="simple">
+<dt>A list of the fields to be written to the file.</dt><dd><p>(Default value = None).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Having defined ndarrays u, v, w of shape (nelv, lz, ly, lx). To write them as scalars in the file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">write_fld_file_from_list</span><span class="p">(</span><span class="s2">&quot;field0.f00001&quot;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="p">,</span> <span class="p">[</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>To write them in positions 0, 1, 2 of the vel keyword in the file, you should not use this function, and instead
+create a empty field object and update its metadata with the correct positions.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span> <span class="o">=</span> <span class="n">field_c</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">update_vars</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_data</span> <span class="o">=</span> <span class="n">create_hexadata_from_msh_fld</span><span class="p">(</span><span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">out_fld</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pwritenek</span><span class="p">(</span><span class="s2">&quot;field0.f00001&quot;</span><span class="p">,</span> <span class="n">out_data</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This function just wraps these commands and assumes they will be in the scalar keyword.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.write_fld_subdomain_from_list">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_subdomain_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.write_fld_subdomain_from_list" title="Link to this definition"></a></dt>
+<dd><p>Write a subdomain and p-refine of the sem mesh into an fld file from a field list.</p>
+<p>This function writes a fld from a field list in the scalar positions.
+In a subdomain specified by the list of list subdomain.</p>
+<p>If p is not None, the mesh is refined/coarsened.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the file to be written.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>A communicator object.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+<dt><strong>field_list</strong><span class="classifier">list</span></dt><dd><p>A list of the fields to be written to the file.
+(Default value = None).</p>
+</dd>
+<dt><strong>subdomain</strong><span class="classifier">list</span></dt><dd><p>A list of lists with the subdomain to be written.
+the format is: subdomain = [[x_min, x_max],[y_min, y_max],[z_min, z_max]].
+(Default value = []).</p>
+</dd>
+<dt><strong>p</strong><span class="classifier">int, optional</span></dt><dd><p>Polynomial degree of the new mesh. If None, the mesh is not refined/coarsened.
+(Default value = None).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
-            <div class="clearer"></div>
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <div>
-    <h4>Previous topic</h4>
-    <p class="topless"><a href="../index.html"
-                          title="previous chapter">PyNekTools</a></p>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="PyNekTools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="interpolation.html" class="btn btn-neutral float-right" title="Interpolation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
   </div>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/pages/datatypes.rst.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<search id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</search>
-<script>document.getElementById('searchbox').style.display = "block"</script>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../index.html" title="PyNekTools"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">PyNekTools develop documentation</a> &#187;</li>
-        <li class="nav-item nav-item-this"><a href="">Data types</a></li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-    &#169; Copyright 2024, Neko authors.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
-    </div>
-  </body>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
 </html>
