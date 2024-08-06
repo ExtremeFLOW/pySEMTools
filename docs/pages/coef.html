@@ -86,7 +86,7 @@
 <p>Descriptions of the contents of the Coef class, which cotntains matrices to perform operation on SEM data.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.coef.</span></span><span class="sig-name descname"><span class="pre">Coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.coef.</span></span><span class="sig-name descname"><span class="pre">Coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_area</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_1d_operators</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef" title="Link to this definition"></a></dt>
 <dd><p>Class that contains arrays like mass matrix, jacobian, jacobian inverse, etc.</p>
 <p>This class can be used when mathematical operations such as derivation and integration is needed on the sem mesh.</p>
 <dl class="field-list simple">
@@ -95,6 +95,10 @@
 <dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>Mesh object.</p>
 </dd>
 <dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI comminicator object.</p>
+</dd>
+<dt><strong>get_area</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, the area integration weight and normal vectors will be calculated. (Default value = True).</p>
+</dd>
+<dt><strong>apply_1d_operators</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, the 1D operators will be applied instead of building 3D operators. (Default value = True).</p>
 </dd>
 </dl>
 </dd>
@@ -147,7 +151,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dssum" title="pynektools.datatypes.coef.Coef.dssum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum</span></code></a>(field, msh)</p></td>
 <td><p>Peform average of given field over shared points in each rank.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst" title="pynektools.datatypes.coef.Coef.dudrst"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst</span></code></a>(field, dr)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst" title="pynektools.datatypes.coef.Coef.dudrst"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst</span></code></a>(field[, direction])</p></td>
+<td><p>Perform derivative with respect to reference coordinate r/s/t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst_1d_operator" title="pynektools.datatypes.coef.Coef.dudrst_1d_operator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst_1d_operator</span></code></a>(field, dr, ds[, dt])</p></td>
+<td><p>Perform derivative with respect to reference coordinate r.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudrst_3d_operator" title="pynektools.datatypes.coef.Coef.dudrst_3d_operator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst_3d_operator</span></code></a>(field, dr)</p></td>
 <td><p>Perform derivative with respect to reference coordinate r.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.coef.Coef.dudxyz" title="pynektools.datatypes.coef.Coef.dudxyz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudxyz</span></code></a>(field, drdx, dsdx[, dtdx])</p></td>
@@ -189,7 +199,63 @@ dssum might be a missleading name.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dudrst">
-<span class="sig-name descname"><span class="pre">dudrst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudrst" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">dudrst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudrst" title="Link to this definition"></a></dt>
+<dd><p>Perform derivative with respect to reference coordinate r/s/t.</p>
+<p>Used to perform the derivative in the reference coordinates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to take derivative of. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">str</span></dt><dd><p>Direction to take the derivative. Can be ‘r’, ‘s’, or ‘t’. (Default value = ‘r’).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Derivative of the field with respect to r/s/t. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dudrst_1d_operator">
+<span class="sig-name descname"><span class="pre">dudrst_1d_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudrst_1d_operator" title="Link to this definition"></a></dt>
+<dd><p>Perform derivative with respect to reference coordinate r.</p>
+<p>This method uses derivation matrices from the lagrange polynomials at the GLL points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to take derivative of. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>dr</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative matrix in the r direction to apply to each element. Shape should be (lx, lx).</p>
+</dd>
+<dt><strong>ds</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative matrix in the s direction to apply to each element. Shape should be (ly, ly).</p>
+</dd>
+<dt><strong>dt</strong><span class="classifier">ndarray</span></dt><dd><p>Derivative matrix in the t direction to apply to each element. Shape should be (lz, lz).
+This is optional. If none is passed, it is assumed that the field is 2D.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Derivative of the field with respect to r/s/t. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming you have a Coef object</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dxdr</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudrst</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dr</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.coef.Coef.dudrst_3d_operator">
+<span class="sig-name descname"><span class="pre">dudrst_3d_operator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.coef.Coef.dudrst_3d_operator" title="Link to this definition"></a></dt>
 <dd><p>Perform derivative with respect to reference coordinate r.</p>
 <p>This method uses derivation matrices from the lagrange polynomials at the GLL points.</p>
 <dl class="field-list simple">

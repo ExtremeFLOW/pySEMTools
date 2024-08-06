@@ -148,6 +148,98 @@ some information about the partitioning of the domain.</p>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_common" title="pynektools.datatypes.msh.Mesh.init_common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_common</span></code></a>(comm)</p></td>
+<td><p>Initialize common attributes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_from_coords" title="pynektools.datatypes.msh.Mesh.init_from_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_coords</span></code></a>(comm, x, y, z)</p></td>
+<td><p>Initialize from coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_from_data" title="pynektools.datatypes.msh.Mesh.init_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_data</span></code></a>(comm, data)</p></td>
+<td><p>Initialize form data.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>create_connectivity</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_common">
+<span class="sig-name descname"><span class="pre">init_common</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_common" title="Link to this definition"></a></dt>
+<dd><p>Initialize common attributes.</p>
+<p>This function is used to initialize the common attributes of the mesh object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator object.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>Nothing is returned, the attributes are set in the object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_from_coords">
+<span class="sig-name descname"><span class="pre">init_from_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_from_coords" title="Link to this definition"></a></dt>
+<dd><p>Initialize from coordinates.</p>
+<p>This function is used to initialize the mesh object from x, y, z ndarrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator object.</p>
+</dd>
+<dt><strong>x</strong><span class="classifier">ndarray</span></dt><dd><p>X coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">ndarray</span></dt><dd><p>Y coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>z</strong><span class="classifier">ndarray</span></dt><dd><p>Z coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>Nothing is returned, the attributes are set in the object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_from_data">
+<span class="sig-name descname"><span class="pre">init_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_from_data" title="Link to this definition"></a></dt>
+<dd><p>Initialize form data.</p>
+<p>This function is used to initialize the mesh object from a hexadata object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator object.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">HexaData</span></dt><dd><p>HexaData object that contains the coordinates of the domain.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>Nothing is returned, the attributes are set in the object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>

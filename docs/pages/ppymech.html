@@ -87,7 +87,7 @@
 <p id="module-pynektools.io.ppymech.neksuite">Module that wraps the parallel IO calls and put data in the pymech format</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="pynektools.io.ppymech.neksuite.preadnek">
-<span class="sig-prename descclassname"><span class="pre">pynektools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">preadnek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float64'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.ppymech.neksuite.preadnek" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">preadnek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.ppymech.neksuite.preadnek" title="Link to this definition"></a></dt>
 <dd><p>Read and fld file and return a pymech hexadata object (Parallel).</p>
 <p>Main function for readinf nek type fld filed.</p>
 <dl class="field-list simple">
@@ -138,6 +138,77 @@
 <p>Assuming you have a hexadata object already:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pwritenek</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pwritenek</span><span class="p">(</span><span class="s1">&#39;field00001.fld&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.ppymech.neksuite.pynekread">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">pynekread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.ppymech.neksuite.pynekread" title="Link to this definition"></a></dt>
+<dd><p>Read nek file and returs a pynekobject (Parallel).</p>
+<p>Main function for readinf nek type fld filed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>The filename of the fld file.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>data_dtype</strong><span class="classifier">str</span></dt><dd><p>The data type of the data in the file. (Default value = “float64”).</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>The mesh object to put the data in. (Default value = None).</p>
+</dd>
+<dt><strong>fld</strong><span class="classifier">Field</span></dt><dd><p>The field object to put the data in. (Default value = None).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>Nothing is returned, the attributes are set in the object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">msh</span> <span class="o">=</span> <span class="n">msh_c</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">field_c</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.ppymech.neksuite.pynekwrite">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">pynekwrite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wdsz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">istep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.ppymech.neksuite.pynekwrite" title="Link to this definition"></a></dt>
+<dd><p>Write and fld file and from pynekdatatypes (Parallel).</p>
+<p>Main function to write fld files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str</span></dt><dd><p>The filename of the fld file.</p>
+</dd>
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>The mesh object to write to the file. (Default value = None).</p>
+</dd>
+<dt><strong>fld</strong><span class="classifier">Field</span></dt><dd><p>The field object to write to the file. (Default value = None).</p>
+</dd>
+<dt><strong>wdsz</strong><span class="classifier">int</span></dt><dd><p>The word size of the data in the file. (Default value = 4).</p>
+</dd>
+<dt><strong>istep</strong><span class="classifier">int</span></dt><dd><p>The time step of the data. (Default value = 0).</p>
+</dd>
+<dt><strong>write_mesh</strong><span class="classifier">bool</span></dt><dd><p>If True, write the mesh data. (Default value = True).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Assuming a mesh object and field object are already present in the namespace:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pwritenek</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pynekwrite</span><span class="p">(</span><span class="s1">&#39;field00001.fld&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>
