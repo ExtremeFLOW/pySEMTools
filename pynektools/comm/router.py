@@ -337,7 +337,7 @@ class Router:
 
         return sources, recvbuff
 
-    def gather_in_root(self, data=None, root=0, dtype=None):
+    def gather_in_root(self, data=None, root=0, gather="gatherv", dtype=None):
         """
         Gathers data from all processes to the root process.
 
@@ -381,7 +381,12 @@ class Router:
         else:
             recvbuf = None
 
-        self.comm.Gatherv(sendbuf=data, recvbuf=(recvbuf, sendcounts), root=root)
+        if gather == "gatherv":
+            self.comm.Gatherv(sendbuf=data, recvbuf=(recvbuf, sendcounts), root=root)
+        elif gather == "gather":
+            self.comm.Gather(sendbuf=data, recvbuf=recvbuf, root=root)
+        else:
+            raise ValueError(f"Gather option '{gather}' not recognized.")
 
         return recvbuf, sendcounts
 
