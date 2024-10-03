@@ -390,7 +390,7 @@ class Router:
 
         return recvbuf, sendcounts
 
-    def scatter_from_root(self, data=None, sendcounts=None, root=0, dtype=None):
+    def scatter_from_root(self, data=None, sendcounts=None, root=0, scatter="scatterv", dtype=None):
         """
         Scatters data from the root process to all other processes.
 
@@ -441,8 +441,13 @@ class Router:
 
         recvbuf = np.ones(sendcounts[rank], dtype=dtype) * -100
 
-        self.comm.Scatterv(sendbuf=(sendbuf, sendcounts), recvbuf=recvbuf, root=root)
-
+        if scatter == "scatterv":
+            self.comm.Scatterv(sendbuf=(sendbuf, sendcounts), recvbuf=recvbuf, root=root)
+        elif scatter == "scatter":
+            self.comm.Scatter(sendbuf=sendbuf, recvbuf=recvbuf, root=root)
+        else:
+            raise ValueError(f"Scatter option '{scatter}' not recognized.")
+        
         return recvbuf
 
     def all_gather(self, data=None, dtype=None):
