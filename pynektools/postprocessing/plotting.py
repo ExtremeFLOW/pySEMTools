@@ -4,7 +4,7 @@ import numpy as np
 import pyvista as pv
 from typing import Union
 
-def isosurfaces(mesh: dict[str, np.ndarray], fields:dict[str, np.ndarray], isosurfaces = dict[str, np.ndarray], shape:tuple[int, int] = (1, 1), window_size: list[int] = [1920, 1080], rows_frist: bool = True, colormap: str = "coolwarm", opacity: float= 1.0) -> list[pv.Plotter]:
+def isosurfaces(mesh: dict[str, np.ndarray], fields:dict[str, np.ndarray], isosurfaces = dict[str, np.ndarray], shape:tuple[int, int] = (1, 1), window_size: list[int] = [1920, 1080], rows_frist: bool = True, colormap: str = "coolwarm", opacity: float= 1.0, off_screen = True) -> list[pv.Plotter]:
     """ Create isosurfaces of the fields in the mesh
     
     Parameters
@@ -36,7 +36,7 @@ def isosurfaces(mesh: dict[str, np.ndarray], fields:dict[str, np.ndarray], isosu
     n_plotter = requested_plots // plots_per_plotter + (requested_plots % plots_per_plotter > 0)
 
     # Create the plotter
-    pl = [pv.Plotter(shape=shape, window_size=window_size) for _ in range(n_plotter)]
+    pl = [pv.Plotter(shape=shape, window_size=window_size, off_screen=off_screen) for _ in range(n_plotter)]
 
     i_plotter = 0
     i_plot = 0
