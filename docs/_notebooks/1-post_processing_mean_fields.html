@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing statistics files &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="UQ of velocity fields" href="2-UQ_of_velocity.html" />
+    <link rel="prev" title="POD and fft from pointclouds" href="2-POD_fft_from_pointclouds.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Processing statistics files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Index-the-files">Index the files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Average-in-time">Average in time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Interpolate">Interpolate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#1.-index-the-new-outputs">1. index the new outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#2.-Use-wrapper-function-to-interpolate">2. Use wrapper function to interpolate</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Visualize-the-data-in-the-cylindrical-mesh">Visualize the data in the cylindrical mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#field-keys">field keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Rotate-the-data-to-cylindrical-coordinates">Rotate the data to cylindrical coordinates</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Processing statistics files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/1-post_processing_mean_fields.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Processing-statistics-files">
+<h1>Processing statistics files<a class="headerlink" href="#Processing-statistics-files" title="Link to this heading"></a></h1>
+<p>In this example we show how one can use pynektools to process statistics</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYNEKTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Index-the-files">
+<h3>Index the files<a class="headerlink" href="#Index-the-files" title="Link to this heading"></a></h3>
+<p>The first step we will do is to index the files that we will use for this example. By indexing we mean that we will gather a json file that will contain all the information of the files we want to process. We do this to ease the process of averaging, since we can easily inspect what are the attributes of the files.</p>
+<p>In our case we will index statistics files produced from neko, but one could also index other type of files. This only works for nek5000 type of files.</p>
+<p>you can check the documentation for this. We note that at this stage, it is important to include the time interval in the indexing.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.file_indexing</span> <span class="kn">import</span> <span class="n">index_files_from_folder</span>
+
+<span class="n">index_files_from_folder</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;../data/sem_data/statistics/cylinder_rbc_nelv_600/&quot;</span><span class="p">,</span> <span class="n">run_start_time</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">stat_start_time</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean_field.fld&quot;</span><span class="p">,</span> <span class="s2">&quot;stats.fld&quot;</span><span class="p">],</span> <span class="n">include_file_contents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_time_interval</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+=========================================================================================
+</pre></div></div>
+</div>
+<p>Now we have written a file index with the two types of files in the input folder. If you inspect the file, you will see that there is a lot of information regarding the files. We will use this info to average them in time.</p>
+</section>
+<section id="Average-in-time">
+<h3>Average in time<a class="headerlink" href="#Average-in-time" title="Link to this heading"></a></h3>
+<p>For this, we simply give as inputs the files that we just wrote.</p>
+<p>In this case, we are choosing the output batch lenght to be a very large number, such that we do not get average batches, but instead we average all the files. The mesh index indicates which is the json index of the files that contain the mesh.</p>
+<p>You can check more about the arguments of the functions if you inspect them.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.statistics.time_averaging</span> <span class="kn">import</span> <span class="n">average_field_files</span>
+
+<span class="c1"># Average the mean fields</span>
+<span class="n">average_field_files</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_index_name</span><span class="o">=</span><span class="s2">&quot;mean_field_index.json&quot;</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="s2">&quot;low_order_stats&quot;</span><span class="p">,</span> <span class="n">output_batch_t_len</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="n">mesh_index</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">output_word_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Average the stats fields</span>
+<span class="n">average_field_files</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_index_name</span><span class="o">=</span><span class="s2">&quot;stats_index.json&quot;</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">output_name</span><span class="o">=</span><span class="s2">&quot;high_order_stats&quot;</span><span class="p">,</span> <span class="n">output_batch_t_len</span><span class="o">=</span><span class="mi">50000</span><span class="p">,</span> <span class="n">mesh_index</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">output_word_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+=================================================================================================
+=================================================================================================
+=================================================================================================
+=================================================================================================
+</pre></div></div>
+</div>
+<p>done! now you have obtained some fld files that contain 3D time averaged data in an spectral mesh. With this, you can easily visualize it in paraview or visit.</p>
+</section>
+<section id="Interpolate">
+<h3>Interpolate<a class="headerlink" href="#Interpolate" title="Link to this heading"></a></h3>
+<p>The data for this example corresponds to a simulation on a cylinder. Because of this we would like to interpolate form the spectral element mesh into a cylindrical mesh.</p>
+<p>You can see example 4.5 to see how this mesh is created. In here, we use the results from that script to interpolate the data.</p>
+<section id="1.-index-the-new-outputs">
+<h4>1. index the new outputs<a class="headerlink" href="#1.-index-the-new-outputs" title="Link to this heading"></a></h4>
+<p>We will initially index the new outputs just to have a convenient way to know the path of our data.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index_files_from_folder</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;low_order_stats.fld&quot;</span><span class="p">,</span> <span class="s2">&quot;high_order_stats.fld&quot;</span><span class="p">],</span> <span class="n">include_file_contents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_time_interval</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+=========================================================================================
+</pre></div></div>
+</div>
+</section>
+<section id="2.-Use-wrapper-function-to-interpolate">
+<h4>2. Use wrapper function to interpolate<a class="headerlink" href="#2.-Use-wrapper-function-to-interpolate" title="Link to this heading"></a></h4>
+<p>now that we have indexed, we can use this to interpolate. We will use a wrapper function to interpolate the contents of the files. You can check example 4.6 for more details.</p>
+<p>For this, we first need to prepare a “settings” file</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.interpolation.wrappers</span> <span class="kn">import</span> <span class="n">interpolate_fields_from_disk</span>
+
+<span class="c1"># Set the inputs for the first set of files</span>
+<span class="n">query_points_fname</span> <span class="o">=</span> <span class="s2">&quot;../4-interpolation/points.hdf5&quot;</span>
+<span class="n">sem_mesh_fname</span> <span class="o">=</span> <span class="s2">&quot;./low_order_stats0.f00000&quot;</span>
+<span class="n">interpolated_fields_output_fname</span> <span class="o">=</span> <span class="s2">&quot;./low_order_stats_interpolated.hdf5&quot;</span>
+<span class="n">field_interpolation_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;file_index&quot;</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;file_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;low_order_stats_index.json&quot;</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;fields_to_interpolate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<span class="n">interpolate_fields_from_disk</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="n">sem_mesh_fname</span><span class="p">,</span> <span class="n">field_interpolation_dictionary</span><span class="p">,</span> <span class="n">interpolated_fields_output_fname</span><span class="o">=</span><span class="n">interpolated_fields_output_fname</span><span class="p">)</span>
+
+<span class="c1"># Set the inputs for the second set of files</span>
+<span class="n">query_points_fname</span> <span class="o">=</span> <span class="s2">&quot;../4-interpolation/points.hdf5&quot;</span>
+<span class="n">sem_mesh_fname</span> <span class="o">=</span> <span class="s2">&quot;./high_order_stats0.f00000&quot;</span>
+<span class="n">interpolated_fields_output_fname</span> <span class="o">=</span> <span class="s2">&quot;./high_order_stats_interpolated.hdf5&quot;</span>
+<span class="n">field_interpolation_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;file_index&quot;</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;file_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;high_order_stats_index.json&quot;</span>
+<span class="n">field_interpolation_dictionary</span><span class="p">[</span><span class="s1">&#39;fields_to_interpolate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+<span class="n">interpolate_fields_from_disk</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="n">sem_mesh_fname</span><span class="p">,</span> <span class="n">field_interpolation_dictionary</span><span class="p">,</span> <span class="n">interpolated_fields_output_fname</span><span class="o">=</span><span class="n">interpolated_fields_output_fname</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Visualize-the-data-in-the-cylindrical-mesh">
+<h3>Visualize the data in the cylindrical mesh<a class="headerlink" href="#Visualize-the-data-in-the-cylindrical-mesh" title="Link to this heading"></a></h3>
+<p>We can now load the data and check it out.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+
+
+<span class="c1"># Load the mesh</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Load the interpolated data</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./low_order_stats_interpolated00001.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">][:]</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">][:]</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Create a structured mesh</span>
+<span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
+<span class="c1"># plot first row</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="c1">#pl.show()</span>
+
+<span class="c1"># Capture the plot as an image and show it</span>
+<span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-post_processing_mean_fields_12_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_12_0.png" />
+</div>
+</div>
+</section>
+<section id="field-keys">
+<h3>field keys<a class="headerlink" href="#field-keys" title="Link to this heading"></a></h3>
+<p>The interpolated fields and also the fields read from nek5000 have a set of given keys. One could know what each of the keys represent by heart, but we have also provided some “indices” to help identify what is what.</p>
+<p>It can be used as folows:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.statistics.file_field_index</span> <span class="kn">import</span> <span class="n">file_field_index</span>
+
+<span class="c1"># Specify the source of the data</span>
+<span class="n">key_index</span> <span class="o">=</span> <span class="n">file_field_index</span><span class="p">(</span><span class="n">source_code</span><span class="o">=</span><span class="s2">&quot;Neko_old&quot;</span><span class="p">)</span> <span class="c1"># Neko old alludes to statistics written between 2 files</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;U&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+u
+</pre></div></div>
+</div>
+<p>see that printing the field_key of U gives</p>
+</section>
+<section id="Rotate-the-data-to-cylindrical-coordinates">
+<h3>Rotate the data to cylindrical coordinates<a class="headerlink" href="#Rotate-the-data-to-cylindrical-coordinates" title="Link to this heading"></a></h3>
+<p>In this instance, it is beneficial to rotate the data given the shape of our domain</p>
+<p>Some of the terms that we have in our files are tensors and require special treatment. However we will rotate only some of the quantities.</p>
+<p>Here we will go through the tensors and apply rotations depending on what is needed since the rotation must be applied differently depending on the rank of the tensor.</p>
+<p>The user must provide a rotation matrix fuction that generates a rotation matrix given the coordinates. For this case, we can use one included in pynektools, since this is simply a cylinder.</p>
+<p>The tensor_components list should contain the keys to be used to identify the tensor components in the file.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.rotations</span> <span class="kn">import</span> <span class="n">cartesian_to_cylindrical_rotation_matrix</span> <span class="k">as</span> <span class="n">rotation_matrix</span>
+<span class="kn">from</span> <span class="nn">pynektools.postprocessing.rotations</span> <span class="kn">import</span> <span class="n">rotate_tensor</span>
+
+<span class="c1"># Specify the components of the tensor. This should match the key in the file</span>
+<span class="n">tensor_components</span> <span class="o">=</span> <span class="p">[</span><span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;U&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;V&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;W&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">]]</span>
+<span class="n">rotate_tensor</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="s2">&quot;./low_order_stats_interpolated00001.hdf5&quot;</span><span class="p">,</span> <span class="n">tensor_components</span><span class="p">,</span> <span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="n">output_field_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">,</span> <span class="s2">&quot;U_th&quot;</span><span class="p">,</span> <span class="s2">&quot;U_z&quot;</span><span class="p">])</span>
+
+<span class="c1"># Specify the components of the tensor. This should match the key in the file</span>
+<span class="n">tensor_components</span> <span class="o">=</span> <span class="p">[</span><span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;UU&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;UV&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;UW&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;UV&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;VV&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;VW&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;UW&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;VW&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">],</span> <span class="n">key_index</span><span class="p">[</span><span class="s2">&quot;WW&quot;</span><span class="p">][</span><span class="s2">&quot;pynek_field_key&quot;</span><span class="p">]]</span>
+<span class="n">rotate_tensor</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="s2">&quot;./high_order_stats_interpolated00001.hdf5&quot;</span><span class="p">,</span> <span class="n">tensor_components</span><span class="p">,</span> <span class="n">rotation_matrix</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;./rotated_reynolds_stress.hdf5&quot;</span><span class="p">,</span> <span class="n">output_field_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;U_rU_r&quot;</span><span class="p">,</span> <span class="s2">&quot;U_rU_th&quot;</span><span class="p">,</span> <span class="s2">&quot;U_rU_z&quot;</span><span class="p">,</span> <span class="s2">&quot;U_thU_r&quot;</span><span class="p">,</span> <span class="s2">&quot;U_thU_th&quot;</span><span class="p">,</span> <span class="s2">&quot;U_thU_z&quot;</span><span class="p">,</span> <span class="s2">&quot;U_zU_r&quot;</span><span class="p">,</span> <span class="s2">&quot;U_zU_th&quot;</span><span class="p">,</span> <span class="s2">&quot;U_zU_z&quot;</span><span class="p">])</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="Visualize-the-rotated-mean">
+<h1>Visualize the rotated mean<a class="headerlink" href="#Visualize-the-rotated-mean" title="Link to this heading"></a></h1>
+<p>Now check out how the rotated quantities look</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the mesh</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Load the interpolated data</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">][:]</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_th&quot;</span><span class="p">][:]</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Create a structured mesh</span>
+<span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
+<span class="c1"># plot first row</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+
+<span class="c1">#pl.show()</span>
+
+<span class="c1"># Capture the plot as an image and show it</span>
+<span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-post_processing_mean_fields_19_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_19_0.png" />
+</div>
+</div>
+<p>In this case, we can average in the azimuthal direction.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load mass matrix</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">bm</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">][:]</span>
+<span class="n">bm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+<span class="c1"># Load the mesh</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;r&quot;</span><span class="p">][:]</span>
+    <span class="n">th</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;th&quot;</span><span class="p">][:]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+
+
+<span class="c1"># Load the interpolated data</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">][:]</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_th&quot;</span><span class="p">][:]</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_z&quot;</span><span class="p">][:]</span>
+
+<span class="c1">#Average in the azimuthal direction direction</span>
+<span class="n">u_rz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">v_rz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">w_rz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">z</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">u_rz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">z</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">v_rz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span><span class="n">z</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">w_rz</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="c1">#plt.show()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;contours.png&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;contours.png&quot;</span><span class="p">))</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-post_processing_mean_fields_21_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_21_0.png" />
+</div>
+</div>
+<p>Plot the rotated values in 1d, by averaging in azimuthal and radial directions. In this case, this might not be so telling, as the flow is not homogenous in the radial direction, but it have give an indication on how the flow behaves.</p>
+<p>In this case, we might have had too few points close to the wall, as we do not observe any peak in the z velocity component. Note that it would appear better if we take the square root.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load mass matrix</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">bm</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">][:]</span>
+<span class="n">bm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+<span class="c1"># Load the interpolated data</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">][:]</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_th&quot;</span><span class="p">][:]</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_z&quot;</span><span class="p">][:]</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_reynolds_stress.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">uu</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_rU_r&quot;</span><span class="p">][:]</span>
+    <span class="n">vv</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_thU_th&quot;</span><span class="p">][:]</span>
+    <span class="n">ww</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_zU_z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Average in the azimuthal direction and radial direction</span>
+<span class="n">u_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">v_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">w_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">uu_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">uu</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">vv_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vv</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">ww_z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ww</span><span class="o">*</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span><span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">u_z</span><span class="p">,</span> <span class="s1">&#39;-k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">v_z</span><span class="p">,</span> <span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_th&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">w_z</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_z&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="c1">#plt.show()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;mean_fields.png&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;mean_fields.png&quot;</span><span class="p">))</span>
+
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">uu_z</span> <span class="o">-</span> <span class="n">u_z</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;-k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_r_rms**2&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">vv_z</span> <span class="o">-</span> <span class="n">v_z</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;-b&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_th_rms**2&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">ww_z</span> <span class="o">-</span> <span class="n">w_z</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;u_z_rms**2&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;mean_rms.png&quot;</span><span class="p">)</span>
+<span class="c1">#plt.show()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;mean_rms.png&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-post_processing_mean_fields_23_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_23_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-post_processing_mean_fields_23_1.png" src="../_images/_notebooks_1-post_processing_mean_fields_23_1.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="2-POD_fft_from_pointclouds.html" class="btn btn-neutral float-left" title="POD and fft from pointclouds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="2-UQ_of_velocity.html" class="btn btn-neutral float-right" title="UQ of velocity fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

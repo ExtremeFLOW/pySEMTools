@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Derivation &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Integration" href="2-integration.html" />
+    <link rel="prev" title="Data compression" href="3-data_compression.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Derivation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Read-the-data-and-build-objects">Read the data and build objects</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Plot-the-2D-velocity-field">Plot the 2D velocity field</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Obtain-x-and-y-derivatives-of-u">Obtain x and y derivatives of u</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Plot-the-derivatives">Plot the derivatives</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Perform-dssum-on-the-derivatives-(For-serial-execution)">Perform dssum on the derivatives (For serial execution)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Plot-the-element-boundary-averaged-derivatives">Plot the element boundary averaged derivatives</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Perform-dssum-(Parallel-execution)">Perform dssum (Parallel execution)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Plot the element boundary averaged derivatives</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Derivation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/1-differentiation.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Derivation">
+<h1>Derivation<a class="headerlink" href="#Derivation" title="Link to this heading"></a></h1>
+<p>Here we show how to perform derivatives and reduce discontinuities across interfaces.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynektools">
+<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.coef</span> <span class="kn">import</span> <span class="n">Coef</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+</pre></div>
+</div>
+</div>
+<section id="Read-the-data-and-build-objects">
+<h3>Read the data and build objects<a class="headerlink" href="#Read-the-data-and-build-objects" title="Link to this heading"></a></h3>
+<p>In this instance, we create connectivity for the mesh object, given that we wish to use direct stiffness summation to reduce discontinuities.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="s1">&#39;../data/mixlay0.f00001&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">get_area</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-03 16:27:48,686 - Mesh - INFO - Initializing empty Mesh object.
+2024-09-03 16:27:48,688 - Field - INFO - Initializing empty Field object
+2024-09-03 16:27:48,689 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
+2024-09-03 16:27:48,695 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-03 16:27:48,696 - Mesh - INFO - Initializing common attributes.
+2024-09-03 16:27:48,697 - Mesh - INFO - Getting vertices
+2024-09-03 16:27:48,698 - Mesh - INFO - Getting vertices
+2024-09-03 16:27:48,704 - Mesh - INFO - Facet centers not available for 2D
+2024-09-03 16:27:48,705 - Mesh - INFO - Creating connectivity
+2024-09-03 16:27:48,994 - Mesh - INFO - Mesh object initialized.
+2024-09-03 16:27:48,995 - Mesh - INFO - Mesh data is of type: float64
+2024-09-03 16:27:48,996 - Mesh - INFO - Elapsed time: 0.3014424720000001s
+2024-09-03 16:27:48,997 - pynekread - INFO - Reading field data
+2024-09-03 16:27:49,002 - pynekread - INFO - File read
+2024-09-03 16:27:49,003 - pynekread - INFO - Elapsed time: 0.313943862s
+2024-09-03 16:27:49,004 - Coef - INFO - Initializing Coef object
+2024-09-03 16:27:49,004 - Coef - INFO - Getting derivative matrices
+2024-09-03 16:27:49,007 - Coef - INFO - Calculating the components of the jacobian
+2024-09-03 16:27:49,024 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2024-09-03 16:27:49,027 - Coef - INFO - Calculating the mass matrix
+2024-09-03 16:27:49,028 - Coef - INFO - Coef object initialized
+2024-09-03 16:27:49,028 - Coef - INFO - Coef data is of type: float64
+2024-09-03 16:27:49,029 - Coef - INFO - Elapsed time: 0.02573984000000007s
+</pre></div></div>
+</div>
+<section id="Plot-the-2D-velocity-field">
+<h4>Plot the 2D velocity field<a class="headerlink" href="#Plot-the-2D-velocity-field" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_7_0.png" src="../_images/_notebooks_1-differentiation_7_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Obtain-x-and-y-derivatives-of-u">
+<h3>Obtain x and y derivatives of u<a class="headerlink" href="#Obtain-x-and-y-derivatives-of-u" title="Link to this heading"></a></h3>
+<p>Differentiation in physical space is done by using the chain rule.</p>
+<p>We always differentiate the the field in the reference element, i.e., we get: dudr, duds, dudt (in 3d).</p>
+<p>To obtain the derivative in physical space, we must simply pass as inputs the components of the inverse of the jacobian matrix that will map the derivatives in the reference element to the direction we want.</p>
+<p>For example in this case, to get the derivative in x we need to perform:</p>
+<p>dudx = dudr * drdx + duds * dsdx</p>
+<p>Therefore:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dudx</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdx</span><span class="p">)</span>
+<span class="n">dudy</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdy</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdy</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-03 16:27:50,499 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2024-09-03 16:27:50,509 - Coef - INFO - done
+2024-09-03 16:27:50,510 - Coef - INFO - Elapsed time: 0.00976063100000002s
+2024-09-03 16:27:50,511 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2024-09-03 16:27:50,521 - Coef - INFO - done
+2024-09-03 16:27:50,521 - Coef - INFO - Elapsed time: 0.009097299999999864s
+</pre></div></div>
+</div>
+<section id="Plot-the-derivatives">
+<h4>Plot the derivatives<a class="headerlink" href="#Plot-the-derivatives" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">4.6</span><span class="p">,</span><span class="mf">7.6</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_11_0.png" src="../_images/_notebooks_1-differentiation_11_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_11_1.png" src="../_images/_notebooks_1-differentiation_11_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Perform-dssum-on-the-derivatives-(For-serial-execution)">
+<h3>Perform dssum on the derivatives (For serial execution)<a class="headerlink" href="#Perform-dssum-on-the-derivatives-(For-serial-execution)" title="Link to this heading"></a></h3>
+<p>In this instance, we call dssum the averaging procedure at the boundaries.</p>
+<p>This could be modified.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dudx_2</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dssum</span><span class="p">(</span><span class="n">dudx</span><span class="p">,</span> <span class="n">msh</span><span class="p">)</span>
+<span class="n">dudy_2</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dssum</span><span class="p">(</span><span class="n">dudy</span><span class="p">,</span> <span class="n">msh</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-03 16:27:53,239 - Coef - INFO - Averaging field over shared points in the same rank
+2024-09-03 16:27:55,852 - Coef - INFO - done
+2024-09-03 16:27:55,853 - Coef - INFO - Elapsed time: 2.6137437180000003s
+2024-09-03 16:27:55,854 - Coef - INFO - Averaging field over shared points in the same rank
+2024-09-03 16:27:58,380 - Coef - INFO - done
+2024-09-03 16:27:58,381 - Coef - INFO - Elapsed time: 2.5261967970000008s
+</pre></div></div>
+</div>
+<section id="Plot-the-element-boundary-averaged-derivatives">
+<h4>Plot the element boundary averaged derivatives<a class="headerlink" href="#Plot-the-element-boundary-averaged-derivatives" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx_2</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy_2</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">4.6</span><span class="p">,</span><span class="mf">7.6</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_15_0.png" src="../_images/_notebooks_1-differentiation_15_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_15_1.png" src="../_images/_notebooks_1-differentiation_15_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Perform-dssum-(Parallel-execution)">
+<h3>Perform dssum (Parallel execution)<a class="headerlink" href="#Perform-dssum-(Parallel-execution)" title="Link to this heading"></a></h3>
+<p>To perform parallel dssum, we must create a connectivity object that will know which vertices, edges and faces are shared between ranks.</p>
+<p>The procedure to do that is the following:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.datatypes.msh_connectivity</span> <span class="kn">import</span> <span class="n">MeshConnectivity</span>
+
+<span class="n">msh_conn</span> <span class="o">=</span> <span class="n">MeshConnectivity</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-03 16:28:01,065 - MeshConnectivity - INFO - Initializing MeshConnectivity
+2024-09-03 16:28:01,066 - MeshConnectivity - INFO - Computing local connectivity: Using vertices
+2024-09-03 16:28:02,094 - MeshConnectivity - INFO - Computing local connectivity: Using edge centers
+2024-09-03 16:28:03,111 - MeshConnectivity - INFO - Computing global connectivity: Using vertices
+2024-09-03 16:28:03,113 - MeshConnectivity - INFO - Computing global connectivity: Using edge centers
+2024-09-03 16:28:03,133 - MeshConnectivity - INFO - MeshConnectivity initialized
+2024-09-03 16:28:03,134 - MeshConnectivity - INFO - Elapsed time: 2.068017022000001s
+</pre></div></div>
+</div>
+<p>Note that the rel_tol is the relative tolerance used to determine if two points are the same in the mesh. The standard 1e-5 should suffice in most cases.</p>
+<p>The actual dssum is performed next:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dudx_3</span> <span class="o">=</span> <span class="n">msh_conn</span><span class="o">.</span><span class="n">dssum</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">dudx</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">)</span>
+<span class="n">dudy_3</span> <span class="o">=</span> <span class="n">msh_conn</span><span class="o">.</span><span class="n">dssum</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">dudy</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-03 16:28:03,145 - MeshConnectivity - INFO - Computing local dssum
+2024-09-03 16:28:03,149 - MeshConnectivity - INFO - Adding vertices
+2024-09-03 16:28:03,318 - MeshConnectivity - INFO - Adding edges
+2024-09-03 16:28:05,435 - MeshConnectivity - INFO - Local dssum computed
+2024-09-03 16:28:05,436 - MeshConnectivity - INFO - Elapsed time: 2.2869073150000006s
+2024-09-03 16:28:05,437 - MeshConnectivity - INFO - Computing local dssum
+2024-09-03 16:28:05,437 - MeshConnectivity - INFO - Adding vertices
+2024-09-03 16:28:05,532 - MeshConnectivity - INFO - Adding edges
+2024-09-03 16:28:07,707 - MeshConnectivity - INFO - Local dssum computed
+2024-09-03 16:28:07,708 - MeshConnectivity - INFO - Elapsed time: 2.2705104439999992s
+</pre></div></div>
+</div>
+<p>The average argument simply indicates that we want to perform an averaging procedure after the dssum, and that we want to do so by using the number of shared points as averaging weights.</p>
+<section id="id1">
+<h4>Plot the element boundary averaged derivatives<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx_3</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span><span class="mf">3.1</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy_3</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">4.6</span><span class="p">,</span><span class="mf">7.6</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_21_0.png" src="../_images/_notebooks_1-differentiation_21_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-differentiation_21_1.png" src="../_images/_notebooks_1-differentiation_21_1.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="3-data_compression.html" class="btn btn-neutral float-left" title="Data compression" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="2-integration.html" class="btn btn-neutral float-right" title="Integration" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

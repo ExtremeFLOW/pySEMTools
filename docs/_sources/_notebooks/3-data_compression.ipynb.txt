@@ -1,0 +1,182 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "31a94bbd-34ef-404b-a9be-4f3a216a8c3c",
+   "metadata": {},
+   "source": [
+    "# Data compression\n",
+    "\n",
+    "Just as we have shown IO with nek type data. We can also employ ADIOS2 to, for example, compress data.\n",
+    "\n",
+    "In this example we show a minimun case.\n",
+    "\n",
+    "#### Import general modules\n",
+    "\n",
+    "mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "8b4ca2be-46e8-443b-ab44-6d1a60abfec4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Import required modules\n",
+    "from mpi4py import MPI #equivalent to the use of MPI_init() in C\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "\n",
+    "# Get mpi info\n",
+    "comm = MPI.COMM_WORLD"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1702ba96-7854-4a2f-89d2-7f2b2aaa61b1",
+   "metadata": {},
+   "source": [
+    "#### Import modules from pynektools"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "09a4efe8-3557-4ff7-850e-0a26c8937bd6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Data types\n",
+    "from pynektools.datatypes.msh import Mesh\n",
+    "from pynektools.datatypes.coef import Coef\n",
+    "from pynektools.datatypes.field import FieldRegistry\n",
+    "\n",
+    "# Readers\n",
+    "from pynektools.io.ppymech.neksuite import pynekread\n",
+    "\n",
+    "fname = '../data/rbc0.f00001'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6346fcd3",
+   "metadata": {},
+   "source": [
+    "## Data compression with ADIOS2\n",
+    "\n",
+    "To compress data, we only need to pass a mesh and field object to the adios2 wrapper function. The inputs are somewhat similar to those of other IO functions used in the examples so far.\n",
+    "\n",
+    "### Writing\n",
+    "\n",
+    "In this case we write the data in single precision, by indicating a wdsz of 4 bytes."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "638f358b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-08-25 20:01:50,581 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-08-25 20:01:50,582 - Field - INFO - Initializing empty Field object\n",
+      "2024-08-25 20:01:50,583 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-08-25 20:01:50,593 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 20:01:50,594 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 20:01:50,595 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 20:01:50,595 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 20:01:50,596 - Mesh - INFO - Elapsed time: 0.0023964810000000007s\n",
+      "2024-08-25 20:01:50,596 - pynekread - INFO - Reading field data\n",
+      "2024-08-25 20:01:50,603 - pynekread - INFO - File read\n",
+      "2024-08-25 20:01:50,604 - pynekread - INFO - Elapsed time: 0.021368915s\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Adios2 wrappers\n",
+    "from pynektools.io.adios2.compress import write_field, read_field\n",
+    "\n",
+    "# Instance the empty objects\n",
+    "msh = Mesh(comm, create_connectivity=False)\n",
+    "fld = FieldRegistry(comm)\n",
+    "\n",
+    "# Read the data\n",
+    "pynekread(fname, comm, data_dtype=np.single, msh=msh, fld = fld)\n",
+    "\n",
+    "# Write the data in a subdomain and with a different order than what was read\n",
+    "fout = 'compressed_rbc0.f00001'\n",
+    "wrd_size = 4\n",
+    "\n",
+    "write_field(comm, msh=msh, fld=fld, fname=fout, wrd_size=wrd_size, write_mesh=True)\n",
+    "\n",
+    "comm.Barrier() # This is not needed, in general. Here just ensure we don't overlap the read and write operations"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "251ec383",
+   "metadata": {},
+   "source": [
+    "### Reading\n",
+    "\n",
+    "Great! Now if you wish to read the data, simply use the corresponding function."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "e43aa869",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Updated header from file to:: glb_nlv: 600, lxyz: 512,  gdim: 3, dtype: <class 'numpy.float32'>\n",
+      "2024-08-25 20:01:51,809 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 20:01:51,810 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 20:01:51,811 - Mesh - INFO - Creating connectivity\n",
+      "2024-08-25 20:01:52,043 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 20:01:52,043 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 20:01:52,044 - Mesh - INFO - Elapsed time: 0.23442057199999988s\n",
+      "2024-08-25 20:01:52,044 - Field - INFO - Initializing empty Field object\n",
+      "True\n",
+      "True\n"
+     ]
+    }
+   ],
+   "source": [
+    "msh2, fld2 = read_field(comm, fname=fout)\n",
+    "\n",
+    "# Check if the data written and read are the same!\n",
+    "print(np.allclose(msh.x, msh2.x))\n",
+    "print(np.allclose(fld.fields['temp'][0], fld2.fields['temp'][0]))"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

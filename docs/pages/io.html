@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,23 +8,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>InputOutput (I/O) &mdash; PyNekTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=16816911"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Derivation" href="../_notebooks/derivation.html" />
+    <link rel="next" title="Data types and IO" href="../_notebooks/1-datatypes_io.html" />
     <link rel="prev" title="Interpolation" href="interpolation.html" /> 
 </head>
 
@@ -49,14 +47,45 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">InputOutput (I/O)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">InputOutput (I/O)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.io.wrappers.read_data"><code class="docutils literal notranslate"><span class="pre">read_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.io.wrappers.write_data"><code class="docutils literal notranslate"><span class="pre">write_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.io.read_probes.ProbesReader"><code class="docutils literal notranslate"><span class="pre">ProbesReader</span></code></a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/derivation.html">Derivation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/pod.html">POD of data in disk</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1d_data_processing.html">1D data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -93,6 +122,81 @@
 <li><p><a class="reference internal" href="adios2.html"><span class="doc">adios2</span></a></p></li>
 </ul>
 </div></blockquote>
+<p>We have developed wrapper functions that can be used to read and write data in a more user-friendly way. Here we show them:</p>
+<hr class="docutils" />
+<p id="module-pynektools.io.wrappers">Wrappers to ease IO</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.wrappers.read_data">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">keys:</span> <span class="pre">list[str],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.wrappers.read_data" title="Link to this definition"></a></dt>
+<dd><p>Read data from a file and return a dictionary with the names of the files and keys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm, MPI.Comm</strong></dt><dd><p>The MPI communicator</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>The name of the file to read</p>
+</dd>
+<dt><strong>keys</strong><span class="classifier">list[str]</span></dt><dd><p>The keys to read from the file</p>
+</dd>
+<dt><strong>parallel_io</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, read the file in parallel, by default False. This is aimed for hdf5 files, and currently it does not work if True</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict</dt><dd><p>A dictionary with the keys and the data read from the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.io.wrappers.write_data">
+<span class="sig-prename descclassname"><span class="pre">pynektools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">write_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">data_dict:</span> <span class="pre">dict[str,</span> <span class="pre">~numpy.ndarray],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;,</span> <span class="pre">msh:</span> <span class="pre">~pynektools.datatypes.msh.Mesh</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">write_mesh:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.wrappers.write_data" title="Link to this definition"></a></dt>
+<dd><p>Write data to a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm, MPI.Comm</strong></dt><dd><p>The MPI communicator</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>The name of the file to write</p>
+</dd>
+<dt><strong>data_dict</strong><span class="classifier">dict</span></dt><dd><p>The data to write to the file</p>
+</dd>
+<dt><strong>parallel_io</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, write the file in parallel, by default False. This is aimed for hdf5 files, and currently it does not work if True</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype, optional</span></dt><dd></dd>
+<dt><strong>msh</strong><span class="classifier">Mesh, optional</span></dt><dd><p>The mesh object to write to a fld file, by default None</p>
+</dd>
+<dt><strong>write_mesh</strong><span class="classifier">bool, optional</span></dt><dd><p>Only valid for writing fld files</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Additionally, there exist a class to read probes written in the csv format. Here we show it:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pynektools.io.read_probes.ProbesReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.io.read_probes.</span></span><span class="sig-name descname"><span class="pre">ProbesReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.read_probes.ProbesReader" title="Link to this definition"></a></dt>
+<dd><p>A class to read probed fields from a Neko simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>points</strong><span class="classifier">np.ndarray of floats</span></dt><dd><p>The probe locations.</p>
+</dd>
+<dt><strong>times</strong><span class="classifier">np.array of floats</span></dt><dd><p>The times at each time step.</p>
+</dd>
+<dt><strong>field_names</strong><span class="classifier">list of strings</span></dt><dd><p>The names of the fields.</p>
+</dd>
+<dt><strong>fields</strong><span class="classifier">dictionary of np.array</span></dt><dd><p>The fields at each time step.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -100,7 +204,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="interpolation.html" class="btn btn-neutral float-left" title="Interpolation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../_notebooks/derivation.html" class="btn btn-neutral float-right" title="Derivation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../_notebooks/1-datatypes_io.html" class="btn btn-neutral float-right" title="Data types and IO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

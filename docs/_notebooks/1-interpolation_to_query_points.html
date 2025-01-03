@@ -1,0 +1,560 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpolation to query points &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Element distribution interpolation" href="2-element_interpolation.html" />
+    <link rel="prev" title="Integration" href="2-integration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interpolation to query points</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynek">Import modules from pynek</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Read-the-data-and-build-objects">Read the data and build objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Building-the-set-of-points-to-use">Building the set of points to use</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Interpolate">Interpolate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Interpolate-from-points-in-memory">Interpolate from points in memory</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Finding-the-points">Finding the points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Initializing-the-probes-object">Initializing the probes object</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Reading-probes-results-from-CSV">Reading probes results from CSV</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpolation to query points</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/1-interpolation_to_query_points.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Interpolation-to-query-points">
+<h1>Interpolation to query points<a class="headerlink" href="#Interpolation-to-query-points" title="Link to this heading"></a></h1>
+<p>In this example we show how to interpolate to an arbitrary set of query points.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynek">
+<h2>Import modules from pynek<a class="headerlink" href="#Import-modules-from-pynek" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+</pre></div>
+</div>
+</div>
+<section id="Read-the-data-and-build-objects">
+<h3>Read the data and build objects<a class="headerlink" href="#Read-the-data-and-build-objects" title="Link to this heading"></a></h3>
+<p>In this instance, we create connectivity for the mesh object, given that we wish to use direct stiffness summation to reduce discontinuities.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;../data/rbc0.f00001&#39;</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 18:27:03,861 - Mesh - INFO - Initializing empty Mesh object.
+2024-09-11 18:27:03,863 - Field - INFO - Initializing empty Field object
+2024-09-11 18:27:03,864 - pynekread - INFO - Reading file: ../data/rbc0.f00001
+2024-09-11 18:27:03,876 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-11 18:27:03,876 - Mesh - INFO - Initializing common attributes.
+2024-09-11 18:27:03,877 - Mesh - INFO - Getting vertices
+2024-09-11 18:27:03,878 - Mesh - INFO - Getting vertices
+2024-09-11 18:27:03,888 - Mesh - INFO - Getting facet centers
+2024-09-11 18:27:03,896 - Mesh - INFO - Creating connectivity
+2024-09-11 18:27:04,376 - Mesh - INFO - Mesh object initialized.
+2024-09-11 18:27:04,377 - Mesh - INFO - Mesh data is of type: float64
+2024-09-11 18:27:04,378 - Mesh - INFO - Elapsed time: 0.502331771s
+2024-09-11 18:27:04,378 - pynekread - INFO - Reading field data
+2024-09-11 18:27:04,389 - pynekread - INFO - File read
+2024-09-11 18:27:04,389 - pynekread - INFO - Elapsed time: 0.525439139s
+</pre></div></div>
+</div>
+</section>
+<section id="Building-the-set-of-points-to-use">
+<h3>Building the set of points to use<a class="headerlink" href="#Building-the-set-of-points-to-use" title="Link to this heading"></a></h3>
+<p>In this case, we will use a cylindrical mesh to interpolate the points in our domain.</p>
+<p>For this, we will use some tools to generate point distributions.</p>
+<p>Be mindful that in general, the interpolation routines will only takei nto considerations the points that are passed in rank 0.</p>
+<p>For this reason, we build all the points only in this rank and generate a dummy variable xyz in other ranks.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import helper functions</span>
+<span class="kn">import</span> <span class="nn">pynektools.interpolation.utils</span> <span class="k">as</span> <span class="nn">interp_utils</span>
+<span class="kn">import</span> <span class="nn">pynektools.interpolation.pointclouds</span> <span class="k">as</span> <span class="nn">pcs</span>
+
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
+    <span class="c1"># Generate the bounding box of the points</span>
+    <span class="n">x_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+    <span class="n">y_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span>
+    <span class="n">z_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="mi">30</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="mi">80</span>
+
+    <span class="c1"># Generate the 1D mesh</span>
+    <span class="n">x_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">x_bbox</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+    <span class="n">y_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">y_bbox</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+    <span class="n">z_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">z_bbox</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate a 3D mesh</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x_1d</span><span class="p">,</span> <span class="n">y_1d</span><span class="p">,</span> <span class="n">z_1d</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+
+    <span class="c1"># Array the points as a list of probes</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_array_to_list</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+
+    <span class="c1"># Write the points for future use</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;points.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">xyz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="mi">1</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Interpolate">
+<h3>Interpolate<a class="headerlink" href="#Interpolate" title="Link to this heading"></a></h3>
+<p>The module to use for the interpolations is:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.interpolation.probes</span> <span class="kn">import</span> <span class="n">Probes</span>
+</pre></div>
+</div>
+</div>
+<section id="Interpolate-from-points-in-memory">
+<h4>Interpolate from points in memory<a class="headerlink" href="#Interpolate-from-points-in-memory" title="Link to this heading"></a></h4>
+<p>We have created the xyz points and we have them in memory, so we can just interpolate form there.</p>
+</section>
+</section>
+</section>
+<section id="Finding-the-points">
+<h2>Finding the points<a class="headerlink" href="#Finding-the-points" title="Link to this heading"></a></h2>
+<p>The first step is to initialize the probe object, which will attempt to find the query points in the SEM mesh.</p>
+<p>There are many options to do this, so we recommend that you check the documentation for this class.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">probes</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">probes</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">point_interpolator_type</span><span class="o">=</span><span class="s1">&#39;multiple_point_legendre_numpy&#39;</span><span class="p">,</span> <span class="n">max_pts</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">find_points_comm_pattern</span><span class="o">=</span><span class="s1">&#39;point_to_point&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 18:27:05,085 - Probes - INFO - Initializing Probes object
+2024-09-11 18:27:05,087 - Probes - INFO - Probes provided as keyword argument
+2024-09-11 18:27:05,089 - Probes - INFO - Input probes are distributed: False
+2024-09-11 18:27:05,090 - Probes - INFO - Mesh provided as keyword argument
+2024-09-11 18:27:05,096 - Probes - INFO - Initializing interpolator
+2024-09-11 18:27:05,098 - Interpolator - INFO - Initializing Interpolator object
+2024-09-11 18:27:05,105 - Interpolator - INFO - Initializing point interpolator: multiple_point_legendre_numpy
+2024-09-11 18:27:05,118 - Interpolator - INFO - Allocating buffers in point interpolator
+2024-09-11 18:27:05,121 - Interpolator - INFO - Using device: cpu
+2024-09-11 18:27:05,126 - Interpolator - INFO - Interpolator initialized
+2024-09-11 18:27:05,127 - Interpolator - INFO - Elapsed time: 0.02208092599999989s
+2024-09-11 18:27:05,128 - Probes - INFO - Setting up global tree
+2024-09-11 18:27:05,129 - Interpolator - INFO - Using global_tree of type: rank_bbox
+2024-09-11 18:27:05,133 - Interpolator - INFO - Finding bounding boxes for each rank
+2024-09-11 18:27:05,136 - Interpolator - INFO - Creating global KD tree with rank centroids
+2024-09-11 18:27:05,137 - Interpolator - INFO - Elapsed time: 0.004132310999999778s
+2024-09-11 18:27:05,139 - Probes - INFO - Scattering probes to all ranks
+2024-09-11 18:27:05,140 - Interpolator - INFO - Scattering probes
+2024-09-11 18:27:05,157 - Interpolator - INFO - done
+2024-09-11 18:27:05,159 - Interpolator - INFO - Elapsed time: 0.017513389999999962s
+2024-09-11 18:27:05,159 - Probes - INFO - Finding points
+2024-09-11 18:27:05,160 - Interpolator - INFO - using communication pattern: point_to_point
+2024-09-11 18:27:05,164 - Interpolator - INFO - Finding points - start
+2024-09-11 18:27:05,165 - Interpolator - INFO - Finding bounding box of sem mesh
+2024-09-11 18:27:05,223 - Interpolator - INFO - Creating KD tree with local bbox centroids
+2024-09-11 18:27:05,235 - Interpolator - INFO - Obtaining candidate ranks and sources
+2024-09-11 18:27:05,376 - Interpolator - INFO - Send data to candidates and recieve from sources
+2024-09-11 18:27:05,382 - Interpolator - INFO - Find rst coordinates for the points
+2024-09-11 18:27:25,039 - Interpolator - INFO - Send data to sources and recieve from candidates
+2024-09-11 18:27:25,042 - Interpolator - INFO - Determine which points were found and find best candidate
+2024-09-11 18:27:25,406 - Interpolator - INFO - Finding points - finished
+2024-09-11 18:27:25,408 - Interpolator - INFO - Elapsed time: 20.242600142s
+2024-09-11 18:27:25,408 - Probes - INFO - Gathering probes to rank 0 after search
+2024-09-11 18:27:25,409 - Interpolator - INFO - Gathering probes
+2024-09-11 18:27:25,417 - Interpolator - INFO - done
+2024-09-11 18:27:25,418 - Interpolator - INFO - Elapsed time: 0.007374879000000334s
+2024-09-11 18:27:25,418 - Probes - INFO - Redistributing probes to found owners
+2024-09-11 18:27:25,419 - Interpolator - INFO - Scattering probes
+2024-09-11 18:27:25,427 - Interpolator - INFO - done
+2024-09-11 18:27:25,428 - Interpolator - INFO - Elapsed time: 0.008342505000001665s
+2024-09-11 18:27:25,429 - Probes - INFO - Writing probe coordinates to ./interpolated_fields.csv
+2024-09-11 18:27:26,224 - Probes - INFO - Writing points with warnings to ./warning_points_interpolated_fields.json
+2024-09-11 18:27:26,226 - Probes - INFO - Found 69760 points, 0 not found, 2240 with warnings
+2024-09-11 18:27:26,227 - Probes - WARNING - There are points with warnings. Check the warning file to see them (error code -10)
+2024-09-11 18:27:26,228 - Probes - WARNING - There are points with warnings. If test pattern is small, you can trust the interpolation
+2024-09-11 18:27:26,229 - Probes - INFO - Probes object initialized
+2024-09-11 18:27:26,230 - Probes - INFO - Elapsed time: 21.144440734s
+</pre></div></div>
+</div>
+<p>To interpolate a particular field, you must call the function and put the fields in a list, as follow:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The first input is the time to write in the file</span>
+<span class="n">probes</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]],</span> <span class="n">comm</span><span class="p">,</span> <span class="n">write_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 18:27:26,237 - Probes - INFO - Interpolating fields from field list
+2024-09-11 18:27:26,239 - Probes - INFO - Interpolating field 0
+2024-09-11 18:27:26,239 - Interpolator - INFO - Interpolating field from rst coordinates
+2024-09-11 18:27:26,660 - Interpolator - INFO - Elapsed time: 0.42095929099999907s
+</pre></div></div>
+</div>
+<p>The points have now been interpolated and are gathered once again in rank 0. Therefore one can proceed to perform operations such as plotting.</p>
+<p>Note that they are still arrayed as a list. If one whishes to use the structured mesh format, then the points must be mapped back to their original shape.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+    <span class="n">polar_fields</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_list_to_array</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">probes</span><span class="o">.</span><span class="n">interpolated_fields</span><span class="p">)</span>
+    <span class="n">w_polar</span> <span class="o">=</span> <span class="n">polar_fields</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">w_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">w_polar</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.07</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">,</span> <span class="n">levels</span><span class="p">)</span>
+    <span class="n">cmapp</span><span class="o">=</span><span class="s1">&#39;RdBu_r&#39;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">z</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">w_2d</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmapp</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-interpolation_to_query_points_16_0.png" src="../_images/_notebooks_1-interpolation_to_query_points_16_0.png" />
+</div>
+</div>
+<p>If the points are already in a csv file, we can choose to interpolate from those, instead of bulding points in memory (which we already did).</p>
+<p>One option is to of course read them and assign them to the xyz array we indicated before. The same can be done with the mesh.</p>
+<p>Simply write the path to the file where the mesh and/or the probes are in the appropiate keyword argument.</p>
+</section>
+<section id="Initializing-the-probes-object">
+<h2>Initializing the probes object<a class="headerlink" href="#Initializing-the-probes-object" title="Link to this heading"></a></h2>
+<p>Now we can initialize the probes object</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">probes2</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">probes</span><span class="o">=</span><span class="s2">&quot;./points.csv&quot;</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="s1">&#39;../data/rbc0.f00001&#39;</span><span class="p">,</span> <span class="n">point_interpolator_type</span><span class="o">=</span><span class="s1">&#39;multiple_point_legendre_numpy&#39;</span><span class="p">,</span> <span class="n">max_pts</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">find_points_comm_pattern</span><span class="o">=</span><span class="s1">&#39;point_to_point&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 18:27:27,207 - Probes - INFO - Initializing Probes object
+2024-09-11 18:27:27,208 - Probes - INFO - Reading probes from ./points.csv
+2024-09-11 18:27:27,388 - Probes - INFO - Input probes are distributed: False
+2024-09-11 18:27:27,388 - Probes - INFO - Reading mesh from ../data/rbc0.f00001
+2024-09-11 18:27:27,389 - Mesh - INFO - Initializing empty Mesh object.
+2024-09-11 18:27:27,390 - pynekread - INFO - Reading file: ../data/rbc0.f00001
+2024-09-11 18:27:27,393 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-11 18:27:27,394 - Mesh - INFO - Initializing common attributes.
+2024-09-11 18:27:27,394 - Mesh - INFO - Getting vertices
+2024-09-11 18:27:27,395 - Mesh - INFO - Getting vertices
+2024-09-11 18:27:27,403 - Mesh - INFO - Getting facet centers
+2024-09-11 18:27:27,409 - Mesh - INFO - Mesh object initialized.
+2024-09-11 18:27:27,410 - Mesh - INFO - Mesh data is of type: float32
+2024-09-11 18:27:27,410 - Mesh - INFO - Elapsed time: 0.016976128999999673s
+2024-09-11 18:27:27,411 - pynekread - INFO - File read
+2024-09-11 18:27:27,412 - pynekread - INFO - Elapsed time: 0.022214138999999022s
+2024-09-11 18:27:27,412 - Probes - INFO - Initializing interpolator
+2024-09-11 18:27:27,413 - Interpolator - INFO - Initializing Interpolator object
+2024-09-11 18:27:27,413 - Interpolator - INFO - Initializing point interpolator: multiple_point_legendre_numpy
+2024-09-11 18:27:27,418 - Interpolator - INFO - Allocating buffers in point interpolator
+2024-09-11 18:27:27,418 - Interpolator - INFO - Using device: cpu
+2024-09-11 18:27:27,419 - Interpolator - INFO - Interpolator initialized
+2024-09-11 18:27:27,420 - Interpolator - INFO - Elapsed time: 0.0066051529999988645s
+2024-09-11 18:27:27,421 - Probes - INFO - Setting up global tree
+2024-09-11 18:27:27,421 - Interpolator - INFO - Using global_tree of type: rank_bbox
+2024-09-11 18:27:27,422 - Interpolator - INFO - Finding bounding boxes for each rank
+2024-09-11 18:27:27,424 - Interpolator - INFO - Creating global KD tree with rank centroids
+2024-09-11 18:27:27,424 - Interpolator - INFO - Elapsed time: 0.002681530000000265s
+2024-09-11 18:27:27,425 - Probes - INFO - Scattering probes to all ranks
+2024-09-11 18:27:27,425 - Interpolator - INFO - Scattering probes
+2024-09-11 18:27:27,434 - Interpolator - INFO - done
+2024-09-11 18:27:27,435 - Interpolator - INFO - Elapsed time: 0.008592331000002673s
+2024-09-11 18:27:27,435 - Probes - INFO - Finding points
+2024-09-11 18:27:27,436 - Interpolator - INFO - using communication pattern: point_to_point
+2024-09-11 18:27:27,436 - Interpolator - INFO - Finding points - start
+2024-09-11 18:27:27,437 - Interpolator - INFO - Finding bounding box of sem mesh
+2024-09-11 18:27:27,467 - Interpolator - INFO - Creating KD tree with local bbox centroids
+2024-09-11 18:27:27,476 - Interpolator - INFO - Obtaining candidate ranks and sources
+2024-09-11 18:27:27,597 - Interpolator - INFO - Send data to candidates and recieve from sources
+2024-09-11 18:27:27,602 - Interpolator - INFO - Find rst coordinates for the points
+2024-09-11 18:27:45,167 - Interpolator - INFO - Send data to sources and recieve from candidates
+2024-09-11 18:27:45,170 - Interpolator - INFO - Determine which points were found and find best candidate
+2024-09-11 18:27:45,529 - Interpolator - INFO - Finding points - finished
+2024-09-11 18:27:45,530 - Interpolator - INFO - Elapsed time: 18.093211668s
+2024-09-11 18:27:45,530 - Probes - INFO - Gathering probes to rank 0 after search
+2024-09-11 18:27:45,531 - Interpolator - INFO - Gathering probes
+2024-09-11 18:27:45,536 - Interpolator - INFO - done
+2024-09-11 18:27:45,536 - Interpolator - INFO - Elapsed time: 0.00425026900000347s
+2024-09-11 18:27:45,537 - Probes - INFO - Redistributing probes to found owners
+2024-09-11 18:27:45,537 - Interpolator - INFO - Scattering probes
+2024-09-11 18:27:45,543 - Interpolator - INFO - done
+2024-09-11 18:27:45,544 - Interpolator - INFO - Elapsed time: 0.005580473000001973s
+2024-09-11 18:27:45,544 - Probes - INFO - Writing probe coordinates to ./interpolated_fields.csv
+2024-09-11 18:27:46,229 - Probes - INFO - Writing points with warnings to ./warning_points_interpolated_fields.json
+2024-09-11 18:27:46,232 - Probes - INFO - Found 69760 points, 0 not found, 2240 with warnings
+2024-09-11 18:27:46,233 - Probes - WARNING - There are points with warnings. Check the warning file to see them (error code -10)
+2024-09-11 18:27:46,234 - Probes - WARNING - There are points with warnings. If test pattern is small, you can trust the interpolation
+2024-09-11 18:27:46,235 - Probes - INFO - Probes object initialized
+2024-09-11 18:27:46,235 - Probes - INFO - Elapsed time: 19.027900337s
+</pre></div></div>
+</div>
+<p>After this, you can simply follow the same steps to interpolate fields. You can write the fields to the same data type by using the appropiate command.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">probes2</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]],</span> <span class="n">comm</span><span class="p">,</span> <span class="n">write_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 18:27:46,242 - Probes - INFO - Interpolating fields from field list
+2024-09-11 18:27:46,244 - Probes - INFO - Interpolating field 0
+2024-09-11 18:27:46,245 - Interpolator - INFO - Interpolating field from rst coordinates
+2024-09-11 18:27:46,703 - Interpolator - INFO - Elapsed time: 0.4582567080000004s
+2024-09-11 18:27:46,706 - Probes - INFO - Writing interpolated fields to ./interpolated_fields.csv
+</pre></div></div>
+</div>
+<section id="Reading-probes-results-from-CSV">
+<h3>Reading probes results from CSV<a class="headerlink" href="#Reading-probes-results-from-CSV" title="Link to this heading"></a></h3>
+<p>To read probes, we can use the probe reader object. Note that we will do this in rank 0. This is also the format of Neko probes, therefore you will be able to read those too.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the module</span>
+<span class="kn">from</span> <span class="nn">pynektools.io.read_probes</span> <span class="kn">import</span> <span class="n">ProbesReader</span>
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+    <span class="n">pr</span> <span class="o">=</span> <span class="n">ProbesReader</span><span class="p">(</span><span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;./interpolated_fields.csv&#39;</span><span class="p">)</span>
+
+    <span class="c1"># The name of the field is the index in the list when interpolated by default</span>
+    <span class="n">w_polar2</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_list_to_array</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">pr</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;0&#39;</span><span class="p">])</span>
+
+    <span class="n">w_2d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">w_polar2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">levels</span> <span class="o">=</span> <span class="mi">500</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.07</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">,</span> <span class="n">levels</span><span class="p">)</span>
+
+    <span class="n">cmapp</span><span class="o">=</span><span class="s1">&#39;RdBu_r&#39;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">z</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">w_2d2</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmapp</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-interpolation_to_query_points_23_0.png" src="../_images/_notebooks_1-interpolation_to_query_points_23_0.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="2-integration.html" class="btn btn-neutral float-left" title="Integration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="2-element_interpolation.html" class="btn btn-neutral float-right" title="Element distribution interpolation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

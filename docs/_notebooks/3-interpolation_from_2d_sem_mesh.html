@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpolation from 2D sem mesh &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Generating structured meshes" href="5-structured_mesh.html" />
+    <link rel="prev" title="Element distribution interpolation" href="2-element_interpolation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interpolation from 2D sem mesh</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Read-the-data-and-build-objects">Read the data and build objects</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Plot-the-2D-velocity-field">Plot the 2D velocity field</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Extrude-the-mesh-to-be-one-element-deep">Extrude the mesh to be one element deep</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Generate-interpolation-points">Generate interpolation points</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Interpolate">Interpolate</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Find-the-points">Find the points</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Interpolate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Process-the-results">Process the results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpolation from 2D sem mesh</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/3-interpolation_from_2d_sem_mesh.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Interpolation-from-2D-sem-mesh">
+<h1>Interpolation from 2D sem mesh<a class="headerlink" href="#Interpolation-from-2D-sem-mesh" title="Link to this heading"></a></h1>
+<p>Our interpolation routines work mostly for 3D fields, therefore here we show a workaround by converting 2D fields into 3D fields with one element</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynektools">
+<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.coef</span> <span class="kn">import</span> <span class="n">Coef</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+</pre></div>
+</div>
+</div>
+<section id="Read-the-data-and-build-objects">
+<h3>Read the data and build objects<a class="headerlink" href="#Read-the-data-and-build-objects" title="Link to this heading"></a></h3>
+<p>In this instance, we create connectivity for the mesh object, given that we wish to use direct stiffness summation to reduce discontinuities.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="s1">&#39;../data/mixlay0.f00001&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">get_area</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-26 08:37:50,343 - Mesh - INFO - Initializing empty Mesh object.
+2024-08-26 08:37:50,344 - Field - INFO - Initializing empty Field object
+2024-08-26 08:37:50,345 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
+2024-08-26 08:37:50,359 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-26 08:37:50,360 - Mesh - INFO - Initializing common attributes.
+2024-08-26 08:37:50,361 - Mesh - INFO - Creating connectivity
+2024-08-26 08:37:50,545 - Mesh - INFO - Mesh object initialized.
+2024-08-26 08:37:50,545 - Mesh - INFO - Mesh data is of type: float64
+2024-08-26 08:37:50,546 - Mesh - INFO - Elapsed time: 0.18645260199999994s
+2024-08-26 08:37:50,546 - pynekread - INFO - Reading field data
+2024-08-26 08:37:50,553 - pynekread - INFO - File read
+2024-08-26 08:37:50,554 - pynekread - INFO - Elapsed time: 0.209186977s
+2024-08-26 08:37:50,555 - Coef - INFO - Initializing Coef object
+2024-08-26 08:37:50,555 - Coef - INFO - Getting derivative matrices
+2024-08-26 08:37:50,557 - Coef - INFO - Calculating the components of the jacobian
+2024-08-26 08:37:50,565 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2024-08-26 08:37:50,569 - Coef - INFO - Calculating the mass matrix
+2024-08-26 08:37:50,570 - Coef - INFO - Coef object initialized
+2024-08-26 08:37:50,570 - Coef - INFO - Coef data is of type: float64
+2024-08-26 08:37:50,571 - Coef - INFO - Elapsed time: 0.016067732s
+</pre></div></div>
+</div>
+<section id="Plot-the-2D-velocity-field">
+<h4>Plot the 2D velocity field<a class="headerlink" href="#Plot-the-2D-velocity-field" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_3-interpolation_from_2d_sem_mesh_7_0.png" src="../_images/_notebooks_3-interpolation_from_2d_sem_mesh_7_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Extrude-the-mesh-to-be-one-element-deep">
+<h3>Extrude the mesh to be one element deep<a class="headerlink" href="#Extrude-the-mesh-to-be-one-element-deep" title="Link to this heading"></a></h3>
+<p>For this we can simply use a helper function</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import helper function</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.utils</span> <span class="kn">import</span> <span class="n">extrude_2d_sem_mesh</span>
+
+<span class="c1"># Extrude the 2D mesh to 3D</span>
+<span class="n">msh3d</span><span class="p">,</span> <span class="n">fld3d</span> <span class="o">=</span> <span class="n">extrude_2d_sem_mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">lz</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-26 08:37:51,889 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-26 08:37:51,890 - Mesh - INFO - Initializing common attributes.
+2024-08-26 08:37:51,891 - Mesh - INFO - Creating connectivity
+2024-08-26 08:37:52,615 - Mesh - INFO - Mesh object initialized.
+2024-08-26 08:37:52,616 - Mesh - INFO - Mesh data is of type: float64
+2024-08-26 08:37:52,617 - Mesh - INFO - Elapsed time: 0.7274203159999999s
+2024-08-26 08:37:52,618 - Field - INFO - Initializing empty Field object
+</pre></div></div>
+</div>
+</section>
+<section id="Generate-interpolation-points">
+<h3>Generate interpolation points<a class="headerlink" href="#Generate-interpolation-points" title="Link to this heading"></a></h3>
+<p>The interpolation points must have 3 coordinates, so we simply set the z limits to be zero, since in our extrudex 3d mesh, zero is part of the extruded dimension</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import helper functions</span>
+<span class="kn">import</span> <span class="nn">pynektools.interpolation.utils</span> <span class="k">as</span> <span class="nn">interp_utils</span>
+<span class="kn">import</span> <span class="nn">pynektools.interpolation.pointclouds</span> <span class="k">as</span> <span class="nn">pcs</span>
+
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
+    <span class="c1"># Generate the bounding box of the points</span>
+    <span class="n">x_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">]</span>
+    <span class="n">y_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">5.5</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">]</span>
+    <span class="n">z_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">nx</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">ny</span> <span class="o">=</span> <span class="mi">100</span>
+    <span class="n">nz</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># Generate the 1D mesh</span>
+    <span class="n">x_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">x_bbox</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+    <span class="n">y_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">y_bbox</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+    <span class="n">z_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">z_bbox</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate a 3D mesh</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x_1d</span><span class="p">,</span> <span class="n">y_1d</span><span class="p">,</span> <span class="n">z_1d</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Array the points as a list of probes</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_array_to_list</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+
+    <span class="c1"># Write the points for future use</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;points.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">xyz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Interpolate">
+<h3>Interpolate<a class="headerlink" href="#Interpolate" title="Link to this heading"></a></h3>
+<p>From here on, the process is the same</p>
+<section id="Find-the-points">
+<h4>Find the points<a class="headerlink" href="#Find-the-points" title="Link to this heading"></a></h4>
+<p>The points are always found at the initialization stage. This might be time consiming</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Interpolate the interpolation module</span>
+<span class="kn">from</span> <span class="nn">pynektools.interpolation.probes</span> <span class="kn">import</span> <span class="n">Probes</span>
+
+<span class="n">probes</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">probes</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh3d</span><span class="p">,</span> <span class="n">point_interpolator_type</span><span class="o">=</span><span class="s1">&#39;multiple_point_legendre_numpy&#39;</span><span class="p">,</span> <span class="n">max_pts</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">find_points_comm_pattern</span><span class="o">=</span><span class="s1">&#39;point_to_point&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-26 08:37:52,671 - Probes - INFO - Initializing Probes object
+2024-08-26 08:37:52,672 - Probes - INFO - No input file provided. Using default values
+2024-08-26 08:37:52,673 - Probes - INFO - Probes provided as keyword argument. Assigning in rank 0
+2024-08-26 08:37:52,674 - Probes - INFO - Mesh provided as keyword argument
+2024-08-26 08:37:52,674 - Probes - INFO - Initializing interpolator
+2024-08-26 08:37:52,675 - Interpolator - INFO - Initializing Interpolator object
+2024-08-26 08:37:52,675 - Interpolator - INFO - Initializing point interpolator: multiple_point_legendre_numpy
+2024-08-26 08:37:52,680 - Interpolator - INFO - Allocating buffers in point interpolator
+2024-08-26 08:37:52,681 - Interpolator - INFO - Using device: cpu
+2024-08-26 08:37:52,682 - Interpolator - INFO - Interpolator initialized
+2024-08-26 08:37:52,682 - Interpolator - INFO - Elapsed time: 0.006703410999999715s
+2024-08-26 08:37:52,683 - Probes - INFO - Setting up global tree
+2024-08-26 08:37:52,683 - Interpolator - INFO - Using global_tree of type: rank_bbox
+2024-08-26 08:37:52,684 - Interpolator - INFO - Finding bounding boxes for each rank
+2024-08-26 08:37:52,686 - Interpolator - INFO - Creating global KD tree with rank centroids
+2024-08-26 08:37:52,688 - Interpolator - INFO - Elapsed time: 0.004152533000000069s
+2024-08-26 08:37:52,688 - Probes - INFO - Scattering probes to all ranks
+2024-08-26 08:37:52,689 - Interpolator - INFO - Scattering probes
+2024-08-26 08:37:52,691 - Interpolator - INFO - done
+2024-08-26 08:37:52,693 - Interpolator - INFO - Elapsed time: 0.001545761999999673s
+2024-08-26 08:37:52,693 - Probes - INFO - Finding points
+2024-08-26 08:37:52,694 - Interpolator - INFO - using communication pattern: point_to_point
+2024-08-26 08:37:52,695 - Interpolator - INFO - Finding points - start
+2024-08-26 08:37:52,696 - Interpolator - INFO - Finding bounding box of sem mesh
+2024-08-26 08:37:52,728 - Interpolator - INFO - Creating KD tree with local bbox centroids
+2024-08-26 08:37:52,729 - Interpolator - INFO - Obtaining candidate ranks and sources
+2024-08-26 08:37:52,732 - Interpolator - INFO - Send data to candidates and recieve from sources
+2024-08-26 08:37:52,733 - Interpolator - INFO - Find rst coordinates for the points
+2024-08-26 08:37:53,891 - Interpolator - INFO - Send data to sources and recieve from candidates
+2024-08-26 08:37:53,892 - Interpolator - INFO - Determine which points were found and find best candidate
+2024-08-26 08:37:53,921 - Interpolator - INFO - Finding points - finished
+2024-08-26 08:37:53,922 - Interpolator - INFO - Elapsed time: 1.2260808879999998s
+2024-08-26 08:37:53,922 - Probes - INFO - Gathering probes to rank 0 after search
+2024-08-26 08:37:53,923 - Interpolator - INFO - Gathering probes
+2024-08-26 08:37:53,924 - Interpolator - INFO - done
+2024-08-26 08:37:53,925 - Interpolator - INFO - Elapsed time: 0.0014982169999999684s
+2024-08-26 08:37:53,927 - Probes - INFO - Redistributing probes to found owners
+2024-08-26 08:37:53,929 - Probes - INFO - Writing probe coordinates to ./interpolated_fields.csv
+2024-08-26 08:37:53,948 - Probes - INFO - Writing points with warnings to ./warning_points_interpolated_fields.json
+2024-08-26 08:37:53,950 - Probes - INFO - Found 10000 points, 0 not found, 0 with warnings
+2024-08-26 08:37:53,951 - Probes - INFO - Probes object initialized
+2024-08-26 08:37:53,951 - Probes - INFO - Elapsed time: 1.2801558099999997s
+</pre></div></div>
+</div>
+</section>
+<section id="id1">
+<h4>Interpolate<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<p>After the points are found, any field can be interpolated</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Interpolate from a field list</span>
+<span class="n">probes</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">fld3d</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">]],</span> <span class="n">comm</span><span class="p">,</span> <span class="n">write_data</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-26 08:37:53,960 - Probes - INFO - Interpolating fields from field list
+2024-08-26 08:37:53,964 - Probes - INFO - Interpolating field 0
+2024-08-26 08:37:53,965 - Interpolator - INFO - Interpolating field from rst coordinates
+2024-08-26 08:37:54,002 - Interpolator - INFO - Elapsed time: 0.03556546699999963s
+</pre></div></div>
+</div>
+</section>
+<section id="Process-the-results">
+<h4>Process the results<a class="headerlink" href="#Process-the-results" title="Link to this heading"></a></h4>
+<p>In the current implementation, points are partitioned in ranks but rank zero also has them all collected, so we work there.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+    <span class="n">int_fields</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_list_to_array</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,</span><span class="n">probes</span><span class="o">.</span><span class="n">interpolated_fields</span><span class="p">)</span>
+    <span class="n">u_int</span> <span class="o">=</span> <span class="n">int_fields</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1">#levels = 500</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.44</span><span class="p">,</span> <span class="mf">1.54</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">cmapp</span><span class="o">=</span><span class="s1">&#39;RdBu_r&#39;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">u_int</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmapp</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_3-interpolation_from_2d_sem_mesh_17_0.png" src="../_images/_notebooks_3-interpolation_from_2d_sem_mesh_17_0.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="2-element_interpolation.html" class="btn btn-neutral float-left" title="Element distribution interpolation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="5-structured_mesh.html" class="btn btn-neutral float-right" title="Generating structured meshes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

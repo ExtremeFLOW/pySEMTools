@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generating structured meshes &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interpolating file sequences" href="6-interpolating_file_sequences.html" />
+    <link rel="prev" title="Interpolation from 2D sem mesh" href="3-interpolation_from_2d_sem_mesh.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Generating structured meshes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Create-an-structured-mesh">Create an structured mesh</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Mass-matrix">Mass matrix</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Writing-the-data">Writing the data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Writing-as-csv">Writing as csv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Writing-in-HDF5">Writing in HDF5</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Generating structured meshes</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/5-structured_mesh.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Generating-structured-meshes">
+<h1>Generating structured meshes<a class="headerlink" href="#Generating-structured-meshes" title="Link to this heading"></a></h1>
+<p>In most cases, POD can be done directly on a SEM mesh. This of course allows to use derivatice routines present in this framwework to further produce reduced order models.</p>
+<p>In some particular cases, however, having an structured mesh might be beneficial. For this, we give some tools in this notebook.</p>
+<p>This example might have some overlapping topics with example 4.1</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># This example is designed to work in one rank only</span>
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This example is designed to run with one rank only&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynektools">
+<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
+</pre></div>
+</div>
+</div>
+<section id="Create-an-structured-mesh">
+<h3>Create an structured mesh<a class="headerlink" href="#Create-an-structured-mesh" title="Link to this heading"></a></h3>
+<p>It is as simple as writing using numpy meshgrid functionality</p>
+<p>In this case we want to get a cylinder</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pynektools.interpolation.pointclouds</span> <span class="k">as</span> <span class="nn">pcs</span>
+
+<span class="c1"># Generate the bounding box of the points</span>
+<span class="n">r_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
+<span class="n">th_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span>
+<span class="n">z_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">nx</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">ny</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">nz</span> <span class="o">=</span> <span class="mi">80</span>
+
+<span class="c1"># Generate the 1D mesh</span>
+<span class="n">r_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">r_bbox</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+<span class="n">th_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">th_bbox</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">)</span>
+<span class="n">z_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_arrays</span><span class="p">(</span><span class="n">z_bbox</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;equal&quot;</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Generate differetials (dr, dth, dz)</span>
+<span class="n">dr_1d</span>  <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_diff</span><span class="p">(</span><span class="n">r_1d</span><span class="p">)</span>
+<span class="n">dth_1d</span> <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_diff</span><span class="p">(</span><span class="n">th_1d</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># This is needed to give the same weight to the first and last points as for the other ones. Needed if fourier transform will be applied.</span>
+<span class="n">dz_1d</span>  <span class="o">=</span> <span class="n">pcs</span><span class="o">.</span><span class="n">generate_1d_diff</span><span class="p">(</span><span class="n">z_1d</span><span class="p">)</span>
+
+<span class="c1"># Generate a 3D mesh</span>
+<span class="n">r</span><span class="p">,</span> <span class="n">th</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">r_1d</span><span class="p">,</span> <span class="n">th_1d</span><span class="p">,</span> <span class="n">z_1d</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+<span class="c1"># Generate 3D differentials</span>
+<span class="n">dr</span><span class="p">,</span> <span class="n">dth</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">dr_1d</span><span class="p">,</span> <span class="n">dth_1d</span><span class="p">,</span> <span class="n">dz_1d</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+
+<span class="c1"># Generate xy coordinates, which are needed for probes</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">th</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Mass-matrix">
+<h4>Mass matrix<a class="headerlink" href="#Mass-matrix" title="Link to this heading"></a></h4>
+<p>To perform POD, we will need a mass matrix. For this we must find a way to combine the coordinates to get the volume of our domain</p>
+<p>In our case, because we have cylinder, we now that the volume is calculated by:</p>
+<div class="math notranslate nohighlight">
+\[V = \int_{z_0}^{z_1} \int_{\theta_0}^{\theta_1} \int_{r_0}^{r_1} r \, dr \, d\theta \, dz\]</div>
+<p>Therefore, our mass matrix will simply be the terms that are multiplied in the integral:</p>
+<div class="math notranslate nohighlight">
+\[B = r \, dr \, d\theta \, dz\]</div>
+<p>If one wants the area for a given angle, then the integral to use is.</p>
+<div class="math notranslate nohighlight">
+\[A = \int_{z_0}^{z_1} \int_{r_0}^{r_1} dr \, dz\]</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># For volume</span>
+<span class="n">B</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">dr</span> <span class="o">*</span> <span class="n">dth</span> <span class="o">*</span> <span class="n">dz</span>
+<span class="c1"># For area given each angle slice</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">dr</span> <span class="o">*</span> <span class="n">dz</span>
+
+<span class="c1"># Verify that the volume of the cylinder is correct</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">B</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">A</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">r_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">z_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">r_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">z_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<p>Another alternative is to of course interpolate the mass matrix of a SEM mesh into this set of points, if you have it. But we leave that for another time</p>
+</section>
+</section>
+<section id="Writing-the-data">
+<h3>Writing the data<a class="headerlink" href="#Writing-the-data" title="Link to this heading"></a></h3>
+<p>If one wishes to use this information in the probes module, then the xyz coordinates as a list will be needed. So one can create that as well:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pynektools.interpolation.utils</span> <span class="k">as</span> <span class="nn">interp_utils</span>
+
+<span class="n">xyz</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_array_to_list</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<section id="Writing-as-csv">
+<h4>Writing as csv<a class="headerlink" href="#Writing-as-csv" title="Link to this heading"></a></h4>
+<p>One option is to write everything as a CSV file. In this instance, the data needs to be arrayed as a list already.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;points.csv&#39;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">((</span><span class="n">xyz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Writing-in-HDF5">
+<h4>Writing in HDF5<a class="headerlink" href="#Writing-in-HDF5" title="Link to this heading"></a></h4>
+<p>Another flexible option is to write an HDF5 file. In this case one can include an array list xyz, but also more info.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;points.hdf5&#39;</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+    <span class="c1"># Create a header</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;nx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;ny&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;nz&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nz</span>
+    <span class="c1">#f.attrs[&#39;probe_list_key&#39;] = &#39;xyz&#39;</span>
+
+    <span class="c1"># Include data sets</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">th</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">B</span><span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s1">&#39;mass_area&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">A</span><span class="p">)</span>
+    <span class="c1">#f.create_dataset(&#39;xyz&#39;, data=xyz)</span>
+</pre></div>
+</div>
+</div>
+<p>the interpolation functions will try to find the keyword probe_list_key and use the associated value as probes.</p>
+<p>If the probe_key_list does not exist, it will try to use the key xyz by default. If this one also does not exist, it will assemble the list form the x, y, z values</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">B</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">B</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,:]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">B</span><span class="p">[:,</span><span class="mi">2</span><span class="p">,:],</span> <span class="n">B</span><span class="p">[:,</span><span class="mi">1</span><span class="p">,:]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">B</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">B</span><span class="p">[:,</span><span class="o">-</span><span class="mi">1</span><span class="p">,:]))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">B</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:])</span><span class="o">*</span><span class="n">ny</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="3-interpolation_from_2d_sem_mesh.html" class="btn btn-neutral float-left" title="Interpolation from 2D sem mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="6-interpolating_file_sequences.html" class="btn btn-neutral float-right" title="Interpolating file sequences" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

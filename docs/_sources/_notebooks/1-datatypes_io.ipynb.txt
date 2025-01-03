@@ -1,0 +1,1174 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "31a94bbd-34ef-404b-a9be-4f3a216a8c3c",
+   "metadata": {},
+   "source": [
+    "# Data types and IO\n",
+    "\n",
+    "#### Import general modules\n",
+    "\n",
+    "mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "8b4ca2be-46e8-443b-ab44-6d1a60abfec4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Import required modules\n",
+    "from mpi4py import MPI #equivalent to the use of MPI_init() in C\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "\n",
+    "# Get mpi info\n",
+    "comm = MPI.COMM_WORLD"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1702ba96-7854-4a2f-89d2-7f2b2aaa61b1",
+   "metadata": {},
+   "source": [
+    "#### Import modules from pynektools\n",
+    "\n",
+    "In this case we will import all the data types that we currently support, as well as io functions that are required to populate them."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "09a4efe8-3557-4ff7-850e-0a26c8937bd6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Data types\n",
+    "from pynektools.datatypes.msh import Mesh\n",
+    "from pynektools.datatypes.coef import Coef\n",
+    "from pynektools.datatypes.field import Field, FieldRegistry\n",
+    "\n",
+    "# Readers\n",
+    "from pynektools.io.ppymech.neksuite import preadnek, pynekread\n",
+    "\n",
+    "# Writers\n",
+    "from pynektools.io.ppymech.neksuite import pwritenek, pynekwrite\n",
+    "\n",
+    "fname_2d = '../data/mixlay0.f00001'\n",
+    "fname_3d = '../data/rbc0.f00001'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6346fcd3",
+   "metadata": {},
+   "source": [
+    "## Mesh\n",
+    "\n",
+    "The mesh object is designed to interact with the coordinates of the SEM domain. It goes without saying then, that if a file is used to initialize the object, it must contain the mesh.\n",
+    "\n",
+    "### Initializing\n",
+    "\n",
+    "The mesh object can be initialized in multiple manners that we have ideantified to be typical when post processing data, here we show some of them.\n",
+    "\n",
+    "#### Initializing an empty object\n",
+    "\n",
+    "We can initialize an empty mesh object by just providing the communicator.\n",
+    "\n",
+    "Note that at this stage we must indicate if we want to find the connectivity of the points. This is important if later one whishes to average points at element interfaces. Be carefull, however, as it will require more memory."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "b22e1afb",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:26,856 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-10-04 11:15:26,857 - Mesh - INFO - Initializing empty Mesh object.\n"
+     ]
+    }
+   ],
+   "source": [
+    "msh_2d = Mesh(comm, create_connectivity=True)\n",
+    "msh_3d = Mesh(comm, create_connectivity=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4c572df8",
+   "metadata": {},
+   "source": [
+    "#### Initializing from a file\n",
+    "\n",
+    "The standard way to initialize the data in a mesh object requires that an empty object is initialized and the the pynekread function is called. This function will take the empty object and read only the data containing the mesh.\n",
+    "\n",
+    "One must give the name and the empty object that will hold the data. Aditionally, the type of the data is an input."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "4661b6f9",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:26,868 - pynekread - INFO - Reading file: ../data/mixlay0.f00001\n",
+      "2024-10-04 11:15:26,875 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-10-04 11:15:26,876 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:26,877 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:26,878 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:26,886 - Mesh - INFO - Facet centers not available for 2D\n",
+      "2024-10-04 11:15:26,887 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:27,254 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:27,255 - Mesh - INFO - Mesh data is of type: float64\n",
+      "2024-10-04 11:15:27,256 - Mesh - INFO - Elapsed time: 0.380877588s\n",
+      "2024-10-04 11:15:27,257 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:27,258 - pynekread - INFO - Elapsed time: 0.38954081s\n",
+      "2024-10-04 11:15:27,259 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-10-04 11:15:27,264 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-10-04 11:15:27,265 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:27,265 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:27,266 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:27,273 - Mesh - INFO - Getting facet centers\n",
+      "2024-10-04 11:15:27,279 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:27,681 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:27,682 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-10-04 11:15:27,683 - Mesh - INFO - Elapsed time: 0.419004522s\n",
+      "2024-10-04 11:15:27,684 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:27,684 - pynekread - INFO - Elapsed time: 0.42567180499999996s\n"
+     ]
+    }
+   ],
+   "source": [
+    "pynekread(fname_2d, comm, data_dtype=np.double, msh=msh_2d)\n",
+    "pynekread(fname_3d, comm, data_dtype=np.single, msh=msh_3d)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0294b29f",
+   "metadata": {},
+   "source": [
+    "#### Initializing from a hexadata object.\n",
+    "\n",
+    "We have previously use the module pymech to post process data. Because of this we wrote io routines that produce objects of this type, in case some existing workflows already rely on that. We note that this is parallel and each rank will have a hexadata object with a portion of the total data.\n",
+    "\n",
+    "Note that in our implementation, the hexadata object will always read the full file.\n",
+    "\n",
+    "In general, this should not be the main way to initialize objects. But we give the option.\n",
+    "\n",
+    "The steps that we follow to initialize are the following:\n",
+    "\n",
+    "1. Read the hexadata object.\n",
+    "2. Initialize the mesh object from it"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "497dfc22",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:27,693 - preadnek - INFO - Reading file: ../data/mixlay0.f00001\n",
+      "2024-10-04 11:15:27,767 - preadnek - INFO - Elapsed time: 0.07367152700000001s\n",
+      "2024-10-04 11:15:27,768 - preadnek - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-10-04 11:15:27,803 - preadnek - INFO - Elapsed time: 0.034677242s\n",
+      "2024-10-04 11:15:27,804 - Mesh - INFO - Initializing Mesh object from HexaData object.\n",
+      "2024-10-04 11:15:27,811 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:27,811 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:27,812 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:27,818 - Mesh - INFO - Facet centers not available for 2D\n",
+      "2024-10-04 11:15:27,819 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:28,163 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:28,163 - Mesh - INFO - Mesh data is of type: float64\n",
+      "2024-10-04 11:15:28,164 - Mesh - INFO - Elapsed time: 0.360178777s\n",
+      "2024-10-04 11:15:28,171 - Mesh - INFO - Initializing Mesh object from HexaData object.\n",
+      "2024-10-04 11:15:28,175 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:28,176 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:28,177 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:28,186 - Mesh - INFO - Getting facet centers\n",
+      "2024-10-04 11:15:28,192 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:28,572 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:28,573 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-10-04 11:15:28,573 - Mesh - INFO - Elapsed time: 0.40260753000000005s\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 1.\n",
+    "data_2d = preadnek(fname_2d, comm, data_dtype=np.double)\n",
+    "data_3d = preadnek(fname_3d, comm, data_dtype=np.single)\n",
+    "# 2. \n",
+    "msh_2d = Mesh(comm, data=data_2d, create_connectivity=True)\n",
+    "msh_3d = Mesh(comm, data=data_3d, create_connectivity=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0a02212f",
+   "metadata": {},
+   "source": [
+    "#### Initializing from an ndarray\n",
+    "\n",
+    "In some instances, one might create the SEM coordinates directly in python. If that is the case, starting directly from the coordinates as an array is also a possibility. One would first create an empty object and the initialize from coordinates as follow:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "f41cd795",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:28,593 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-10-04 11:15:28,594 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-10-04 11:15:28,595 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:28,596 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:28,597 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:28,608 - Mesh - INFO - Getting facet centers\n",
+      "2024-10-04 11:15:28,616 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:29,080 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:29,081 - Mesh - INFO - Mesh data is of type: float64\n",
+      "2024-10-04 11:15:29,081 - Mesh - INFO - Elapsed time: 0.48709318999999995s\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 1.Copy the coordinates from before just to show\n",
+    "\n",
+    "x = msh_3d.x.copy().astype(np.float64)\n",
+    "y = msh_3d.y.copy().astype(np.float64)\n",
+    "z = msh_3d.z.copy().astype(np.float64)\n",
+    "\n",
+    "# 2.Initialize a new mesh object\n",
+    "msh_3d_sub = Mesh(comm, create_connectivity=True)\n",
+    "msh_3d_sub.init_from_coords(comm, x=x, y=y, z=z)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5eaed0ce",
+   "metadata": {},
+   "source": [
+    "In this case, just to show a simple manipulation, we casted the arrays from single to double precision"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "302ee56f",
+   "metadata": {},
+   "source": [
+    "## Coef\n",
+    "\n",
+    "The coef object holds the jacobian matrix components, mass matrix and routines to perform derivatives and integrals in the SEM mesh. It is always initialized from a mesh object.\n",
+    "\n",
+    "One aditional option for 3D meshes is to also obtain integration weights for the area of the facets in the SEM mesh. If you do not need it, do not activate it, as this takes some extra time and requires extra memory.\n",
+    "\n",
+    "The data type of the coef object attributes will match the type of the mesh object."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "ecddac2b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,091 - Coef - INFO - Initializing Coef object\n",
+      "2024-10-04 11:15:29,092 - Coef - INFO - Getting derivative matrices\n",
+      "2024-10-04 11:15:29,094 - Coef - INFO - Calculating the components of the jacobian\n",
+      "2024-10-04 11:15:29,110 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix\n",
+      "2024-10-04 11:15:29,113 - Coef - INFO - Calculating the mass matrix\n",
+      "2024-10-04 11:15:29,114 - Coef - INFO - Coef object initialized\n",
+      "2024-10-04 11:15:29,114 - Coef - INFO - Coef data is of type: float64\n",
+      "2024-10-04 11:15:29,114 - Coef - INFO - Elapsed time: 0.023606959999999955s\n",
+      "2024-10-04 11:15:29,116 - Coef - INFO - Initializing Coef object\n",
+      "2024-10-04 11:15:29,117 - Coef - INFO - Getting derivative matrices\n",
+      "2024-10-04 11:15:29,121 - Coef - INFO - Calculating the components of the jacobian\n",
+      "2024-10-04 11:15:29,222 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix\n",
+      "2024-10-04 11:15:29,234 - Coef - INFO - Calculating the mass matrix\n",
+      "2024-10-04 11:15:29,235 - Coef - INFO - Calculating area weights and normal vectors\n",
+      "2024-10-04 11:15:29,255 - Coef - INFO - Coef object initialized\n",
+      "2024-10-04 11:15:29,256 - Coef - INFO - Coef data is of type: float32\n",
+      "2024-10-04 11:15:29,256 - Coef - INFO - Elapsed time: 0.14061485299999976s\n"
+     ]
+    }
+   ],
+   "source": [
+    "coef_2d = Coef(msh_2d, comm, get_area=True)\n",
+    "coef_3d = Coef(msh_3d, comm, get_area=True)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1ef68b13",
+   "metadata": {},
+   "source": [
+    "## Field\n",
+    "\n",
+    "The field object is designed to hold the data from SEM fields in a way that intefacing to a nek5000 binary file is easily achieved.\n",
+    "\n",
+    "The initialization can be done in similar ways as the mesh, i.e., by using hexadata and the pynekread routine.\n",
+    "\n",
+    "### Initializing\n",
+    "\n",
+    "#### Initializing an empty object.\n",
+    "\n",
+    "We follow the same procedure to initialize an empty object."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "dbb690c0",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,263 - Field - INFO - Initializing empty Field object\n",
+      "2024-10-04 11:15:29,265 - Field - INFO - Initializing empty Field object\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_2d = Field(comm)\n",
+    "fld_3d = Field(comm)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "01910bb8",
+   "metadata": {},
+   "source": [
+    "#### Initializing from a file\n",
+    "\n",
+    "Using the pynekread routine, one can follow the same procedure. In this case, if only the fld file is indicated as input, the mesh in the file will not be read"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "33762bb6",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,275 - pynekread - INFO - Reading file: ../data/mixlay0.f00001\n",
+      "2024-10-04 11:15:29,277 - pynekread - INFO - Reading field data\n",
+      "2024-10-04 11:15:29,282 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:29,283 - pynekread - INFO - Elapsed time: 0.007930652000000205s\n",
+      "2024-10-04 11:15:29,285 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-10-04 11:15:29,287 - pynekread - INFO - Reading field data\n",
+      "2024-10-04 11:15:29,295 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:29,295 - pynekread - INFO - Elapsed time: 0.010863174999999892s\n"
+     ]
+    }
+   ],
+   "source": [
+    "pynekread(fname_2d, comm, data_dtype=np.double, fld=fld_2d)\n",
+    "pynekread(fname_3d, comm, data_dtype=np.single, fld=fld_3d)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "95844571",
+   "metadata": {},
+   "source": [
+    "Note that you can read both mesh and fields with pynekread if you specify both keywords, i.e, msh= and fld=\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "d6e3b4f5",
+   "metadata": {},
+   "source": [
+    "#### Initializing from hexadata\n",
+    "\n",
+    "Just as for the mesh, the same interface is valid."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "9b0fd7b0",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,304 - preadnek - INFO - Reading file: ../data/mixlay0.f00001\n",
+      "2024-10-04 11:15:29,451 - preadnek - INFO - Elapsed time: 0.1472354819999997s\n",
+      "2024-10-04 11:15:29,455 - preadnek - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-10-04 11:15:29,491 - preadnek - INFO - Elapsed time: 0.035575633000000106s\n",
+      "2024-10-04 11:15:29,493 - Field - INFO - Initializing Field object from HexaData\n",
+      "2024-10-04 11:15:29,508 - Field - INFO - Field object initialized\n",
+      "2024-10-04 11:15:29,509 - Field - INFO - Elapsed time: 0.015144010000000208s\n",
+      "2024-10-04 11:15:29,509 - Field - INFO - Initializing Field object from HexaData\n",
+      "2024-10-04 11:15:29,515 - Field - INFO - Field object initialized\n",
+      "2024-10-04 11:15:29,515 - Field - INFO - Elapsed time: 0.006332111999999945s\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 1.\n",
+    "data_2d = preadnek(fname_2d, comm, data_dtype=np.double)\n",
+    "data_3d = preadnek(fname_3d, comm, data_dtype=np.single)\n",
+    "# 2. \n",
+    "fld_2d = Field(comm, data=data_2d)\n",
+    "fld_3d = Field(comm, data=data_3d)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b687633b",
+   "metadata": {},
+   "source": [
+    "\n",
+    "### Contents of the field object\n",
+    "\n",
+    "The field object contains all the information in a subdirectory called fields that is divided into the conventions of a nek5000 binary format.\n",
+    "\n",
+    "The keywords are:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "654270d9",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "vel has 2 fields\n",
+      "pres has 1 fields\n",
+      "temp has 1 fields\n",
+      "scal has 2 fields\n",
+      "=================\n",
+      "vel has 3 fields\n",
+      "pres has 1 fields\n",
+      "temp has 1 fields\n",
+      "scal has 0 fields\n"
+     ]
+    }
+   ],
+   "source": [
+    "for key in fld_2d.fields.keys():\n",
+    "    print(f'{key} has {len(fld_2d.fields[key])} fields')\n",
+    "\n",
+    "print('=================')\n",
+    "\n",
+    "for key in fld_3d.fields.keys():\n",
+    "    print(f'{key} has {len(fld_3d.fields[key])} fields')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "84754dc4",
+   "metadata": {},
+   "source": [
+    "Each keword has a list of fields depending on the contents of the file. Note how the 2 files that we test here have different information.\n",
+    "\n",
+    "To access the content of the files, one can do something like this:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "f82a497f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "u = fld_3d.fields['vel'][0]\n",
+    "v = fld_3d.fields['vel'][1]\n",
+    "w = fld_3d.fields['vel'][2]\n",
+    "p = fld_3d.fields['pres'][0]\n",
+    "t = fld_3d.fields['temp'][0]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3cccc3ac",
+   "metadata": {},
+   "source": [
+    "### Adding new ndarrays to the field\n",
+    "\n",
+    "If one wishes to add new data, it is as simple as appending arrays to any of the keys of the field object. Given that nek5000 readers follow certain logic, it is always safer to add new data to the scalars, unless one wishes to overwrite velocity, pressure, and/or temperature.\n",
+    "\n",
+    "For example, we can add the velocity magnitude as a scalar with:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "b52d0af6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "mag = np.sqrt(u**2 + v**2 + w**2)\n",
+    "fld_3d.fields['scal'].append(mag)\n",
+    "fld_3d.update_vars()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "23e30993",
+   "metadata": {},
+   "source": [
+    "If one adds new data, it is needed that one calls the update_vars method to update the attributes that keep track of the number of fields in the field object. This is needed, for example, if one wishes to write data to disk."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "36fdc7c0",
+   "metadata": {},
+   "source": [
+    "## Writing out data\n",
+    "\n",
+    "Writing the data out always needs a mesh and field object, even if one does not wish to write the mesh out.\n",
+    "\n",
+    "The procedure is as simple as follows:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "232bf604",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,554 - pynekwrite - INFO - Writing file: ../data/out_rbc0.f00001\n",
+      "2024-10-04 11:15:29,565 - pynekwrite - INFO - Elapsed time: 0.010662473000000006s\n"
+     ]
+    }
+   ],
+   "source": [
+    "fname_out = '../data/out_rbc0.f00001'\n",
+    "\n",
+    "pynekwrite(fname_out, comm, msh=msh_3d, fld=fld_3d, write_mesh=True, wdsz=4)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "06fff76a",
+   "metadata": {},
+   "source": [
+    "## Field registry\n",
+    "\n",
+    "The field registry is a class that extends the field class. We believe this is the class that should be used instead of fields, as it allows to do the same things, but with some extra flexibility.\n",
+    "\n",
+    "The methods to initialize it and write data with it are the same. It also contains the fields attribute with a list of the present fields. \n",
+    "\n",
+    "It however, has an additional registry attribute that names and points to each field."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "f48be38b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,575 - Field - INFO - Initializing empty Field object\n",
+      "2024-10-04 11:15:29,577 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-10-04 11:15:29,579 - pynekread - INFO - Reading field data\n",
+      "2024-10-04 11:15:29,582 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:29,584 - pynekread - INFO - Elapsed time: 0.006489980999999645s\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r = FieldRegistry(comm)\n",
+    "pynekread(fname_3d, comm, data_dtype=np.single, fld=fld_3d_r)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "a5ef0284",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "u has float32 dtype\n",
+      "v has float32 dtype\n",
+      "w has float32 dtype\n",
+      "p has float32 dtype\n",
+      "t has float32 dtype\n"
+     ]
+    }
+   ],
+   "source": [
+    "for key in fld_3d_r.registry.keys():\n",
+    "    print(f'{key} has {fld_3d_r.registry[key].dtype} dtype')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "68927c40",
+   "metadata": {},
+   "source": [
+    "Note that all the fields that have been adressed as indices in a list have now been assigned names.\n",
+    "\n",
+    "### Adding new fields\n",
+    "\n",
+    "#### From memory\n",
+    "\n",
+    "Adding new fields can now also been done very easy as well. Here we can add a new field named mag that is the velocity magnitude calculated earlier.\n",
+    "\n",
+    "This field will be added as an scalar to the fields attribute."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "48727eb8",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Field mag added to registry and fields directory in pos scal_0\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.add_field(comm, field_name='mag', field=mag, dtype=mag.dtype)\n",
+    "print(f'Field mag added to registry and fields directory in pos {fld_3d_r.registry_pos[\"mag\"]}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "098766e9",
+   "metadata": {},
+   "source": [
+    "#### From disk\n",
+    "\n",
+    "You can also just read one field from a file, which reduces the memory footprint.\n",
+    "\n",
+    "The procesude is shown below, note that here we know that we have written the field mag as an scalar."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "f25fc8db",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,613 - pynekread_field - INFO - Reading field: scal_0 from file: ../data/out_rbc0.f00001\n",
+      "2024-10-04 11:15:29,624 - pynekread_field - INFO - File read\n",
+      "2024-10-04 11:15:29,629 - pynekread_field - INFO - Elapsed time: 0.016024912999999863s\n",
+      "Field mag_r added to registry and fields directory in pos scal_1\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.add_field(comm, field_name='mag_r', file_name=fname_out, file_type='fld', file_key='scal_0', dtype=mag.dtype)\n",
+    "print(f'Field mag_r added to registry and fields directory in pos {fld_3d_r.registry_pos[\"mag_r\"]}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7d739849",
+   "metadata": {},
+   "source": [
+    "Let's compare the field that we previously wrote with the one we calculated"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "e5b93275",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "True\n"
+     ]
+    }
+   ],
+   "source": [
+    "eq = np.allclose(fld_3d_r.registry['mag'], fld_3d_r.registry['mag_r'])\n",
+    "print(eq)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "13169bd2",
+   "metadata": {},
+   "source": [
+    "### Some considerations when dealing with the registry\n",
+    "\n",
+    "In our implementation, each member of the registry is linked to a member of the lists contained in the fields attribute.\n",
+    "\n",
+    "For the link to be mantained, we must modify the registry in place, not reassing fields to it.\n",
+    "\n",
+    "If you would like to replace an entry in the field registry, then use the add field method with the same key\n",
+    "\n",
+    "Lets experiment adding a field full of ones. Based on the order of our operations, we know it is stored in scal 2. You can also check the registry_pos attribute:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "9d1dc27f",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "scal_2\n",
+      "[[1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]]\n",
+      "[[1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]\n",
+      " [1. 1. 1. 1. 1. 1. 1. 1.]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.add_field(comm, field_name='ones', field=np.ones_like(mag), dtype=mag.dtype)\n",
+    "print(fld_3d_r.registry_pos['ones'])\n",
+    "print(fld_3d_r.registry['ones'][100,0,:,:])\n",
+    "print(fld_3d_r.fields['scal'][2][100,0,:,:])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f977b830",
+   "metadata": {},
+   "source": [
+    "If I modify the registry, the list is modified:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "8e429126",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]\n",
+      " [2. 2. 2. 2. 2. 2. 2. 2.]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.registry['ones'][100,0,:,:] = 2.0\n",
+    "print(fld_3d_r.fields['scal'][2][100,0,:,:])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7e156e89",
+   "metadata": {},
+   "source": [
+    "The same happens in the opposite direction"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "68c91e27",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[[3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]\n",
+      " [3. 3. 3. 3. 3. 3. 3. 3.]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.fields['scal'][2][100,0,:,:] = 3.0\n",
+    "print(fld_3d_r.registry['ones'][100,0,:,:])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f27b3bca",
+   "metadata": {},
+   "source": [
+    "However if you try to assing a field directly to the registry, you will get an error:\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "a4098134",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "\"Key 'ones' already exists. Cannot overwrite existing array without the add field method\"\n"
+     ]
+    }
+   ],
+   "source": [
+    "zeros = np.zeros_like(mag)\n",
+    "\n",
+    "try:\n",
+    "    fld_3d_r.registry['ones'] = zeros\n",
+    "except KeyError as e:\n",
+    "    print(e)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "23fc1730",
+   "metadata": {},
+   "source": [
+    "But see that if you add the field again with the proper method, then it should work as you want"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "8d4e3167",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,750 - Field - WARNING - Field ones already in registry. Overwriting\n",
+      "[[0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]\n",
+      " [0. 0. 0. 0. 0. 0. 0. 0.]]\n"
+     ]
+    }
+   ],
+   "source": [
+    "fld_3d_r.add_field(comm, field_name='ones', field=zeros, dtype=zeros.dtype)\n",
+    "print(fld_3d_r.fields['scal'][2][100,0,:,:])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c2d8a1c5",
+   "metadata": {},
+   "source": [
+    "## Wrappers\n",
+    "\n",
+    "In the event that all you want is a numpy array with the data, you can also use a wrapper to retrieve the data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "11d8fe7f",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-10-04 11:15:29,791 - Field - INFO - Initializing empty Field object\n",
+      "2024-10-04 11:15:29,792 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-10-04 11:15:29,792 - pynekread - INFO - Reading file: ../data/out_rbc0.f00001\n",
+      "2024-10-04 11:15:29,797 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-10-04 11:15:29,798 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-10-04 11:15:29,798 - Mesh - INFO - Getting vertices\n",
+      "2024-10-04 11:15:29,799 - Mesh - INFO - Getting edge centers\n",
+      "2024-10-04 11:15:29,810 - Mesh - INFO - Getting facet centers\n",
+      "2024-10-04 11:15:29,817 - Mesh - INFO - Creating connectivity\n",
+      "2024-10-04 11:15:30,204 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-10-04 11:15:30,205 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-10-04 11:15:30,206 - Mesh - INFO - Elapsed time: 0.40879251299999986s\n",
+      "2024-10-04 11:15:30,207 - pynekread - INFO - File read\n",
+      "2024-10-04 11:15:30,207 - pynekread - INFO - Elapsed time: 0.4150390530000001s\n",
+      "2024-10-04 11:15:30,209 - pynekread_field - INFO - Reading field: scal_0 from file: ../data/out_rbc0.f00001\n",
+      "2024-10-04 11:15:30,212 - pynekread_field - INFO - File read\n",
+      "2024-10-04 11:15:30,212 - pynekread_field - INFO - Elapsed time: 0.003471009999999719s\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pynektools.io.wrappers import read_data\n",
+    "\n",
+    "data = read_data(comm, fname_out, [\"x\", \"y\", \"z\", \"scal_0\"], dtype = np.single)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "dd660664",
+   "metadata": {},
+   "source": [
+    "data is a dictionary that contains the data of the keys that were given."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "id": "9e0b7e53",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "True\n",
+      "True\n",
+      "True\n",
+      "True\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(np.allclose(data[\"x\"], msh_3d.x))\n",
+    "print(np.allclose(data[\"y\"], msh_3d.y))\n",
+    "print(np.allclose(data[\"z\"], msh_3d.z))\n",
+    "print(np.allclose(data[\"scal_0\"], fld_3d_r.registry['mag_r']))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "53025455",
+   "metadata": {},
+   "source": [
+    "## Inspecting memory usage\n",
+    "\n",
+    "To inspect the memory usage, one can use the monitoring module"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "id": "60ea6f9f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from pynektools.monitoring.memory_monitor import MemoryMonitor\n",
+    "\n",
+    "mm = MemoryMonitor()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ddf583c3",
+   "metadata": {},
+   "source": [
+    "You can chose to inspect the total memory used, or check the ussage of each attibute."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "id": "cce64836",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "mm.object_memory_usage(comm, msh_3d, \"mesh_3d\", print_msg=False)\n",
+    "mm.object_memory_usage_per_attribute(comm, msh_3d, \"mesh_3d\", print_msg=False)\n",
+    "\n",
+    "mm.object_memory_usage(comm, coef_3d, \"coef_3d\", print_msg=False)\n",
+    "mm.object_memory_usage_per_attribute(comm, coef_3d, \"coef_3d\", print_msg=False)\n",
+    "\n",
+    "mm.object_memory_usage(comm, fld_3d_r, \"fld_3d\", print_msg=False)\n",
+    "mm.object_memory_usage_per_attribute(comm, fld_3d_r, \"fld_3d\", print_msg=False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "72ed6b3b",
+   "metadata": {},
+   "source": [
+    "### Report\n",
+    "\n",
+    "Report the information.\n",
+    "\n",
+    "Note that for field registry objects, the information of registry and field will appear as duplicate. We have seen howeverm that they point to the sampe places in memory, therefore no need to worry about memory duplication."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "id": "0a6dcde3",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Rank: 0 - Memory usage of mesh_3d: 25.399681091308594 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attributes:\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - coord_hash_to_shared_map: 21.699501037597656 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - create_connectivity_bool: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - edge_centers: 0.082550048828125 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - facet_centers: 0.041351318359375 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - gdim: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - glb_nelv: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - global_element_number: 0.004730224609375 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - lx: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - lxyz: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - ly: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - lz: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - nelv: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - offset_el: 4.57763671875e-05 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - vertices: 0.055084228515625 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - x: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - y: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of mesh_3d attr - z: 1.172027587890625 MB\n",
+      "===================================\n",
+      "Rank: 0 - Memory usage of coef_3d: 26.96227264404297 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attributes:\n",
+      "Rank: 0 - Memory usage of coef_3d attr - B: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - apply_1d_operators: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - area: 0.879058837890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dn: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dr: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - drdx: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - drdy: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - drdz: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - ds: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dsdx: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dsdy: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dsdz: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dt: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dtdx: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dtdy: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dtdz: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dtype: 0.00011444091796875 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dxdr: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dxds: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dxdt: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dydr: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dyds: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dydt: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dzdr: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dzds: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - dzdt: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - gdim: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - jac: 1.172027587890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - nx: 0.879058837890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - ny: 0.879058837890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - nz: 0.879058837890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - v: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - vinv: 0.000396728515625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - w: 0.0004119873046875 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - w3: 0.002105712890625 MB\n",
+      "Rank: 0 - Memory usage of coef_3d attr - x: 0.0004119873046875 MB\n",
+      "===================================\n",
+      "Rank: 0 - Memory usage of fld_3d: 18.75537109375 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attributes:\n",
+      "Rank: 0 - Memory usage of fld_3d attr - fields: 9.376884460449219 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - pres_fields: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - registry: 9.376899719238281 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - registry_pos: 0.00119781494140625 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - scal_fields: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - scal_fields_names: 0.000244140625 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - t: 2.288818359375e-05 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - temp_fields: 3.0517578125e-05 MB\n",
+      "Rank: 0 - Memory usage of fld_3d attr - vel_fields: 3.0517578125e-05 MB\n",
+      "===================================\n"
+     ]
+    }
+   ],
+   "source": [
+    "if comm.Get_rank() == 0:\n",
+    "    for key in mm.object_report.keys():\n",
+    "        mm.report_object_information(comm, key)\n",
+    "        print('===================================')\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

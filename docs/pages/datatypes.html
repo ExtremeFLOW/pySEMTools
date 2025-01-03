@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
@@ -6,21 +8,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data types &mdash; PyNekTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=16816911"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -50,6 +48,7 @@
               <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.extrude_2d_sem_mesh"><code class="docutils literal notranslate"><span class="pre">extrude_2d_sem_mesh()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_angular_rotation_tensor"><code class="docutils literal notranslate"><span class="pre">get_angular_rotation_tensor()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_gradient"><code class="docutils literal notranslate"><span class="pre">get_gradient()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_strain_tensor"><code class="docutils literal notranslate"><span class="pre">get_strain_tensor()</span></code></a></li>
@@ -60,12 +59,38 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Examples:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/derivation.html">Derivation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/pod.html">POD of data in disk</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1d_data_processing.html">1D data processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -106,6 +131,38 @@
 <p>Some functions using these classes are in the utils module. Here we show them:</p>
 <hr class="docutils" />
 <p id="module-pynektools.datatypes.utils">Module for utility functions for the datatypes module</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pynektools.datatypes.utils.extrude_2d_sem_mesh">
+<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">extrude_2d_sem_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="msh.html#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="field.html#pynektools.datatypes.field.Field" title="pynektools.datatypes.field.Field"><span class="pre">Field</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="field.html#pynektools.datatypes.field.FieldRegistry" title="pynektools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.extrude_2d_sem_mesh" title="Link to this definition"></a></dt>
+<dd><p>Extrude a 2D SEM mesh to 3D.</p>
+<p>Extrude a 2D SEM mesh to 3D by replicating the mesh and fields in the z direction.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>A communicator object.</p>
+</dd>
+<dt><strong>lz</strong><span class="classifier">int</span></dt><dd><p>Number of layers in the z direction.</p>
+</dd>
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>A mesh object.</p>
+</dd>
+<dt><strong>fld</strong><span class="classifier">Field or FieldRegistry</span></dt><dd><p>A field object.</p>
+</dd>
+<dt><strong>point_dist</strong><span class="classifier">ndarray</span></dt><dd><p>Array with the z coordinates of the new mesh.
+Defaults to GLL points from -1 to 1.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>Mesh</dt><dd><p>A 3D mesh object.</p>
+</dd>
+<dt>FieldRegistry</dt><dd><p>A 3D field object.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pynektools.datatypes.utils.get_angular_rotation_tensor">
 <span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_angular_rotation_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_angular_rotation_tensor" title="Link to this definition"></a></dt>
@@ -242,7 +299,7 @@ Each entry in the list should be a 4D ndarray with the shape (nelv, lz, ly, lx).
 </div>
 <p>To write them in positions 0, 1, 2 of the vel keyword in the file, you should not use this function, and instead
 create a empty field object and update its metadata with the correct positions.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span> <span class="o">=</span> <span class="n">field_c</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out_fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>

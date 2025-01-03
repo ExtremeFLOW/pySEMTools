@@ -1,0 +1,358 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "31a94bbd-34ef-404b-a9be-4f3a216a8c3c",
+   "metadata": {},
+   "source": [
+    "# Sem subdomains\n",
+    "\n",
+    "In this example we will see how one can choose a subdomain of the SEM mesh.\n",
+    "\n",
+    "We see to utilities of this.\n",
+    "\n",
+    "1. One wishes to write a reduced set of data to reduce storage\n",
+    "2. One wishes to reduce the scope of an analysis, in turn speeding it up.\n",
+    "\n",
+    "\n",
+    "#### Import general modules\n",
+    "\n",
+    "mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "8b4ca2be-46e8-443b-ab44-6d1a60abfec4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Import required modules\n",
+    "from mpi4py import MPI #equivalent to the use of MPI_init() in C\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "\n",
+    "# Get mpi info\n",
+    "comm = MPI.COMM_WORLD"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1702ba96-7854-4a2f-89d2-7f2b2aaa61b1",
+   "metadata": {},
+   "source": [
+    "#### Import modules from pynektools\n",
+    "\n",
+    "In this case we will import all the data types that we currently support, as well as io functions that are required to populate them."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "09a4efe8-3557-4ff7-850e-0a26c8937bd6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Data types\n",
+    "from pynektools.datatypes.msh import Mesh\n",
+    "from pynektools.datatypes.coef import Coef\n",
+    "from pynektools.datatypes.field import FieldRegistry\n",
+    "\n",
+    "# Readers\n",
+    "from pynektools.io.ppymech.neksuite import pynekread\n",
+    "\n",
+    "# Writers\n",
+    "from pynektools.io.ppymech.neksuite import pynekwrite\n",
+    "\n",
+    "fname = '../data/rbc0.f00001'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6346fcd3",
+   "metadata": {},
+   "source": [
+    "## Writing subdomains with a utility function\n",
+    "\n",
+    "We have written a utility function that allows to write only a subdomain of a field. \n",
+    "\n",
+    "The function works by identidying which element in each rank satisfy a condition and then write those elements. Some aspects to note:\n",
+    "\n",
+    "1. Each rank will check independantly and write its own data. Therefore if the subdomain is all owned by one rank, then only that rank will write.\n",
+    "2. The subdomains will not be available in memory. If one wants to have the subdomain partitioned across ranks, then one must write and read the subdomain.\n",
+    "\n",
+    "In the following example we will write out a subdomain of the input file that is contained between the values x = [-1,1], y=[-1,1], z=[0,0.5]."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "638f358b",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-08-25 19:39:32,840 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-08-25 19:39:32,840 - Field - INFO - Initializing empty Field object\n",
+      "2024-08-25 19:39:32,841 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-08-25 19:39:32,852 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:32,853 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:32,853 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:32,854 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:32,855 - Mesh - INFO - Elapsed time: 0.00260147s\n",
+      "2024-08-25 19:39:32,855 - pynekread - INFO - Reading field data\n",
+      "2024-08-25 19:39:32,862 - pynekread - INFO - File read\n",
+      "2024-08-25 19:39:32,862 - pynekread - INFO - Elapsed time: 0.021230949s\n",
+      "2024-08-25 19:39:32,872 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:32,873 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:32,874 - Mesh - INFO - Creating connectivity\n",
+      "2024-08-25 19:39:33,011 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,012 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,012 - Mesh - INFO - Elapsed time: 0.14000945999999997s\n",
+      "2024-08-25 19:39:33,013 - Field - INFO - Initializing empty Field object\n",
+      "Writing file: subdomains0.f00001\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Utils\n",
+    "from pynektools.datatypes.utils import write_fld_subdomain_from_list\n",
+    "\n",
+    "# Instance the empty objects\n",
+    "msh = Mesh(comm, create_connectivity=False)\n",
+    "fld = FieldRegistry(comm)\n",
+    "\n",
+    "# Read the data\n",
+    "pynekread(fname, comm, data_dtype=np.single, msh=msh, fld = fld)\n",
+    "\n",
+    "# Write the data in a subdomain and with a different order than what was read\n",
+    "fout = 'subdomains0.f00001'\n",
+    "\n",
+    "write_fld_subdomain_from_list(fout, comm, msh, field_list=[fld.registry['u'],fld.registry['v'],fld.registry['w']], subdomain=[[-1, 1], [-1, 1], [0, 0.5]])"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "21cdb573",
+   "metadata": {},
+   "source": [
+    "If you visualize the field, you will observe that the subdomain should have been written. Please note that this function might not be very memory efficient."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "af7c8497",
+   "metadata": {},
+   "source": [
+    "## Obtaining subdomains and partitioning the resuling elements\n",
+    "\n",
+    "\n",
+    "### The naive approach\n",
+    "\n",
+    "While the previous method works perfectly fine, there are instances in whihc one might wish to do this in memory.\n",
+    "\n",
+    "Choosing the elements that satisfy certain conditions in each rank is very easy and can be seen in the following snippet, where we choose a subdomain that contains values where z is smaller than 0.1 and larger than 0.9 for the rbc data set."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "d5ed4a22",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-08-25 19:39:33,044 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-08-25 19:39:33,045 - Field - INFO - Initializing empty Field object\n",
+      "2024-08-25 19:39:33,046 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-08-25 19:39:33,050 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:33,051 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:33,052 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,052 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,053 - Mesh - INFO - Elapsed time: 0.0029262059999999313s\n",
+      "2024-08-25 19:39:33,053 - pynekread - INFO - Reading field data\n",
+      "2024-08-25 19:39:33,056 - pynekread - INFO - File read\n",
+      "2024-08-25 19:39:33,057 - pynekread - INFO - Elapsed time: 0.011478025000000058s\n",
+      "2024-08-25 19:39:33,060 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:33,060 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:33,061 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,061 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,062 - Mesh - INFO - Elapsed time: 0.002286441999999944s\n",
+      "Elements in rank 0: 120\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Instance the empty objects\n",
+    "msh = Mesh(comm, create_connectivity=False)\n",
+    "fld = FieldRegistry(comm)\n",
+    "\n",
+    "# Read the data\n",
+    "pynekread(fname, comm, data_dtype=np.single, msh=msh, fld = fld)\n",
+    "\n",
+    "# Choose a condition that you want the subdomain to satisfy\n",
+    "condition1 = msh.z < 0.1\n",
+    "conidtion2 = msh.z > 0.9\n",
+    "cond = condition1 | conidtion2 # Logical OR\n",
+    "# Get a list of elements that satisfy the condition\n",
+    "condition = np.all([cond], axis=0)\n",
+    "ce = np.unique(np.where(condition)[0])\n",
+    "\n",
+    "# Create new object\n",
+    "msh_sub = Mesh(comm, x=msh.x[ce], y=msh.y[ce], z=msh.z[ce], create_connectivity=False)\n",
+    "\n",
+    "print(f'Elements in rank {comm.rank}: {msh_sub.nelv}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "05dd1aa1",
+   "metadata": {},
+   "source": [
+    "If you run this code in parallel, you might observe that some ranks will have all the elements while other will not have any. This means that the load is unbalanced and if you wish to operate on the data, many cores might be idling.\n",
+    "\n",
+    "### Partitoning the elements to keep the load balanced\n",
+    "\n",
+    "To fight this we provide a mesh partitoning object that will take charge of selecting the elements that satisfy the condition and then redistribute them to all ranks such tha the load becomes balanced again. The procedure is the following:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "966ff1f8",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-08-25 19:39:33,072 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2024-08-25 19:39:33,072 - Field - INFO - Initializing empty Field object\n",
+      "2024-08-25 19:39:33,073 - pynekread - INFO - Reading file: ../data/rbc0.f00001\n",
+      "2024-08-25 19:39:33,076 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:33,077 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:33,078 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,078 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,079 - Mesh - INFO - Elapsed time: 0.002756633000000064s\n",
+      "2024-08-25 19:39:33,079 - pynekread - INFO - Reading field data\n",
+      "2024-08-25 19:39:33,083 - pynekread - INFO - File read\n",
+      "2024-08-25 19:39:33,087 - pynekread - INFO - Elapsed time: 0.014093703000000013s\n",
+      "2024-08-25 19:39:33,089 - Mesh Partitioner - INFO - Initializing Mesh Partitioner\n",
+      "2024-08-25 19:39:33,091 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:33,092 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:33,093 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,094 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,094 - Mesh - INFO - Elapsed time: 0.0030915799999999827s\n",
+      "2024-08-25 19:39:33,096 - Mesh Partitioner - INFO - Partitioning the mesh coordinates with load_balanced_linear algorithm\n",
+      "2024-08-25 19:39:33,098 - Mesh Partitioner - INFO - Creating mesh object\n",
+      "2024-08-25 19:39:33,099 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2024-08-25 19:39:33,099 - Mesh - INFO - Initializing common attributes.\n",
+      "2024-08-25 19:39:33,100 - Mesh - INFO - Mesh object initialized.\n",
+      "2024-08-25 19:39:33,101 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2024-08-25 19:39:33,101 - Mesh - INFO - Elapsed time: 0.002486525999999989s\n",
+      "2024-08-25 19:39:33,102 - Mesh Partitioner - INFO - Partitioning the field object with load_balanced_linear algorithm\n",
+      "2024-08-25 19:39:33,102 - Field - INFO - Initializing empty Field object\n",
+      "2024-08-25 19:39:33,105 - Mesh Partitioner - INFO - done\n",
+      "2024-08-25 19:39:33,107 - pynekwrite - INFO - Writing file: partitioned_field0.f00001\n",
+      "2024-08-25 19:39:33,115 - pynekwrite - INFO - Elapsed time: 0.007852660000000067s\n",
+      "Elements in rank 0: 120\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Import the mesh partitioner\n",
+    "from pynektools.datatypes.msh_partitioning import MeshPartitioner\n",
+    "\n",
+    "# Instance the empty objects\n",
+    "msh = Mesh(comm, create_connectivity=False)\n",
+    "fld = FieldRegistry(comm)\n",
+    "\n",
+    "# Read the data\n",
+    "pynekread(fname, comm, data_dtype=np.single, msh=msh, fld = fld)\n",
+    "\n",
+    "# Choose a condition that you want the subdomain to satisfy\n",
+    "condition1 = msh.z < 0.1\n",
+    "conidtion2 = msh.z > 0.9\n",
+    "cond = condition1 | conidtion2 # Logical OR\n",
+    "\n",
+    "# Initialize the mesh partitioner with the given condition\n",
+    "mp = MeshPartitioner(comm, msh=msh, conditions=[cond])\n",
+    "\n",
+    "# Create the properly partitioned sub mesh and field\n",
+    "partitioned_mesh = mp.create_partitioned_mesh(msh, partitioning_algorithm=\"load_balanced_linear\", create_conectivity=False)\n",
+    "partitioned_field = mp.create_partitioned_field(fld, partitioning_algorithm=\"load_balanced_linear\")\n",
+    "\n",
+    "fname = \"partitioned_field0.f00001\"\n",
+    "pynekwrite(fname, comm, msh=partitioned_mesh, fld=partitioned_field, write_mesh=True)\n",
+    "\n",
+    "print(f'Elements in rank {comm.rank}: {partitioned_mesh.nelv}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0db06636",
+   "metadata": {},
+   "source": [
+    "Here we decided to write the partitioned mesh, but one can easily operate on the data. For example, the coef object can be created with the submesh"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "9e161b74",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-08-25 19:39:33,126 - Coef - INFO - Initializing Coef object\n",
+      "2024-08-25 19:39:33,127 - Coef - INFO - Getting derivative matrices\n",
+      "2024-08-25 19:39:33,130 - Coef - INFO - Calculating the components of the jacobian\n",
+      "2024-08-25 19:39:33,145 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix\n",
+      "2024-08-25 19:39:33,147 - Coef - INFO - Calculating the mass matrix\n",
+      "2024-08-25 19:39:33,148 - Coef - INFO - Coef object initialized\n",
+      "2024-08-25 19:39:33,148 - Coef - INFO - Coef data is of type: float32\n",
+      "2024-08-25 19:39:33,149 - Coef - INFO - Elapsed time: 0.02330738499999996s\n"
+     ]
+    }
+   ],
+   "source": [
+    "coef_sub = Coef(partitioned_mesh, comm)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5ac8a2c7",
+   "metadata": {},
+   "source": [
+    "From here on you can do any operation on the partitioned mesh and fields"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

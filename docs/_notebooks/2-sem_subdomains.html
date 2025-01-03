@@ -1,0 +1,423 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sem subdomains &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data compression" href="3-data_compression.html" />
+    <link rel="prev" title="Data types and IO" href="1-datatypes_io.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Sem subdomains</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Writing-subdomains-with-a-utility-function">Writing subdomains with a utility function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Obtaining-subdomains-and-partitioning-the-resuling-elements">Obtaining subdomains and partitioning the resuling elements</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#The-naive-approach">The naive approach</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Partitoning-the-elements-to-keep-the-load-balanced">Partitoning the elements to keep the load balanced</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Sem subdomains</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/2-sem_subdomains.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Sem-subdomains">
+<h1>Sem subdomains<a class="headerlink" href="#Sem-subdomains" title="Link to this heading"></a></h1>
+<p>In this example we will see how one can choose a subdomain of the SEM mesh.</p>
+<p>We see to utilities of this.</p>
+<ol class="arabic simple">
+<li><p>One wishes to write a reduced set of data to reduce storage</p></li>
+<li><p>One wishes to reduce the scope of an analysis, in turn speeding it up.</p></li>
+</ol>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<p>mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynektools">
+<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<p>In this case we will import all the data types that we currently support, as well as io functions that are required to populate them.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data types</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.coef</span> <span class="kn">import</span> <span class="n">Coef</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+
+<span class="c1"># Readers</span>
+<span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span>
+
+<span class="c1"># Writers</span>
+<span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekwrite</span>
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;../data/rbc0.f00001&#39;</span>
+</pre></div>
+</div>
+</div>
+<section id="Writing-subdomains-with-a-utility-function">
+<h3>Writing subdomains with a utility function<a class="headerlink" href="#Writing-subdomains-with-a-utility-function" title="Link to this heading"></a></h3>
+<p>We have written a utility function that allows to write only a subdomain of a field.</p>
+<p>The function works by identidying which element in each rank satisfy a condition and then write those elements. Some aspects to note:</p>
+<ol class="arabic simple">
+<li><p>Each rank will check independantly and write its own data. Therefore if the subdomain is all owned by one rank, then only that rank will write.</p></li>
+<li><p>The subdomains will not be available in memory. If one wants to have the subdomain partitioned across ranks, then one must write and read the subdomain.</p></li>
+</ol>
+<p>In the following example we will write out a subdomain of the input file that is contained between the values x = [-1,1], y=[-1,1], z=[0,0.5].</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Utils</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.utils</span> <span class="kn">import</span> <span class="n">write_fld_subdomain_from_list</span>
+
+<span class="c1"># Instance the empty objects</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+
+<span class="c1"># Read the data</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">)</span>
+
+<span class="c1"># Write the data in a subdomain and with a different order than what was read</span>
+<span class="n">fout</span> <span class="o">=</span> <span class="s1">&#39;subdomains0.f00001&#39;</span>
+
+<span class="n">write_fld_subdomain_from_list</span><span class="p">(</span><span class="n">fout</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="p">,</span> <span class="n">field_list</span><span class="o">=</span><span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]],</span> <span class="n">subdomain</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-25 19:39:32,840 - Mesh - INFO - Initializing empty Mesh object.
+2024-08-25 19:39:32,840 - Field - INFO - Initializing empty Field object
+2024-08-25 19:39:32,841 - pynekread - INFO - Reading file: ../data/rbc0.f00001
+2024-08-25 19:39:32,852 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:32,853 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:32,853 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:32,854 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:32,855 - Mesh - INFO - Elapsed time: 0.00260147s
+2024-08-25 19:39:32,855 - pynekread - INFO - Reading field data
+2024-08-25 19:39:32,862 - pynekread - INFO - File read
+2024-08-25 19:39:32,862 - pynekread - INFO - Elapsed time: 0.021230949s
+2024-08-25 19:39:32,872 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:32,873 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:32,874 - Mesh - INFO - Creating connectivity
+2024-08-25 19:39:33,011 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,012 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,012 - Mesh - INFO - Elapsed time: 0.14000945999999997s
+2024-08-25 19:39:33,013 - Field - INFO - Initializing empty Field object
+Writing file: subdomains0.f00001
+</pre></div></div>
+</div>
+<p>If you visualize the field, you will observe that the subdomain should have been written. Please note that this function might not be very memory efficient.</p>
+</section>
+<section id="Obtaining-subdomains-and-partitioning-the-resuling-elements">
+<h3>Obtaining subdomains and partitioning the resuling elements<a class="headerlink" href="#Obtaining-subdomains-and-partitioning-the-resuling-elements" title="Link to this heading"></a></h3>
+<section id="The-naive-approach">
+<h4>The naive approach<a class="headerlink" href="#The-naive-approach" title="Link to this heading"></a></h4>
+<p>While the previous method works perfectly fine, there are instances in whihc one might wish to do this in memory.</p>
+<p>Choosing the elements that satisfy certain conditions in each rank is very easy and can be seen in the following snippet, where we choose a subdomain that contains values where z is smaller than 0.1 and larger than 0.9 for the rbc data set.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Instance the empty objects</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+
+<span class="c1"># Read the data</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">)</span>
+
+<span class="c1"># Choose a condition that you want the subdomain to satisfy</span>
+<span class="n">condition1</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">z</span> <span class="o">&lt;</span> <span class="mf">0.1</span>
+<span class="n">conidtion2</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mf">0.9</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">condition1</span> <span class="o">|</span> <span class="n">conidtion2</span> <span class="c1"># Logical OR</span>
+<span class="c1"># Get a list of elements that satisfy the condition</span>
+<span class="n">condition</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">cond</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ce</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">condition</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c1"># Create new object</span>
+<span class="n">msh_sub</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">ce</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">ce</span><span class="p">],</span> <span class="n">z</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">z</span><span class="p">[</span><span class="n">ce</span><span class="p">],</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Elements in rank </span><span class="si">{</span><span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">msh_sub</span><span class="o">.</span><span class="n">nelv</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-25 19:39:33,044 - Mesh - INFO - Initializing empty Mesh object.
+2024-08-25 19:39:33,045 - Field - INFO - Initializing empty Field object
+2024-08-25 19:39:33,046 - pynekread - INFO - Reading file: ../data/rbc0.f00001
+2024-08-25 19:39:33,050 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:33,051 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:33,052 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,052 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,053 - Mesh - INFO - Elapsed time: 0.0029262059999999313s
+2024-08-25 19:39:33,053 - pynekread - INFO - Reading field data
+2024-08-25 19:39:33,056 - pynekread - INFO - File read
+2024-08-25 19:39:33,057 - pynekread - INFO - Elapsed time: 0.011478025000000058s
+2024-08-25 19:39:33,060 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:33,060 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:33,061 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,061 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,062 - Mesh - INFO - Elapsed time: 0.002286441999999944s
+Elements in rank 0: 120
+</pre></div></div>
+</div>
+<p>If you run this code in parallel, you might observe that some ranks will have all the elements while other will not have any. This means that the load is unbalanced and if you wish to operate on the data, many cores might be idling.</p>
+</section>
+<section id="Partitoning-the-elements-to-keep-the-load-balanced">
+<h4>Partitoning the elements to keep the load balanced<a class="headerlink" href="#Partitoning-the-elements-to-keep-the-load-balanced" title="Link to this heading"></a></h4>
+<p>To fight this we provide a mesh partitoning object that will take charge of selecting the elements that satisfy the condition and then redistribute them to all ranks such tha the load becomes balanced again. The procedure is the following:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the mesh partitioner</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh_partitioning</span> <span class="kn">import</span> <span class="n">MeshPartitioner</span>
+
+<span class="c1"># Instance the empty objects</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+
+<span class="c1"># Read the data</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">)</span>
+
+<span class="c1"># Choose a condition that you want the subdomain to satisfy</span>
+<span class="n">condition1</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">z</span> <span class="o">&lt;</span> <span class="mf">0.1</span>
+<span class="n">conidtion2</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mf">0.9</span>
+<span class="n">cond</span> <span class="o">=</span> <span class="n">condition1</span> <span class="o">|</span> <span class="n">conidtion2</span> <span class="c1"># Logical OR</span>
+
+<span class="c1"># Initialize the mesh partitioner with the given condition</span>
+<span class="n">mp</span> <span class="o">=</span> <span class="n">MeshPartitioner</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="p">[</span><span class="n">cond</span><span class="p">])</span>
+
+<span class="c1"># Create the properly partitioned sub mesh and field</span>
+<span class="n">partitioned_mesh</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">create_partitioned_mesh</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">partitioning_algorithm</span><span class="o">=</span><span class="s2">&quot;load_balanced_linear&quot;</span><span class="p">,</span> <span class="n">create_conectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">partitioned_field</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">create_partitioned_field</span><span class="p">(</span><span class="n">fld</span><span class="p">,</span> <span class="n">partitioning_algorithm</span><span class="o">=</span><span class="s2">&quot;load_balanced_linear&quot;</span><span class="p">)</span>
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;partitioned_field0.f00001&quot;</span>
+<span class="n">pynekwrite</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">partitioned_mesh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">partitioned_field</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Elements in rank </span><span class="si">{</span><span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">partitioned_mesh</span><span class="o">.</span><span class="n">nelv</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-25 19:39:33,072 - Mesh - INFO - Initializing empty Mesh object.
+2024-08-25 19:39:33,072 - Field - INFO - Initializing empty Field object
+2024-08-25 19:39:33,073 - pynekread - INFO - Reading file: ../data/rbc0.f00001
+2024-08-25 19:39:33,076 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:33,077 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:33,078 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,078 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,079 - Mesh - INFO - Elapsed time: 0.002756633000000064s
+2024-08-25 19:39:33,079 - pynekread - INFO - Reading field data
+2024-08-25 19:39:33,083 - pynekread - INFO - File read
+2024-08-25 19:39:33,087 - pynekread - INFO - Elapsed time: 0.014093703000000013s
+2024-08-25 19:39:33,089 - Mesh Partitioner - INFO - Initializing Mesh Partitioner
+2024-08-25 19:39:33,091 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:33,092 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:33,093 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,094 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,094 - Mesh - INFO - Elapsed time: 0.0030915799999999827s
+2024-08-25 19:39:33,096 - Mesh Partitioner - INFO - Partitioning the mesh coordinates with load_balanced_linear algorithm
+2024-08-25 19:39:33,098 - Mesh Partitioner - INFO - Creating mesh object
+2024-08-25 19:39:33,099 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-08-25 19:39:33,099 - Mesh - INFO - Initializing common attributes.
+2024-08-25 19:39:33,100 - Mesh - INFO - Mesh object initialized.
+2024-08-25 19:39:33,101 - Mesh - INFO - Mesh data is of type: float32
+2024-08-25 19:39:33,101 - Mesh - INFO - Elapsed time: 0.002486525999999989s
+2024-08-25 19:39:33,102 - Mesh Partitioner - INFO - Partitioning the field object with load_balanced_linear algorithm
+2024-08-25 19:39:33,102 - Field - INFO - Initializing empty Field object
+2024-08-25 19:39:33,105 - Mesh Partitioner - INFO - done
+2024-08-25 19:39:33,107 - pynekwrite - INFO - Writing file: partitioned_field0.f00001
+2024-08-25 19:39:33,115 - pynekwrite - INFO - Elapsed time: 0.007852660000000067s
+Elements in rank 0: 120
+</pre></div></div>
+</div>
+<p>Here we decided to write the partitioned mesh, but one can easily operate on the data. For example, the coef object can be created with the submesh</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coef_sub</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">partitioned_mesh</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-08-25 19:39:33,126 - Coef - INFO - Initializing Coef object
+2024-08-25 19:39:33,127 - Coef - INFO - Getting derivative matrices
+2024-08-25 19:39:33,130 - Coef - INFO - Calculating the components of the jacobian
+2024-08-25 19:39:33,145 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2024-08-25 19:39:33,147 - Coef - INFO - Calculating the mass matrix
+2024-08-25 19:39:33,148 - Coef - INFO - Coef object initialized
+2024-08-25 19:39:33,148 - Coef - INFO - Coef data is of type: float32
+2024-08-25 19:39:33,149 - Coef - INFO - Elapsed time: 0.02330738499999996s
+</pre></div></div>
+</div>
+<p>From here on you can do any operation on the partitioned mesh and fields</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="1-datatypes_io.html" class="btn btn-neutral float-left" title="Data types and IO" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="3-data_compression.html" class="btn btn-neutral float-right" title="Data compression" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

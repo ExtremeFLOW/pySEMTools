@@ -32,9 +32,50 @@ There are more examples in the repository.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Examples:
+   :caption: Examples on data types and IO:
 
-   ./_notebooks/derivation.ipynb
-   ./_notebooks/interpolation.ipynb
-   ./_notebooks/pod.ipynb
-   ./_notebooks/1d_data_processing.ipynb
+   ./_notebooks/1-datatypes_io.ipynb
+   ./_notebooks/2-sem_subdomains.ipynb
+   ./_notebooks/3-data_compression.ipynb
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples on calculus on SEM mesh:
+
+   ./_notebooks/1-differentiation.ipynb
+   ./_notebooks/2-integration.ipynb
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples on interpolation:
+
+   ./_notebooks/1-interpolation_to_query_points.ipynb
+   ./_notebooks/2-element_interpolation.ipynb 
+   ./_notebooks/3-interpolation_from_2d_sem_mesh.ipynb
+   ./_notebooks/5-structured_mesh.ipynb 
+   ./_notebooks/6-interpolating_file_sequences.ipynb
+   ./_notebooks/7-visualizing_pointclouds.ipynb
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples on reduced order models:
+
+   ./_notebooks/1-POD_from_pointclouds.ipynb
+   ./_notebooks/2-POD_fft_from_pointclouds.ipynb
+   
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Examples on statistics:
+   
+   
+   ./_notebooks/1-post_processing_mean_fields.ipynb
+   ./_notebooks/2-UQ_of_velocity.ipynb
+   ./_notebooks/3-UQ_of_temperature.ipynb
+   
+   
+   
+   
+   
+   

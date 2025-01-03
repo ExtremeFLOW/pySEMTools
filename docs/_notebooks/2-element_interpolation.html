@@ -1,0 +1,391 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Element distribution interpolation &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Interpolation from 2D sem mesh" href="3-interpolation_from_2d_sem_mesh.html" />
+    <link rel="prev" title="Interpolation to query points" href="1-interpolation_to_query_points.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Element distribution interpolation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynek">Import modules from pynek</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Read-the-data-and-build-objects">Read the data and build objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Mapping-to-a-new-distribution">Mapping to a new distribution</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Mapping-all-fields">Mapping all fields</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Performing-P-refinement">Performing P refinement</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Refining-all-fields">Refining all fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Element distribution interpolation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/2-element_interpolation.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Element-distribution-interpolation">
+<h1>Element distribution interpolation<a class="headerlink" href="#Element-distribution-interpolation" title="Link to this heading"></a></h1>
+<p>In this example we show how to perform interpolations that keep the same element structure.</p>
+<p>Two examples of this are:</p>
+<ol class="arabic simple">
+<li><p>Mapping the GLL points of each element into a different distribution.</p></li>
+<li><p>Perfomring P refinement, i.e., map to points of the same distribution but a different degree.</p></li>
+</ol>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pynek">
+<h2>Import modules from pynek<a class="headerlink" href="#Import-modules-from-pynek" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+</pre></div>
+</div>
+</div>
+<section id="Read-the-data-and-build-objects">
+<h3>Read the data and build objects<a class="headerlink" href="#Read-the-data-and-build-objects" title="Link to this heading"></a></h3>
+<p>In this instance, we create connectivity for the mesh object, given that we wish to use direct stiffness summation to reduce discontinuities.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="s1">&#39;../data/tc_channel0.f00001&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 21:48:29,145 - Mesh - INFO - Initializing empty Mesh object.
+2024-09-11 21:48:29,147 - Field - INFO - Initializing empty Field object
+2024-09-11 21:48:29,147 - pynekread - INFO - Reading file: ../data/tc_channel0.f00001
+2024-09-11 21:48:29,163 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-11 21:48:29,165 - Mesh - INFO - Initializing common attributes.
+2024-09-11 21:48:29,167 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:29,168 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:29,177 - Mesh - INFO - Getting facet centers
+2024-09-11 21:48:29,187 - Mesh - INFO - Creating connectivity
+2024-09-11 21:48:29,575 - Mesh - INFO - Mesh object initialized.
+2024-09-11 21:48:29,576 - Mesh - INFO - Mesh data is of type: float64
+2024-09-11 21:48:29,577 - Mesh - INFO - Elapsed time: 0.41460768800000003s
+2024-09-11 21:48:29,578 - pynekread - INFO - Reading field data
+2024-09-11 21:48:29,586 - pynekread - INFO - File read
+2024-09-11 21:48:29,587 - pynekread - INFO - Elapsed time: 0.439429355s
+</pre></div></div>
+</div>
+</section>
+<section id="Mapping-to-a-new-distribution">
+<h3>Mapping to a new distribution<a class="headerlink" href="#Mapping-to-a-new-distribution" title="Link to this heading"></a></h3>
+<p>We can map to a new distribution of points in any of the dimensions of the element at the same time.</p>
+<p>Here we show an example where this is done to an equidistant mesh in the z direction.</p>
+<p>For this we use the PMapper class.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the module</span>
+<span class="kn">from</span> <span class="nn">pynektools.interpolation.mesh_to_mesh</span> <span class="kn">import</span> <span class="n">PMapper</span>
+
+<span class="c1"># Here specify that it should be equal in the 3 direction</span>
+<span class="n">mapper</span> <span class="o">=</span> <span class="n">PMapper</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLL&#39;</span><span class="p">,</span> <span class="s1">&#39;GLL&#39;</span><span class="p">,</span> <span class="s1">&#39;EQ&#39;</span><span class="p">])</span>
+
+<span class="c1"># Create the mesh with the new distribution</span>
+<span class="n">eq_msh</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">create_mapped_mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+
+<span class="c1"># Interpolate the fields. They are passed as a list and returned as a list</span>
+<span class="n">mapped_fields</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_list</span><span class="o">=</span><span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]])</span>
+
+<span class="c1"># Create an empty field object for the equidistant fields</span>
+<span class="n">eq_fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">eq_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">mapped_fields</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+<span class="n">eq_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">mapped_fields</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+<span class="n">eq_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">mapped_fields</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+
+<span class="c1"># Write the new mesh and fields</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;mappedfield0.f00001&quot;</span>
+<span class="n">pynekwrite</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">eq_msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">eq_fld</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wdsz</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 21:48:30,619 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-11 21:48:30,619 - Mesh - INFO - Initializing common attributes.
+2024-09-11 21:48:30,620 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:30,621 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:30,630 - Mesh - INFO - Getting facet centers
+2024-09-11 21:48:30,637 - Mesh - INFO - Creating connectivity
+2024-09-11 21:48:30,986 - Mesh - INFO - Mesh object initialized.
+2024-09-11 21:48:30,987 - Mesh - INFO - Mesh data is of type: float64
+2024-09-11 21:48:30,987 - Mesh - INFO - Elapsed time: 0.36897678200000006s
+2024-09-11 21:48:31,746 - Field - INFO - Initializing empty Field object
+2024-09-11 21:48:31,747 - pynekwrite - INFO - Writing file: mappedfield0.f00001
+2024-09-11 21:48:31,756 - pynekwrite - INFO - Elapsed time: 0.008410899999999888s
+</pre></div></div>
+</div>
+<section id="Mapping-all-fields">
+<h4>Mapping all fields<a class="headerlink" href="#Mapping-all-fields" title="Link to this heading"></a></h4>
+<p>In the previous block, we showed how to map specific fields. However if you wish to map all the contents of the field object, you can use the following:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq_fld2</span> <span class="o">=</span> <span class="n">mapper</span><span class="o">.</span><span class="n">create_mapped_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">eq_fld</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">eq_fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">eq_fld2</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 21:48:31,766 - Field - INFO - Initializing empty Field object
+True
+True
+True
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Performing-P-refinement">
+<h3>Performing P refinement<a class="headerlink" href="#Performing-P-refinement" title="Link to this heading"></a></h3>
+<p>In some instances one wishes to keep the GLL distribution to perform integration or derivation but doing so at higher or lower polynomiar order. For this cases one can employ p refinement/coarsening. We show now how that can be done.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the module</span>
+<span class="kn">from</span> <span class="nn">pynektools.interpolation.mesh_to_mesh</span> <span class="kn">import</span> <span class="n">PRefiner</span>
+
+<span class="c1"># Here specify that it should be equal in the 3 direction</span>
+<span class="n">pr</span> <span class="o">=</span> <span class="n">PRefiner</span><span class="p">(</span><span class="n">n_old</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">n_new</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="c1"># Create the mesh with the new distribution</span>
+<span class="n">r_msh</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">create_refined_mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+
+<span class="c1"># Interpolate the fields. They are passed as a list and returned as a list</span>
+<span class="n">r_fields</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_list</span><span class="o">=</span><span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;u&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;v&#39;</span><span class="p">],</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;w&#39;</span><span class="p">]])</span>
+
+<span class="c1"># Create an empty field object for the equidistant fields</span>
+<span class="n">r_fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">r_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;u&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">r_fields</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+<span class="n">r_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;v&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">r_fields</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+<span class="n">r_fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">r_fields</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+
+<span class="c1"># Write the new mesh and fields</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;refinedfield0.f00001&quot;</span>
+<span class="n">pynekwrite</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">r_msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">r_fld</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">wdsz</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 21:48:33,932 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2024-09-11 21:48:33,933 - Mesh - INFO - Initializing common attributes.
+2024-09-11 21:48:33,933 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:33,935 - Mesh - INFO - Getting vertices
+2024-09-11 21:48:33,940 - Mesh - INFO - Getting facet centers
+2024-09-11 21:48:33,943 - Mesh - INFO - Creating connectivity
+2024-09-11 21:48:34,030 - Mesh - INFO - Mesh object initialized.
+2024-09-11 21:48:34,031 - Mesh - INFO - Mesh data is of type: float64
+2024-09-11 21:48:34,033 - Mesh - INFO - Elapsed time: 0.10139660900000003s
+2024-09-11 21:48:34,922 - Field - INFO - Initializing empty Field object
+2024-09-11 21:48:34,923 - pynekwrite - INFO - Writing file: refinedfield0.f00001
+2024-09-11 21:48:34,926 - pynekwrite - INFO - Elapsed time: 0.002947181000000576s
+</pre></div></div>
+</div>
+<section id="Refining-all-fields">
+<h4>Refining all fields<a class="headerlink" href="#Refining-all-fields" title="Link to this heading"></a></h4>
+<p>In the previous block, we showed how to refine specific fields. However if you wish to refine all the contents of the field object, you can use the following:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r_fld2</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">create_refined_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">r_fld</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">r_fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">r_fld2</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-09-11 21:48:34,935 - Field - INFO - Initializing empty Field object
+True
+True
+True
+</pre></div></div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="1-interpolation_to_query_points.html" class="btn btn-neutral float-left" title="Interpolation to query points" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="3-interpolation_from_2d_sem_mesh.html" class="btn btn-neutral float-right" title="Interpolation from 2D sem mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

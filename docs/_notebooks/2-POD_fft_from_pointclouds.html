@@ -1,0 +1,896 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POD and fft from pointclouds &mdash; PyNekTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Processing statistics files" href="1-post_processing_mean_fields.html" />
+    <link rel="prev" title="POD from pointclouds" href="1-POD_from_pointclouds.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PyNekTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">POD and fft from pointclouds</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Set-up-the-input-parameters">Set up the input parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Call-the-pynektools-routines">Call the pynektools routines</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PyNekTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">POD and fft from pointclouds</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/2-POD_fft_from_pointclouds.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="POD-and-fft-from-pointclouds">
+<h1>POD and fft from pointclouds<a class="headerlink" href="#POD-and-fft-from-pointclouds" title="Link to this heading"></a></h1>
+<p>We will now proceed to explain how to perform POD from point clouds. In this instance, we test only for POD in serial, as to perform in parallel, a parallel reader/writer is needed.</p>
+<p>If you have saved information in hdf5 and have habilitated mpi4py compilation of it, then you could use this code in parallel.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYNEKTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+</pre></div>
+</div>
+</div>
+<section id="Set-up-the-input-parameters">
+<h3>Set up the input parameters<a class="headerlink" href="#Set-up-the-input-parameters" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">file_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;../4-interpolation/interpolated_fields</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">.hdf5&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">48</span><span class="p">)]</span>
+<span class="n">pod_fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">]</span>
+<span class="n">mesh_fname</span> <span class="o">=</span> <span class="s2">&quot;../4-interpolation/points.hdf5&quot;</span>
+<span class="n">mass_matrix_fname</span> <span class="o">=</span> <span class="s2">&quot;../4-interpolation/points.hdf5&quot;</span>
+<span class="n">mass_matrix_key</span> <span class="o">=</span> <span class="s2">&quot;mass&quot;</span>
+<span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">)</span>
+<span class="n">fft_axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># 0 for x, 1 for y, 2 for z (Depends on how the mesh was created)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Call-the-pynektools-routines">
+<h3>Call the pynektools routines<a class="headerlink" href="#Call-the-pynektools-routines" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the pynektools routines</span>
+<span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">pod_fourier_1_homogenous_direction</span><span class="p">,</span> <span class="n">physical_space</span>
+
+<span class="c1"># Perform the POD with your input data</span>
+<span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">,</span> <span class="n">N_samples</span> <span class="o">=</span> <span class="n">pod_fourier_1_homogenous_direction</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">file_sequence</span><span class="p">,</span> <span class="n">pod_fields</span><span class="p">,</span> <span class="n">mass_matrix_fname</span><span class="p">,</span> <span class="n">mass_matrix_key</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">fft_axis</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/adperez/software/pyNekTools/pynektools/rom/fft_pod_wrappers.py:365: ComplexWarning: Casting complex values to real discards the imaginary part
+  ioh[kappa].bm1sqrt[:, :] = np.copy(ioh[kappa].xi[:, :])
+</pre></div></div>
+</div>
+</section>
+</section>
+</section>
+<section id="Write-out-data">
+<h1>Write out data<a class="headerlink" href="#Write-out-data" title="Link to this heading"></a></h1>
+<p>Write out modes that you specify in physical space.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">write_3dfield_to_file</span>
+
+<span class="c1"># Load the mesh</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">mesh_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Write out 5 modes for the first 3 wavenumbers</span>
+<span class="n">write_3dfield_to_file</span><span class="p">(</span><span class="s2">&quot;pod.vtk&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">)</span>
+
+<span class="c1"># Reconstruct all the snapshots for the first 3 wavenumbers and 5 modes</span>
+<span class="n">write_3dfield_to_file</span><span class="p">(</span><span class="s2">&quot;pod.vtk&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">snapshots</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">))])</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Writing ./pod_kappa_0_mode0.vtk
+Writing ./pod_kappa_0_mode1.vtk
+Writing ./pod_kappa_0_mode2.vtk
+Writing ./pod_kappa_0_mode3.vtk
+Writing ./pod_kappa_0_mode4.vtk
+Writing ./pod_kappa_1_mode0.vtk
+Writing ./pod_kappa_1_mode1.vtk
+Writing ./pod_kappa_1_mode2.vtk
+Writing ./pod_kappa_1_mode3.vtk
+Writing ./pod_kappa_1_mode4.vtk
+Writing ./pod_kappa_2_mode0.vtk
+Writing ./pod_kappa_2_mode1.vtk
+Writing ./pod_kappa_2_mode2.vtk
+Writing ./pod_kappa_2_mode3.vtk
+Writing ./pod_kappa_2_mode4.vtk
+Writing ./pod_reconstructed_data_0
+Writing ./pod_reconstructed_data_1
+Writing ./pod_reconstructed_data_2
+Writing ./pod_reconstructed_data_3
+Writing ./pod_reconstructed_data_4
+Writing ./pod_reconstructed_data_5
+Writing ./pod_reconstructed_data_6
+Writing ./pod_reconstructed_data_7
+Writing ./pod_reconstructed_data_8
+Writing ./pod_reconstructed_data_9
+Writing ./pod_reconstructed_data_10
+Writing ./pod_reconstructed_data_11
+Writing ./pod_reconstructed_data_12
+Writing ./pod_reconstructed_data_13
+Writing ./pod_reconstructed_data_14
+Writing ./pod_reconstructed_data_15
+Writing ./pod_reconstructed_data_16
+Writing ./pod_reconstructed_data_17
+Writing ./pod_reconstructed_data_18
+Writing ./pod_reconstructed_data_19
+Writing ./pod_reconstructed_data_20
+Writing ./pod_reconstructed_data_21
+Writing ./pod_reconstructed_data_22
+Writing ./pod_reconstructed_data_23
+Writing ./pod_reconstructed_data_24
+Writing ./pod_reconstructed_data_25
+Writing ./pod_reconstructed_data_26
+Writing ./pod_reconstructed_data_27
+Writing ./pod_reconstructed_data_28
+Writing ./pod_reconstructed_data_29
+Writing ./pod_reconstructed_data_30
+Writing ./pod_reconstructed_data_31
+Writing ./pod_reconstructed_data_32
+Writing ./pod_reconstructed_data_33
+Writing ./pod_reconstructed_data_34
+Writing ./pod_reconstructed_data_35
+Writing ./pod_reconstructed_data_36
+Writing ./pod_reconstructed_data_37
+Writing ./pod_reconstructed_data_38
+Writing ./pod_reconstructed_data_39
+Writing ./pod_reconstructed_data_40
+Writing ./pod_reconstructed_data_41
+Writing ./pod_reconstructed_data_42
+Writing ./pod_reconstructed_data_43
+Writing ./pod_reconstructed_data_44
+Writing ./pod_reconstructed_data_45
+Writing ./pod_reconstructed_data_46
+Writing ./pod_reconstructed_data_47
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">save_pod_state</span>
+
+<span class="c1"># Save the POD state</span>
+<span class="n">save_pod_state</span><span class="p">(</span><span class="s2">&quot;pod_state.hdf5&quot;</span><span class="p">,</span> <span class="n">pod</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Use the helper function to reconstruct the snapshots.</p>
+<p>Here you input the results you got. For this you must specify which snapshots to reconstruct the proper keyword. Then the wavenumbers and modes in each wavenumber to be used. At the moment, the support is only to reconstruct in the same modes in all chosen wavenumbers. This can be modified later quite easily by, for example, passing a directory with modes list, just as done for POD and IOH.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phys</span> <span class="o">=</span> <span class="n">physical_space</span><span class="p">(</span><span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">snapshots</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">))])</span>
+</pre></div>
+</div>
+</div>
+<p>First check that the reconstruction of every snapshot matches and that the energy is kept in the time coefficients, not in the modes.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the mass matrix</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">mass_matrix_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">bm_v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Go through the snapshots in the file sequence</span>
+<span class="n">total_snapshot_energy</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Testing snapshot </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+        <span class="c1"># Check one snapshot at a time</span>
+        <span class="c1"># Here one could also just use the phys that has been previously computed.</span>
+        <span class="n">phys</span> <span class="o">=</span> <span class="n">physical_space</span><span class="p">(</span><span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">snapshots</span><span class="o">=</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+
+        <span class="c1"># Check if the reconstruction is accurate</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">pod_fields</span><span class="p">:</span>
+            <span class="n">passed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">phys</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">field</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="n">field</span><span class="p">][:])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field </span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2"> passed: </span><span class="si">{</span><span class="n">passed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check if the energy was accurately captured</span>
+        <span class="n">snapshot_energy</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">pod_fields</span><span class="p">:</span>
+            <span class="n">snapshot_energy</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">field</span><span class="p">][:]</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">bm_v</span><span class="p">)</span>
+        <span class="n">total_snapshot_energy</span> <span class="o">+=</span> <span class="n">snapshot_energy</span>
+
+        <span class="n">reconstruction_energy</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">kappa</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">):</span>
+            <span class="n">a_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">pod</span><span class="p">[</span><span class="n">kappa</span><span class="p">]</span><span class="o">.</span><span class="n">d_1t</span><span class="p">)</span><span class="nd">@pod</span><span class="p">[</span><span class="n">kappa</span><span class="p">]</span><span class="o">.</span><span class="n">vt_1t</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">reconstruction_energy</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">a_i</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Snapshot energy: </span><span class="si">{</span><span class="n">snapshot_energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reconstruction energy: </span><span class="si">{</span><span class="n">reconstruction_energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=======================================&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check if the total energy is kept in the singular values</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;total snapshot energy: </span><span class="si">{</span><span class="n">total_snapshot_energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">total_pod_energy</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">kappa</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">):</span>
+    <span class="n">total_pod_energy</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">pod</span><span class="p">[</span><span class="n">kappa</span><span class="p">]</span><span class="o">.</span><span class="n">d_1t</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total POD energy: </span><span class="si">{</span><span class="n">total_pod_energy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=======================================&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Testing snapshot 0: ../4-interpolation/interpolated_fields00001.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 3.698958237844183e-05
+Reconstruction energy: 3.6993163022397004e-05
+=======================================
+Testing snapshot 1: ../4-interpolation/interpolated_fields00002.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 3.8898814924962444e-05
+Reconstruction energy: 3.8902239959461035e-05
+=======================================
+Testing snapshot 2: ../4-interpolation/interpolated_fields00003.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.153454569587408e-05
+Reconstruction energy: 4.153817337208489e-05
+=======================================
+Testing snapshot 3: ../4-interpolation/interpolated_fields00004.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.4425076415412405e-05
+Reconstruction energy: 4.442864337674737e-05
+=======================================
+Testing snapshot 4: ../4-interpolation/interpolated_fields00005.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.688317219673442e-05
+Reconstruction energy: 4.688600091533262e-05
+=======================================
+Testing snapshot 5: ../4-interpolation/interpolated_fields00006.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.878401448156997e-05
+Reconstruction energy: 4.878710853476647e-05
+=======================================
+Testing snapshot 6: ../4-interpolation/interpolated_fields00007.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 5.026805630070726e-05
+Reconstruction energy: 5.027085874214742e-05
+=======================================
+Testing snapshot 7: ../4-interpolation/interpolated_fields00008.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 5.149475955390006e-05
+Reconstruction energy: 5.1498217100047447e-05
+=======================================
+Testing snapshot 8: ../4-interpolation/interpolated_fields00009.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 5.237488647324383e-05
+Reconstruction energy: 5.237815402427038e-05
+=======================================
+Testing snapshot 9: ../4-interpolation/interpolated_fields00010.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 5.263423351722945e-05
+Reconstruction energy: 5.26386214147448e-05
+=======================================
+Testing snapshot 10: ../4-interpolation/interpolated_fields00011.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 5.187294605439943e-05
+Reconstruction energy: 5.1878309034501663e-05
+=======================================
+Testing snapshot 11: ../4-interpolation/interpolated_fields00012.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.988241310699623e-05
+Reconstruction energy: 4.988923186557772e-05
+=======================================
+Testing snapshot 12: ../4-interpolation/interpolated_fields00013.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.697643854683935e-05
+Reconstruction energy: 4.698326450473892e-05
+=======================================
+Testing snapshot 13: ../4-interpolation/interpolated_fields00014.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.3863242905911426e-05
+Reconstruction energy: 4.386992609602263e-05
+=======================================
+Testing snapshot 14: ../4-interpolation/interpolated_fields00015.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 4.04654975068024e-05
+Reconstruction energy: 4.0472264813275435e-05
+=======================================
+Testing snapshot 15: ../4-interpolation/interpolated_fields00016.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 3.708331604360593e-05
+Reconstruction energy: 3.708800095581567e-05
+=======================================
+Testing snapshot 16: ../4-interpolation/interpolated_fields00017.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 3.361937142993228e-05
+Reconstruction energy: 3.3622823972522094e-05
+=======================================
+Testing snapshot 17: ../4-interpolation/interpolated_fields00018.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 3.042199960394419e-05
+Reconstruction energy: 3.0424717509798353e-05
+=======================================
+Testing snapshot 18: ../4-interpolation/interpolated_fields00019.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.764625401122964e-05
+Reconstruction energy: 2.764854026761965e-05
+=======================================
+Testing snapshot 19: ../4-interpolation/interpolated_fields00020.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.5278143358328515e-05
+Reconstruction energy: 2.528007609408604e-05
+=======================================
+Testing snapshot 20: ../4-interpolation/interpolated_fields00021.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.3436562845034242e-05
+Reconstruction energy: 2.3438276147769336e-05
+=======================================
+Testing snapshot 21: ../4-interpolation/interpolated_fields00022.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.2002654602291965e-05
+Reconstruction energy: 2.2004310326422838e-05
+=======================================
+Testing snapshot 22: ../4-interpolation/interpolated_fields00023.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0920245682595327e-05
+Reconstruction energy: 2.09217571517706e-05
+=======================================
+Testing snapshot 23: ../4-interpolation/interpolated_fields00024.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.013654268431107e-05
+Reconstruction energy: 2.0137912485458836e-05
+=======================================
+Testing snapshot 24: ../4-interpolation/interpolated_fields00025.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.9632578477660025e-05
+Reconstruction energy: 1.9633680618611167e-05
+=======================================
+Testing snapshot 25: ../4-interpolation/interpolated_fields00026.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.933656650853822e-05
+Reconstruction energy: 1.93375327210833e-05
+=======================================
+Testing snapshot 26: ../4-interpolation/interpolated_fields00027.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.9193896285463495e-05
+Reconstruction energy: 1.919484401965993e-05
+=======================================
+Testing snapshot 27: ../4-interpolation/interpolated_fields00028.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.9209913696544347e-05
+Reconstruction energy: 1.921084152200394e-05
+=======================================
+Testing snapshot 28: ../4-interpolation/interpolated_fields00029.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.9433633251162603e-05
+Reconstruction energy: 1.9434414649136665e-05
+=======================================
+Testing snapshot 29: ../4-interpolation/interpolated_fields00030.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 1.9843626264053833e-05
+Reconstruction energy: 1.9844286776115457e-05
+=======================================
+Testing snapshot 30: ../4-interpolation/interpolated_fields00031.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0264037570696985e-05
+Reconstruction energy: 2.0264694456842263e-05
+=======================================
+Testing snapshot 31: ../4-interpolation/interpolated_fields00032.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.061492121971811e-05
+Reconstruction energy: 2.061561527274048e-05
+=======================================
+Testing snapshot 32: ../4-interpolation/interpolated_fields00033.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0873392702196558e-05
+Reconstruction energy: 2.0874141067124846e-05
+=======================================
+Testing snapshot 33: ../4-interpolation/interpolated_fields00034.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.100146581923816e-05
+Reconstruction energy: 2.1002249619839244e-05
+=======================================
+Testing snapshot 34: ../4-interpolation/interpolated_fields00035.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1002631484979843e-05
+Reconstruction energy: 2.1003356850805536e-05
+=======================================
+Testing snapshot 35: ../4-interpolation/interpolated_fields00036.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0926017391762055e-05
+Reconstruction energy: 2.092671514261269e-05
+=======================================
+Testing snapshot 36: ../4-interpolation/interpolated_fields00037.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0846074698639117e-05
+Reconstruction energy: 2.0846812180790863e-05
+=======================================
+Testing snapshot 37: ../4-interpolation/interpolated_fields00038.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0866571618859654e-05
+Reconstruction energy: 2.086747072367675e-05
+=======================================
+Testing snapshot 38: ../4-interpolation/interpolated_fields00039.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.101439294141517e-05
+Reconstruction energy: 2.1015443956099017e-05
+=======================================
+Testing snapshot 39: ../4-interpolation/interpolated_fields00040.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1135889588706728e-05
+Reconstruction energy: 2.1137121811861234e-05
+=======================================
+Testing snapshot 40: ../4-interpolation/interpolated_fields00041.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1184459915354247e-05
+Reconstruction energy: 2.1185893188943514e-05
+=======================================
+Testing snapshot 41: ../4-interpolation/interpolated_fields00042.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1250999040067878e-05
+Reconstruction energy: 2.1252544393961218e-05
+=======================================
+Testing snapshot 42: ../4-interpolation/interpolated_fields00043.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1377532850036896e-05
+Reconstruction energy: 2.1378960026407462e-05
+=======================================
+Testing snapshot 43: ../4-interpolation/interpolated_fields00044.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1529543422705357e-05
+Reconstruction energy: 2.153077292308808e-05
+=======================================
+Testing snapshot 44: ../4-interpolation/interpolated_fields00045.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.161399267113895e-05
+Reconstruction energy: 2.1615112232324585e-05
+=======================================
+Testing snapshot 45: ../4-interpolation/interpolated_fields00046.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1637133597399283e-05
+Reconstruction energy: 2.163809363808384e-05
+=======================================
+Testing snapshot 46: ../4-interpolation/interpolated_fields00047.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.1440817225395135e-05
+Reconstruction energy: 2.1441751635941706e-05
+=======================================
+Testing snapshot 47: ../4-interpolation/interpolated_fields00048.hdf5
+Field u passed: True
+Field v passed: True
+Field w passed: True
+Snapshot energy: 2.0948984478946528e-05
+Reconstruction energy: 2.0949807869368654e-05
+=======================================
+total snapshot energy: 0.001434071843040977
+Total POD energy: 0.0014341827489845003
+=======================================
+</pre></div></div>
+</div>
+<p>Then check if the left and right singular vectors are indeed orthogonal with respect to the others along the wavenumbers</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">degenerate_scaling</span>
+
+<span class="c1"># Check the left singular vectors</span>
+<span class="n">all_passed</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">for</span> <span class="n">kappa</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">):</span>
+
+    <span class="n">kappa_i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">kappa_j</span> <span class="o">=</span> <span class="n">kappa_i</span> <span class="c1"># These are the modes for the fourier coefficients. Thus, they orthogonals in a wave number. The fourier modes are orthogonal among fourier modes</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+
+            <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">scaled_mode_i</span> <span class="o">=</span> <span class="n">pod</span><span class="p">[</span><span class="n">kappa_i</span><span class="p">]</span><span class="o">.</span><span class="n">u_1t</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">ioh</span><span class="p">[</span><span class="n">kappa_i</span><span class="p">]</span><span class="o">.</span><span class="n">bm1sqrt</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">degenerate_scaling</span><span class="p">(</span><span class="n">kappa_i</span><span class="p">)</span>
+            <span class="n">scaled_mode_j</span> <span class="o">=</span> <span class="n">pod</span><span class="p">[</span><span class="n">kappa_j</span><span class="p">]</span><span class="o">.</span><span class="n">u_1t</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span><span class="o">*</span><span class="n">ioh</span><span class="p">[</span><span class="n">kappa_j</span><span class="p">]</span><span class="o">.</span><span class="n">bm1sqrt</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">degenerate_scaling</span><span class="p">(</span><span class="n">kappa_j</span><span class="p">)</span>
+
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">scaled_mode_i</span><span class="o">.</span><span class="n">T</span><span class="nd">@scaled_mode_j</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">j</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">passed</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mode </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> and mode </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> in wavenumber </span><span class="si">{</span><span class="n">kappa</span><span class="si">}</span><span class="s2"> are not orthogonal&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Norm: </span><span class="si">{</span><span class="n">norm</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">all_passed</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The modes are orthogonal: </span><span class="si">{</span><span class="n">all_passed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check the right singular vectors</span>
+<span class="n">all_passed</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">for</span> <span class="n">kappa</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">):</span>
+
+    <span class="n">kappa_i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">kappa_j</span> <span class="o">=</span> <span class="n">kappa_i</span> <span class="c1"># These are the modes for the fourier coefficients. Thus, they orthogonals in a wave number. The fourier modes are orthogonal among fourier modes</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+
+            <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="n">scaled_mode_i</span> <span class="o">=</span> <span class="n">pod</span><span class="p">[</span><span class="n">kappa_i</span><span class="p">]</span><span class="o">.</span><span class="n">vt_1t</span><span class="p">[</span><span class="n">i</span><span class="p">,:]</span>
+            <span class="n">scaled_mode_j</span> <span class="o">=</span> <span class="n">pod</span><span class="p">[</span><span class="n">kappa_j</span><span class="p">]</span><span class="o">.</span><span class="n">vt_1t</span><span class="p">[</span><span class="n">j</span><span class="p">,:]</span>
+
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">scaled_mode_i</span><span class="o">.</span><span class="n">T</span><span class="nd">@scaled_mode_j</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">j</span><span class="o">==</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="mi">1</span><span class="p">)):</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">j</span><span class="o">!=</span><span class="n">i</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">passed</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">passed</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Right singular vector </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> and right singular vector </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2"> in wavenumber </span><span class="si">{</span><span class="n">kappa</span><span class="si">}</span><span class="s2"> are not orthogonal&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Norm: </span><span class="si">{</span><span class="n">norm</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">all_passed</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">break</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The right singular vectors are orthogonal: </span><span class="si">{</span><span class="n">all_passed</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The modes are orthogonal: True
+The right singular vectors are orthogonal: True
+</pre></div></div>
+</div>
+<p>We have already written the data to vtk in previous steps. This means that you can readily use paraview or visit, for example.</p>
+<p>However one can also plot the data in python. For this we use the pyvista module.</p>
+<p>First we can get a dictionary with the reconstruction of the snapshots and also the modes in physical space.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phys</span> <span class="o">=</span> <span class="n">physical_space</span><span class="p">(</span><span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">,</span> <span class="n">snapshots</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">))])</span>
+<span class="n">phys_modes</span> <span class="o">=</span> <span class="n">physical_space</span><span class="p">(</span><span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">wavenumbers</span><span class="o">=</span><span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">)],</span> <span class="n">modes</span><span class="o">=</span><span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">k</span><span class="p">)],</span> <span class="n">field_shape</span><span class="o">=</span><span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">fft_axis</span><span class="o">=</span><span class="n">fft_axis</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">pod_fields</span><span class="p">,</span> <span class="n">N_samples</span><span class="o">=</span><span class="n">N_samples</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Then we can start plotting!</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+
+<span class="c1"># Input parameters</span>
+<span class="n">kappa</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">mode</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">,</span><span class="s2">&quot;v&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">]</span>
+<span class="n">isosurfaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+
+<span class="c1"># Create a structured mesh</span>
+<span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+<span class="n">mesh_2</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+<span class="c1"># Add the field to the mesh</span>
+<span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">phys_modes</span><span class="p">[</span><span class="n">kappa</span><span class="p">][</span><span class="n">mode</span><span class="p">][</span><span class="n">field</span><span class="p">]</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">values2</span> <span class="o">=</span> <span class="n">phys_modes</span><span class="p">[</span><span class="n">kappa</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="n">mode</span><span class="p">][</span><span class="n">field</span><span class="p">]</span>
+    <span class="n">mesh_2</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">values2</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">field</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fields</span><span class="p">):</span>
+
+    <span class="c1"># Plot first row</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="c1"># Obtain the isosurfaces</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="n">field</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="n">isosurfaces</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">,</span> <span class="n">scalar_bar_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+
+    <span class="c1"># Change the settings a bit</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">: wavenumber </span><span class="si">{</span><span class="n">kappa</span><span class="si">}</span><span class="s2"> mode </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">font</span> <span class="o">=</span> <span class="s2">&quot;courier&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;upper_left&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot second row</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="c1"># Obtain the isosurfaces</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_2</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="n">field</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="n">isosurfaces</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_2</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">,</span> <span class="n">scalar_bar_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;title&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;</span><span class="p">})</span>
+
+    <span class="c1"># Change the settings a bit</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">: wavenumber </span><span class="si">{</span><span class="n">kappa</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> mode </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">font</span> <span class="o">=</span> <span class="s2">&quot;courier&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;upper_left&quot;</span><span class="p">)</span>
+
+<span class="c1"># Capture the plot as an image and show it (This is just to make the notebook render better on github)</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+<span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
+<span class="c1">#pl.show()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_2-POD_fft_from_pointclouds_20_0.png" src="../_images/_notebooks_2-POD_fft_from_pointclouds_20_0.png" />
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="1-POD_from_pointclouds.html" class="btn btn-neutral float-left" title="POD from pointclouds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="1-post_processing_mean_fields.html" class="btn btn-neutral float-right" title="Processing statistics files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
