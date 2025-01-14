@@ -287,7 +287,8 @@ class LegendreInterpolator(MultiplePointInterpolator):
 
             # Determine which points have already been found so they are not updated anymore
             points_found_this_it = (
-                np.linalg.norm(self.eps_rst[:npoints, :nelems], axis=(2, 3)) <= tol
+                np.linalg.norm(self.eps_rst[:npoints, :nelems], axis=(2, 3)) <= tol or
+                np.linalg.norm(self.eps_rst[:npoints, :nelems], axis=(2, 3)) > 10.0
             )
             points_already_found = np.any(iterations_per_point[:npoints, :nelems] < max_iterations, axis=(2,3))
             # Update the number of iterations only if the point has newly been found
