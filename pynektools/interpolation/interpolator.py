@@ -252,6 +252,10 @@ class Interpolator:
         ny = int(np.round(np.sqrt((ratioy / sum_ratios) * remaining)))
         nz = int(bin_size / (nx * ny))
 
+        self.bin_x = nx
+        self.bin_y = ny
+        self.bin_z = nz
+
         self.log.write("info", "Creating global bin mesh")
         # create bin linear mesh
         bin_x = np.linspace(domain_min_x, domain_max_x, nx + 1)
@@ -1947,15 +1951,32 @@ def get_candidate_ranks(self, comm):
 
         # Search in which global coarse mesh cell each probe in
         # this rank resides
-        probe_to_bin_map = self.global_tree.query_ball_point(
-            x=self.probe_partition,
+        chunk_size = self.max_pts
+        n_chunks = int(np.ceil(self.probe_partition.shape[0] / chunk_size))
+
+        probe_to_bin_map = []
+
+        for chunk_id in range(0, n_chunks):
+
+            start = chunk_id * chunk_size
+            end = (chunk_id + 1) * chunk_size
+            if end > self.probe_partition.shape[0]:
+                end = self.probe_partition.shape[0]
+
+            probe_to_bin_map_ = self.global_tree.query_ball_point(
+            x=self.probe_partition[start:end],
             r=self.search_radious * (1 + 1e-6),
             p=2.0,
             eps=1e-8,
             workers=1,
             return_sorted=False,
             return_length=False,
-        )
+            )
+
+            probe_to_bin_map.extend(probe_to_bin_map_)
+
+        #Give same output format as the kdtree search
+        probe_to_bin_map = np.array(probe_to_bin_map, dtype=object)
 
         # Now map from bins to ranks
         candidate_ranks_per_point = domain_binning_map_probe_to_rank(
