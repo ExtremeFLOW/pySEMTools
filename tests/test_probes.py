@@ -63,7 +63,7 @@ def test_probes_msh_single():
     if comm.Get_rank() == 0:    
         xyz = interp_utils.transform_from_array_to_list(nx,ny,nz,[x, y, z])
     else:
-        xyz = 1
+        xyz = None
     log.write("info", "Interpolating mesh created")
     log.toc()
 
@@ -164,7 +164,7 @@ def test_probes_msh_double():
     if comm.Get_rank() == 0:    
         xyz = interp_utils.transform_from_array_to_list(nx,ny,nz,[x, y, z])
     else:
-        xyz = 1
+        xyz = None
     log.write("info", "Interpolating mesh created")
     log.toc()
 

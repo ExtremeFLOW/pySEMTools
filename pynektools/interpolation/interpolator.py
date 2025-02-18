@@ -275,17 +275,40 @@ class Interpolator:
         self.global_tree = KDTree(bin_mesh_centroids)
 
         # For this rank, determine which points are in which
-        # bin mesh cell
+        # bin mesh cell - Do it chunked to avoid too much memory usage
         self.log.write("info", "Create map from sem mesh to bin mesh")
-        mesh_to_bin = self.global_tree.query_ball_point(
-            x=np.array([self.x.flatten(), self.y.flatten(), self.z.flatten()]).T,
+        chunk_size = self.max_pts
+        n_chunks = int(np.ceil(self.x.size / chunk_size))
+        mesh_to_bin = []
+        for chunk_id in range(n_chunks):
+            start = chunk_id * chunk_size
+            end = (chunk_id + 1) * chunk_size
+            if end > self.x.size:
+                end = self.x.size
+
+            chunk_x = self.x.flatten()[start:end]
+            chunk_y = self.y.flatten()[start:end]
+            chunk_z = self.z.flatten()[start:end]
+
+            chunk_mesh_to_bin = self.global_tree.query_ball_point(
+            x=np.array([chunk_x, chunk_y, chunk_z]).T,
             r=(search_radious) * (1 + 1e-6),
             p=2.0,
             eps=1e-8,
             workers=1,
             return_sorted=False,
             return_length=False,
-        )
+            )
+
+            # Get a smaller list than the full thing to the next function
+            mesh_to_bin_ = [item for sublist in chunk_mesh_to_bin for item in sublist]
+            mesh_to_bin_ = np.unique(mesh_to_bin_)
+
+            #mesh_to_bin.extend(chunk_mesh_to_bin)
+            mesh_to_bin.append([int(i) for i in mesh_to_bin_])
+        
+        # Give it the same format as the kdtree output
+        mesh_to_bin = np.array(mesh_to_bin, dtype=object)
 
         self.log.write("info", "Create map from bin mesh to rank")
         self.bin_to_rank_map = domain_binning_map_bin_to_rank(
