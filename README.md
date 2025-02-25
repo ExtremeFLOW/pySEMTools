@@ -1,7 +1,7 @@
-# pyNekTools
+# pySEMTools
 A package for post-processing SEM data.
 
-Documentation is available [here](https://extremeflow.github.io/pyNekTools/).
+Documentation is available [here](https://extremeflow.github.io/pySEMTools/).
 
 # Installation
 

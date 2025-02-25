@@ -8,8 +8,8 @@ import sys
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.rom.pod import POD
-from pynektools.rom.io_help import IoHelp
+from pysemtools.rom.pod import POD
+from pysemtools.rom.io_help import IoHelp
 
 def test_POD():
 

@@ -1,6 +1,6 @@
 from mpi4py import MPI
 import os
-from pynektools.postprocessing.file_indexing import merge_index_files
+from pysemtools.postprocessing.file_indexing import merge_index_files
 
 # Get communicator
 comm = MPI.COMM_WORLD

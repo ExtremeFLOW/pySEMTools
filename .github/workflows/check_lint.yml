@@ -23,7 +23,7 @@ jobs:
 
       - name: Lint repository
         run: |
-          pylint -d E1101,duplicate-code pynektools | tee lint.txt
+          pylint -d E1101,duplicate-code pysemtools | tee lint.txt
 
       - name: Check the score
         run: |

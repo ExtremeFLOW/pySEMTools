@@ -6,12 +6,12 @@ import json
 # Get mpi info
 comm = MPI.COMM_WORLD
 
-from pynektools.interpolation.probes import Probes
-from pynektools.io.ppymech.neksuite import pynekread
-from pynektools.datatypes.field import FieldRegistry
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.msh_connectivity import MeshConnectivity
+from pysemtools.interpolation.probes import Probes
+from pysemtools.io.ppymech.neksuite import pynekread
+from pysemtools.datatypes.field import FieldRegistry
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.msh_connectivity import MeshConnectivity
 from memory_profiler import profile
 
 #@profile

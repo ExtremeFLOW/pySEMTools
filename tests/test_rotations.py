@@ -8,8 +8,8 @@ import sys
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.postprocessing.rotations import rotate_tensor, cartesian_to_cylindrical_rotation_matrix
-import pynektools.interpolation.pointclouds as pcs
+from pysemtools.postprocessing.rotations import rotate_tensor, cartesian_to_cylindrical_rotation_matrix
+import pysemtools.interpolation.pointclouds as pcs
 
 
 

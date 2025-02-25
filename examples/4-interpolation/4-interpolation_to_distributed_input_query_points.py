@@ -8,9 +8,9 @@ import numpy as np
 # Get mpi info
 comm = MPI.COMM_WORLD
 
-from pynektools.io.ppymech.neksuite import pynekread
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.field import FieldRegistry
+from pysemtools.io.ppymech.neksuite import pynekread
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.field import FieldRegistry
 
 msh = Mesh(comm, create_connectivity=True)
 fld = FieldRegistry(comm)
@@ -18,8 +18,8 @@ fname = '../data/rbc0.f00001'
 pynekread(fname, comm, data_dtype=np.double, msh=msh, fld=fld)
 
 # Import helper functions
-import pynektools.interpolation.utils as interp_utils
-import pynektools.interpolation.pointclouds as pcs
+import pysemtools.interpolation.utils as interp_utils
+import pysemtools.interpolation.pointclouds as pcs
 
 # Create the points in a distributed way in z direction
 # This will only really work for up to 8 ranks with these sizes
@@ -59,7 +59,7 @@ print(x.shape)
 # Array the points as a list of probes
 xyz = interp_utils.transform_from_array_to_list(nx,ny,nz_in_rank,[x, y, z])
 
-from pynektools.interpolation.probes import Probes
+from pysemtools.interpolation.probes import Probes
 
 probes = Probes(comm, probes = xyz, msh = msh, point_interpolator_type='multiple_point_legendre_numpy', max_pts=256, find_points_comm_pattern='point_to_point')
 

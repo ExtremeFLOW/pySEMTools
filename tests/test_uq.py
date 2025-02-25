@@ -7,13 +7,13 @@ import os
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.io.ppymech.neksuite import pynekread, pynekwrite
-from pynektools.datatypes.field import FieldRegistry
-from pynektools.datatypes.msh import Mesh
-from pynektools.postprocessing.statistics.space_averaging import *
-from pynektools.comm.router import Router
-from pynektools.monitoring.logger import Logger
-from pynektools.postprocessing.statistics.uq import NOBM
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
+from pysemtools.datatypes.field import FieldRegistry
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.postprocessing.statistics.space_averaging import *
+from pysemtools.comm.router import Router
+from pysemtools.monitoring.logger import Logger
+from pysemtools.postprocessing.statistics.uq import NOBM
 
 rt = Router(comm)
 logger = Logger(comm=comm, module_name="uncertainty quantification")

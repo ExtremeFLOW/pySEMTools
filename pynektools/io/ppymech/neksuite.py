@@ -214,7 +214,7 @@ def preadnek(filename, comm, data_dtype=np.double):
     Examples
     --------
     >>> from mpi4py import MPI
-    >>> from pynektools.io.ppymech.neksuite import preadnek
+    >>> from pysemtools.io.ppymech.neksuite import preadnek
     >>> comm = MPI.COMM_WORLD
     >>> data = preadnek('field00001.fld', comm)
     """
@@ -391,7 +391,7 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None):
     Examples
     --------
     >>> from mpi4py import MPI
-    >>> from pynektools.io.ppymech.neksuite import pynekread
+    >>> from pysemtools.io.ppymech.neksuite import pynekread
     >>> comm = MPI.COMM_WORLD
     >>> msh = msh_c(comm)
     >>> fld = field_c(comm)
@@ -758,7 +758,7 @@ def pwritenek(filename, data, comm):
     --------
     Assuming you have a hexadata object already:
 
-    >>> from pynektools.io.ppymech.neksuite import pwritenek
+    >>> from pysemtools.io.ppymech.neksuite import pwritenek
     >>> pwritenek('field00001.fld', data, comm)
     """
 
@@ -1031,7 +1031,7 @@ def pynekwrite(filename, comm, msh=None, fld=None, wdsz=4, istep=0, write_mesh=T
     --------
     Assuming a mesh object and field object are already present in the namespace:
 
-    >>> from pynektools.io.ppymech.neksuite import pwritenek
+    >>> from pysemtools.io.ppymech.neksuite import pwritenek
     >>> pynekwrite('field00001.fld', comm, msh = msh, fld=fld)
     """
 

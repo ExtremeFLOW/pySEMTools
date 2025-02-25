@@ -1,12 +1,12 @@
-.. PyNekTools documentation master file, created by
+.. PySEMTools documentation master file, created by
    sphinx-quickstart on Sat Jul 13 22:34:22 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-PyNekTools
+PySEMTools
 ==========
 
-PyNekTools is a Python package for post-processing Spectral Element Method data for fluid simulations.
+PySEMTools is a Python package for post-processing Spectral Element Method data for fluid simulations.
 
 The following pages contain documentation for some of the most relevant classes and functions. However, some are missing.
 For a complete list of classes and functions, please refer to the source code. Particularly for POD calculations.
@@ -21,7 +21,7 @@ For a complete list of classes and functions, please refer to the source code. P
 
 -----------------------
 
-We beleive that the easiest way to get started with PyNekTools is to use the examples provided in the repository supported by the documentation.
+We beleive that the easiest way to get started with PySEMTools is to use the examples provided in the repository supported by the documentation.
 
 Most examples are in jupyter notebooks, however those that can not generaly be run in series are in python scripts.
 

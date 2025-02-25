@@ -38,7 +38,7 @@ class Router:
     To initialize simply use the communicator
 
     >>> from mpi4py import MPI
-    >>> from pynektools.comm.router import Router
+    >>> from pysemtools.comm.router import Router
     >>> comm = MPI.COMM_WORLD
     >>> rt = Router(comm)
     """

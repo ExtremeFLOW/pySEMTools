@@ -12,12 +12,12 @@ comm = MPI.COMM_WORLD
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek, pynekread, pynekwrite, pynekread_field
+from pysemtools.io.ppymech.neksuite import preadnek, pwritenek, pynekread, pynekwrite, pynekread_field
 from pymech.neksuite import readnek, writenek
-from pynektools.datatypes.msh import Mesh as msh_c
-from pynektools.datatypes.msh import get_coordinates_from_hexadata
-from pynektools.datatypes.field import Field as field_c
-from pynektools.datatypes.field import FieldRegistry
+from pysemtools.datatypes.msh import Mesh as msh_c
+from pysemtools.datatypes.msh import get_coordinates_from_hexadata
+from pysemtools.datatypes.field import Field as field_c
+from pysemtools.datatypes.field import FieldRegistry
 import os
 
 NoneType = type(None)

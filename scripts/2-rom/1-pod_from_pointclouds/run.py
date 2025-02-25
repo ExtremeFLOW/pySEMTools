@@ -9,10 +9,10 @@ import os
 # Get mpi info
 comm = MPI.COMM_WORLD
 
-# Import the pynektools routines
-from pynektools.rom.phy_pod_wrappers import pod_from_files, physical_space
-from pynektools.rom.phy_pod_wrappers import write_3dfield_to_file
-from pynektools.rom.phy_pod_wrappers import save_pod_state
+# Import the pysemtools routines
+from pysemtools.rom.phy_pod_wrappers import pod_from_files, physical_space
+from pysemtools.rom.phy_pod_wrappers import write_3dfield_to_file
+from pysemtools.rom.phy_pod_wrappers import save_pod_state
 
 if comm.Get_size() > 1:
     raise ValueError("This script is not designed to run in parallel (You can stream) For this case, this can be fixed by using hdf5 with parallel IO support")

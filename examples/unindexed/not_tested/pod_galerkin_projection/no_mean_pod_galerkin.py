@@ -86,18 +86,18 @@ projection_project_on = params_file["project_on_modes"]
 M = projection_project_on
 
 # Import IO helper functions
-from pynektools.io.utils import get_fld_from_ndarray, io_path_data
+from pysemtools.io.utils import get_fld_from_ndarray, io_path_data
 
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek
+from pysemtools.io.ppymech.neksuite import preadnek, pwritenek
 # Import the data types
-from pynektools.datatypes.msh import msh_c
-from pynektools.datatypes.coef import coef_c
-from pynektools.datatypes.field import field_c
-from pynektools.datatypes.utils import create_hexadata_from_msh_fld
+from pysemtools.datatypes.msh import msh_c
+from pysemtools.datatypes.coef import coef_c
+from pysemtools.datatypes.field import field_c
+from pysemtools.datatypes.utils import create_hexadata_from_msh_fld
 # Import types asociated with POD
-from pynektools.rom.pod import POD_c
-from pynektools.rom.io_help import io_help_c
+from pysemtools.rom.pod import POD_c
+from pysemtools.rom.io_help import io_help_c
 
 # Read the data paths from the input file
 mesh_data = io_path_data(params_file["IO"]["mesh_data"])

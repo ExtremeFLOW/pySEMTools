@@ -37,17 +37,17 @@ pod_keep_modes = params_file["keep_modes"]
 pod_write_modes = params_file["write_modes"]
 
 # Import IO helper functions
-from pynektools.io.utils import get_fld_from_ndarray, IoPathData
+from pysemtools.io.utils import get_fld_from_ndarray, IoPathData
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek
+from pysemtools.io.ppymech.neksuite import preadnek, pwritenek
 # Import the data types
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.field import Field
-from pynektools.datatypes.utils import create_hexadata_from_msh_fld
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.field import Field
+from pysemtools.datatypes.utils import create_hexadata_from_msh_fld
 # Import types asociated with POD
-from pynektools.rom.pod import POD
-from pynektools.rom.io_help import IoHelp
+from pysemtools.rom.pod import POD
+from pysemtools.rom.io_help import IoHelp
 
 # Start time
 start_time = MPI.Wtime()

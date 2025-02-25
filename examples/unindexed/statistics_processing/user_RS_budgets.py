@@ -42,8 +42,8 @@ def polar_to_cartesian(R,T):
 #%% user specified function to define the interpolation points
 def user_defined_interpolating_points():
     import numpy as np
-    import pynektools.interpolation.pointclouds as pcs
-    import pynektools.interpolation.utils as interp_utils
+    import pysemtools.interpolation.pointclouds as pcs
+    import pysemtools.interpolation.utils as interp_utils
 
     print("generate interpolation points")
 
@@ -101,9 +101,9 @@ def user_defined_interpolating_points():
 #%% the presumed complete workflow
 ###########################################################################################
 ###########################################################################################
-from pynektools.postprocessing.statistics.RS_budgets import compute_and_write_additional_pstat_fields
-from pynektools.postprocessing.statistics.RS_budgets import interpolate_all_stat_and_pstat_fields_onto_points
-from pynektools.postprocessing.statistics.RS_budgets import convert_2Dstats_to_3D
+from pysemtools.postprocessing.statistics.RS_budgets import compute_and_write_additional_pstat_fields
+from pysemtools.postprocessing.statistics.RS_budgets import interpolate_all_stat_and_pstat_fields_onto_points
+from pysemtools.postprocessing.statistics.RS_budgets import convert_2Dstats_to_3D
 
 from mpi4py import MPI  # equivalent to the use of MPI_init() in C
 comm = MPI.COMM_WORLD

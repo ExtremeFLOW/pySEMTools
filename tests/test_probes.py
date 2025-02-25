@@ -3,16 +3,16 @@ comm = MPI.COMM_WORLD
 
 import numpy as np
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import pynekread, pynekwrite
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.field import Field
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.field import Field
 # Import types asociated with interpolation
-from pynektools.interpolation.probes import Probes
-import pynektools.interpolation.utils as interp_utils
-import pynektools.interpolation.pointclouds as pcs
-from pynektools.monitoring.logger import Logger
-from pynektools.monitoring.memory_monitor import MemoryMonitor
-from pynektools.interpolation.mesh_to_mesh import PRefiner
+from pysemtools.interpolation.probes import Probes
+import pysemtools.interpolation.utils as interp_utils
+import pysemtools.interpolation.pointclouds as pcs
+from pysemtools.monitoring.logger import Logger
+from pysemtools.monitoring.memory_monitor import MemoryMonitor
+from pysemtools.interpolation.mesh_to_mesh import PRefiner
 
 log = Logger(comm=comm, module_name="main")
 log.write("info", "Starting execution")

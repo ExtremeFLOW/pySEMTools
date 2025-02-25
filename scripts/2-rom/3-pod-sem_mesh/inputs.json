@@ -7,12 +7,12 @@
 "fields"             : [0,1,2],
 "IO":{
 	"mesh_data": {
-		"dataPath" : "/home/adperez/software/pyNekTools/examples/data/sem_data/instantaneous/cylinder_rbc_nelv_600/",
+		"dataPath" : "/home/adperez/software/pySEMTools/examples/data/sem_data/instantaneous/cylinder_rbc_nelv_600/",
 		"casename"           : "field",
 		"first_index"        : 801
 	},
 	"field_data": {
-		"dataPath" : "/home/adperez/software/pyNekTools/examples/data/sem_data/instantaneous/cylinder_rbc_nelv_600/",
+		"dataPath" : "/home/adperez/software/pySEMTools/examples/data/sem_data/instantaneous/cylinder_rbc_nelv_600/",
 		"casename"           : "field",
 		"first_index"        : 801
 	}

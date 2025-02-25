@@ -99,7 +99,7 @@ class Probes:
     1. Initialize from file:
 
     >>> from mpi4py import MPI
-    >>> from pynektools.interpolation.probes import Probes
+    >>> from pysemtools.interpolation.probes import Probes
     >>> comm = MPI.COMM_WORLD
     >>> probes = Probes(comm, filename="path/to/params.json")
 
@@ -108,7 +108,7 @@ class Probes:
     rank 0. A dummy probe_data must be created in all other ranks
 
     >>> from mpi4py import MPI
-    >>> from pynektools.interpolation.probes import Probes
+    >>> from pysemtools.interpolation.probes import Probes
     >>> comm = MPI.COMM_WORLD
     >>> if comm.Get_rank() == 0:
     >>>     probes_data = np.array([[0.0, 0.0, 0.0], [1.0, 1.0, 1.0], [2.0, 2.0, 2.0]])

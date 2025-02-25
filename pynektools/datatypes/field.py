@@ -48,7 +48,7 @@ class Field:
     --------
     If a hexadata object: data is read from disk, the field object can be created directly from it.
 
-    >>> from pynektools.datatypes.field import Field
+    >>> from pysemtools.datatypes.field import Field
     >>> fld = Mesh(comm, data = data)
 
     If one wishes to use the data in the fields. It is possible to reference it with a ndarray of shape (nelv, lz, ly, lx)
@@ -62,7 +62,7 @@ class Field:
     A field object can be created empty and then fields can be added to it. Useful to write data to disk.
     if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:
 
-    >>> from pynektools.datatypes.field import Field
+    >>> from pysemtools.datatypes.field import Field
     >>> fld = Field(comm)
     >>> fld.fields["vel"].append(u)
     >>> fld.update_vars()
@@ -132,7 +132,7 @@ class Field:
         A field object can be created empty and then fields can be added to it. Useful to write data to disk.
         if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:
 
-        >>> from pynektools.datatypes.field import Field
+        >>> from pysemtools.datatypes.field import Field
         >>> fld = Field(comm)
         >>> fld.fields["vel"].append(u)
         >>> fld.update_vars()

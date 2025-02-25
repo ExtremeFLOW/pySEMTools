@@ -3,11 +3,11 @@ import torch
 import math
 import sys
 
-from pynektools.io.ppymech.neksuite import preadnek
-from pynektools.datatypes.msh import Mesh
-from pynektools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator
-from pynektools.interpolation.point_interpolator.multiple_point_helper_functions_torch import legendre_basis_at_xtest, legendre_basis_derivative_at_xtest
-from pynektools.interpolation.point_interpolator.multiple_point_helper_functions_torch import apply_operators_3d
+from pysemtools.io.ppymech.neksuite import preadnek
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator
+from pysemtools.interpolation.point_interpolator.multiple_point_helper_functions_torch import legendre_basis_at_xtest, legendre_basis_derivative_at_xtest
+from pysemtools.interpolation.point_interpolator.multiple_point_helper_functions_torch import apply_operators_3d
 import numpy as np
 
 comm = MPI.COMM_WORLD

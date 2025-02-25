@@ -9,10 +9,10 @@ import os
 # Get mpi info
 comm = MPI.COMM_WORLD
 
-# Import the pynektools routines
-from pynektools.rom.fft_pod_wrappers import pod_fourier_1_homogenous_direction, physical_space
-from pynektools.rom.fft_pod_wrappers import write_3dfield_to_file
-from pynektools.rom.fft_pod_wrappers import save_pod_state
+# Import the pysemtools routines
+from pysemtools.rom.fft_pod_wrappers import pod_fourier_1_homogenous_direction, physical_space
+from pysemtools.rom.fft_pod_wrappers import write_3dfield_to_file
+from pysemtools.rom.fft_pod_wrappers import save_pod_state
 
 if comm.Get_size() > 1:
     raise ValueError("This script is not designed to run in parallel (You can stream), since the fft is done in serial. In the future we can do this in parallel by doing it on planes of the 3D field.")

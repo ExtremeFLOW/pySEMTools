@@ -38,7 +38,7 @@ def index_files_from_log(comm, logpath="", logname="", progress_reports=50):
     Examples
     --------
     >>> from mpi4py import MPI
-    >>> from pynektools.postprocessing.file_indexing import index_files_from_log
+    >>> from pysemtools.postprocessing.file_indexing import index_files_from_log
     >>> comm = MPI.COMM_WORLD
     >>> index_files_from_log(comm, logpath="path/to/logfile/", logname="logfile.log", progress_reports=50)
     """
@@ -263,7 +263,7 @@ def index_files_from_folder(
     Examples
     --------
     >>> from mpi4py import MPI
-    >>> from pynektools.postprocessing.file_indexing import index_files_from_folder
+    >>> from pysemtools.postprocessing.file_indexing import index_files_from_folder
     >>> comm = MPI.COMM_WORLD
     >>> index_files_from_folder(comm, folder_path="path/to/folder/", run_start_time=0, stat_start_time=0, output_folder = "")
     """

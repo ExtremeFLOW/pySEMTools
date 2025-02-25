@@ -1,13 +1,13 @@
 # Import the data types
 from mpi4py import MPI #equivalent to the use of MPI_init() in C
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.field import Field
-from pynektools.interpolation.probes import Probes
-import pynektools.interpolation.utils as interp_utils
-import pynektools.interpolation.pointclouds as pcs
-from pynektools.io.read_probes import ProbesReader
+from pysemtools.io.ppymech.neksuite import preadnek, pwritenek
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.field import Field
+from pysemtools.interpolation.probes import Probes
+import pysemtools.interpolation.utils as interp_utils
+import pysemtools.interpolation.pointclouds as pcs
+from pysemtools.io.read_probes import ProbesReader
 import numpy as np
 
 comm = MPI.COMM_WORLD
@@ -20,7 +20,7 @@ pythonfname = 'interpolated_fields_python.csv'
 
 print('Reading neko outputs')
 neko  = ProbesReader(nekofname)
-print('Reading pynektools outputs')
+print('Reading pysemtools outputs')
 pynek = ProbesReader(pythonfname)
 
 

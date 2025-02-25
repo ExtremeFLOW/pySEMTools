@@ -5,9 +5,9 @@ import sys
 import os
 from mpi4py.MPI import Wtime as time
 
-USE_COLORS = os.getenv("PYNEKTOOLS_USE_COLORS", "False").lower() in ("true", "1", "t")
-DEBUG = os.getenv("PYNEKTOOLS_DEBUG", "False").lower() in ("true", "1", "t")
-HIDE = os.getenv("PYNEKTOOLS_HIDE_LOG", "False").lower() in ("true", "1", "t")
+USE_COLORS = os.getenv("PYSEMTOOLS_USE_COLORS", "False").lower() in ("true", "1", "t")
+DEBUG = os.getenv("PYSEMTOOLS_DEBUG", "False").lower() in ("true", "1", "t")
+HIDE = os.getenv("PYSEMTOOLS_HIDE_LOG", "False").lower() in ("true", "1", "t")
 
 
 # Modified from https://stackoverflow.com/questions/384076/how-can-i-color-python-logging-output

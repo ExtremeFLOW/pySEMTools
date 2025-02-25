@@ -41,8 +41,8 @@ def compute_scalar_second_derivative(comm, msh, coef, scalar_deriv, scalar_deriv
 
 #%% generic function to write a 9 component field with input as 3 vectors of 3 components each
 def write_file_9c(comm, msh, dU_dxi, dV_dxi, dW_dxi, fname_gradU, if_write_mesh):
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.io.ppymech.neksuite import pynekwrite
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.io.ppymech.neksuite import pynekwrite
     import numpy as np
 
     gradU = FieldRegistry(comm)
@@ -66,8 +66,8 @@ def write_file_9c(comm, msh, dU_dxi, dV_dxi, dW_dxi, fname_gradU, if_write_mesh)
 
 #%% generic function to write a 6-component field with input as 2 vectors of 3 components each
 def write_file_6c(comm, msh, dU_dxi, dV_dxi, fname_gradU, if_write_mesh):
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.io.ppymech.neksuite import pynekwrite
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.io.ppymech.neksuite import pynekwrite
     import numpy as np
 
     gradU = FieldRegistry(comm)
@@ -88,8 +88,8 @@ def write_file_6c(comm, msh, dU_dxi, dV_dxi, fname_gradU, if_write_mesh):
 
 #%% generic function to write a 3-component (vector) field
 def write_file_3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.io.ppymech.neksuite import pynekwrite
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.io.ppymech.neksuite import pynekwrite
     import numpy as np
 
     gradU = FieldRegistry(comm)
@@ -177,10 +177,10 @@ def convert_2Dstats_to_3D(stats2D_filename,stats3D_filename,datatype='single'):
     from mpi4py import MPI 
     import numpy as np
     import warnings
-    from pynektools.io.ppymech.neksuite import pynekread,pynekwrite
-    from pynektools.datatypes.msh import Mesh
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.datatypes.utils import extrude_2d_sem_mesh
+    from pysemtools.io.ppymech.neksuite import pynekread,pynekwrite
+    from pysemtools.datatypes.msh import Mesh
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.datatypes.utils import extrude_2d_sem_mesh
 
     # Get mpi info
     comm = MPI.COMM_WORLD
@@ -258,13 +258,13 @@ def compute_and_write_additional_pstat_fields(
     from mpi4py import MPI  # equivalent to the use of MPI_init() in C
     import numpy as np
 
-    from pynektools.datatypes.msh import Mesh
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.datatypes.coef import Coef
-    from pynektools.io.ppymech.neksuite import pynekread
+    from pysemtools.datatypes.msh import Mesh
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.datatypes.coef import Coef
+    from pysemtools.io.ppymech.neksuite import pynekread
 
     if if_do_dssum_on_derivatives:
-        from pynektools.datatypes.msh_connectivity import MeshConnectivity
+        from pysemtools.datatypes.msh_connectivity import MeshConnectivity
 
     ###########################################################################################
     # Get mpi info
@@ -705,17 +705,17 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
     import numpy as np
     from scipy.io import savemat
 
-    from pynektools.datatypes.msh import Mesh
-    from pynektools.datatypes.field import FieldRegistry
-    from pynektools.datatypes.coef import Coef
-    from pynektools.io.ppymech.neksuite import pynekread
-    from pynektools.interpolation.probes import Probes
+    from pysemtools.datatypes.msh import Mesh
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.datatypes.coef import Coef
+    from pysemtools.io.ppymech.neksuite import pynekread
+    from pysemtools.interpolation.probes import Probes
 
     if if_do_dssum_before_interp:
-        from pynektools.datatypes.msh_connectivity import MeshConnectivity
+        from pysemtools.datatypes.msh_connectivity import MeshConnectivity
 
     if if_create_boundingBox_for_interp:
-        from pynektools.datatypes.msh_partitioning import MeshPartitioner
+        from pysemtools.datatypes.msh_partitioning import MeshPartitioner
 
     ###########################################################################################
     # do some initial checks

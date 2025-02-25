@@ -6,7 +6,7 @@ import json
 # Get mpi info
 comm = MPI.COMM_WORLD
 
-from pynektools.interpolation.wrappers import interpolate_fields_from_disk
+from pysemtools.interpolation.wrappers import interpolate_fields_from_disk
 
 def main():
 

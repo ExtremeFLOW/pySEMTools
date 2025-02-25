@@ -21,12 +21,12 @@ comm = MPI.COMM_WORLD
 import numpy as np
 
 # Import relevant modules
-from pynektools.interpolation.mesh_to_mesh import PRefiner
-from pynektools.interpolation.interpolator import Interpolator
-from pynektools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
-from pynektools.io.ppymech.neksuite import preadnek
-from pynektools.datatypes.msh import Mesh as msh_c
-from pynektools.comm.router import Router
+from pysemtools.interpolation.mesh_to_mesh import PRefiner
+from pysemtools.interpolation.interpolator import Interpolator
+from pysemtools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
+from pysemtools.io.ppymech.neksuite import preadnek
+from pysemtools.datatypes.msh import Mesh as msh_c
+from pysemtools.comm.router import Router
 
 NoneType = type(None)
 rt = Router(comm)
@@ -75,8 +75,8 @@ def test_single_point_interpolator():
                         point = point + 1
 
     else:
-        import pynektools.interpolation.utils as interp_utils
-        import pynektools.interpolation.pointclouds as pcs
+        import pysemtools.interpolation.utils as interp_utils
+        import pysemtools.interpolation.pointclouds as pcs
 
         # Create a polar mesh
         nn = msh_ref.x.size
@@ -193,8 +193,8 @@ def test_multiple_point_interpolator_numpy():
                         point = point + 1
 
     else:
-        import pynektools.interpolation.utils as interp_utils
-        import pynektools.interpolation.pointclouds as pcs
+        import pysemtools.interpolation.utils as interp_utils
+        import pysemtools.interpolation.pointclouds as pcs
 
         # Create a polar mesh
         nn = msh_ref.x.size
@@ -321,8 +321,8 @@ def test_multiple_point_interpolator_torch():
                         point = point + 1
 
     else:
-        import pynektools.interpolation.utils as interp_utils
-        import pynektools.interpolation.pointclouds as pcs
+        import pysemtools.interpolation.utils as interp_utils
+        import pysemtools.interpolation.pointclouds as pcs
 
         # Create a polar mesh
         nn = msh_ref.x.size
@@ -450,8 +450,8 @@ def test_multiple_point_interpolator_torch_autograd():
                         point = point + 1
 
     else:
-        import pynektools.interpolation.utils as interp_utils
-        import pynektools.interpolation.pointclouds as pcs
+        import pysemtools.interpolation.utils as interp_utils
+        import pysemtools.interpolation.pointclouds as pcs
 
         # Create a polar mesh
         nn = msh_ref.x.size

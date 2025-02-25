@@ -13,7 +13,7 @@ from collections import Counter as collections_counter
 
 NoneType = type(None)
 
-DEBUG = os.getenv("PYNEKTOOLS_DEBUG", "False").lower() in ("true", "1", "t")
+DEBUG = os.getenv("PYSEMTOOLS_DEBUG", "False").lower() in ("true", "1", "t")
 
 
 class Interpolator:

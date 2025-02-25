@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import csv
 
-from pynektools.datatypes.coef import get_derivative_matrix
+from pysemtools.datatypes.coef import get_derivative_matrix
 
 #=========================
 # Redeclare functions that are part of coef for 2d and 3d

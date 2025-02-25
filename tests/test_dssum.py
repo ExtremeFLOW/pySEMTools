@@ -4,11 +4,11 @@ import os
 
 comm = MPI.COMM_WORLD
 
-from pynektools.io.ppymech.neksuite import pynekread, pynekwrite
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.field import FieldRegistry
-from pynektools.datatypes.msh_connectivity import MeshConnectivity
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.field import FieldRegistry
+from pysemtools.datatypes.msh_connectivity import MeshConnectivity
 
 
 # First do one section in rank 0

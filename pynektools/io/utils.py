@@ -12,7 +12,7 @@ class IoPathData:
 
 def get_fld_from_ndarray(array, lx, ly, lz, nelv):
     """Reshape a 1D array obtained from fortran into a 4D array
-    compliant with pyNekTools"""
+    compliant with pySEMTools"""
 
     fld = array.reshape((nelv, lz, ly, lx))
 

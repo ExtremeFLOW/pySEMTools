@@ -12,7 +12,7 @@ comm = MPI.COMM_WORLD
 if comm.Get_size() > 1:
     raise ValueError("This example is designed to run with one rank only")
 
-import pynektools.interpolation.pointclouds as pcs
+import pysemtools.interpolation.pointclouds as pcs
 
 def main():
 

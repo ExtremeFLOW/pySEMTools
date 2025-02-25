@@ -29,8 +29,8 @@ def polar_to_cartesian(R,T):
 #%% define interpolation points
 def user_defined_interpolating_points():
     import numpy as np
-    import pynektools.interpolation.pointclouds as pcs
-    import pynektools.interpolation.utils as interp_utils
+    import pysemtools.interpolation.pointclouds as pcs
+    import pysemtools.interpolation.utils as interp_utils
 
     print("generate interpolation points")
 
@@ -100,9 +100,9 @@ def define_cylindrical_coord_system_vectors(XYZ):
 ###############################################################################################
 # NOTE: this is the MPI part
 ###############################################################################################
-from pynektools.postprocessing.statistics.RS_budgets import compute_and_write_additional_pstat_fields
-from pynektools.postprocessing.statistics.RS_budgets import interpolate_all_stat_and_pstat_fields_onto_points
-from pynektools.postprocessing.statistics.RS_budgets import convert_2Dstats_to_3D
+from pysemtools.postprocessing.statistics.RS_budgets import compute_and_write_additional_pstat_fields
+from pysemtools.postprocessing.statistics.RS_budgets import interpolate_all_stat_and_pstat_fields_onto_points
+from pysemtools.postprocessing.statistics.RS_budgets import convert_2Dstats_to_3D
 
 from mpi4py import MPI  # equivalent to the use of MPI_init() in C
 comm = MPI.COMM_WORLD
@@ -114,7 +114,7 @@ comm = MPI.COMM_WORLD
 # # first Index the files
 # stats_dir = "/lustre/iwst/iwst088h/ROUGH/PIPE/Re1000/tests/4pi_smooth/struct/STATS_r1to3"
 # stat_start_time = 0.3000001526876E+03
-# from pynektools.postprocessing.file_indexing import index_files_from_folder
+# from pysemtools.postprocessing.file_indexing import index_files_from_folder
 # index_files_from_folder(comm, 
 #                         folder_path=stats_dir, 
 #                         run_start_time=0, 
@@ -122,7 +122,7 @@ comm = MPI.COMM_WORLD
 #                         )
 
 # # then calculate statistics
-# from pynektools.postprocessing.statistics.time_averaging import average_field_files
+# from pysemtools.postprocessing.statistics.time_averaging import average_field_files
 # average_field_files(comm, 
 #                     field_index_name = stats_dir + "/" + "fluid_stats_index.json", 
 #                     output_folder = stats_dir, 
@@ -217,7 +217,7 @@ fname_budget    = "pstat3d_format.hdf5"     # name of the hdf5 file containing c
 #%% step 3.5: perform averaging on the interpolated fields
 # NOTE: the use of Reynolds number assumes all fields are in non-dimensional form
 #       this should be fixed later
-from pynektools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI import read_interpolated_stat_hdf5_fields
+from pysemtools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI import read_interpolated_stat_hdf5_fields
 
 def av_func(x):
     import numpy as np
@@ -237,7 +237,7 @@ if comm.Get_rank() == 0:
 #%% step 4: calciate budgets from interpolated and averged fields
 # NOTE: budgets are done in Cartesian cooridnates
 # NOTE: this part uses Re number, meaning it assumes fields are in non-dimensional form
-from pynektools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI import calculate_budgets_in_Cartesian
+from pysemtools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI import calculate_budgets_in_Cartesian
 if comm.Get_rank() == 0:
     calculate_budgets_in_Cartesian(
             path_to_files   = path_to_files , 
@@ -251,10 +251,10 @@ import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
-from pynektools.postprocessing.statistics.tensor_manipulations import rotate_6c2D_tensor
-from pynektools.postprocessing.statistics.tensor_manipulations import rotate_vector
-from pynektools.postprocessing.statistics.tensor_manipulations import define_rotation_tensor_from_vectors
-from pynektools.postprocessing.statistics.tensor_manipulations import rotate_2D_tensor
+from pysemtools.postprocessing.statistics.tensor_manipulations import rotate_6c2D_tensor
+from pysemtools.postprocessing.statistics.tensor_manipulations import rotate_vector
+from pysemtools.postprocessing.statistics.tensor_manipulations import define_rotation_tensor_from_vectors
+from pysemtools.postprocessing.statistics.tensor_manipulations import rotate_2D_tensor
 
 path_to_refdata     = '/lustre/iwst/iwst088h/ROUGH/PIPE/Re1000/tests/4pi_smooth/'
 fnames_refdata_vel  = 'PIPE_Re1K_MEAN.dat'

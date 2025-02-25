@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pynektools"
+name = "pysemtools"
 version = "0.1.0"
 requires-python = ">= 3.10"
 dependencies = [
@@ -14,5 +14,5 @@ dependencies = [
 ]
 
 [project.scripts]
-pynektools_index-files = "pynektools.cli.index_files:main"
-pynektools_visnek = "pynektools.cli.visnek:main"
+pysemtools_index-files = "pysemtools.cli.index_files:main"
+pysemtools_visnek = "pysemtools.cli.visnek:main"
