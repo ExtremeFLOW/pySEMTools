@@ -1,0 +1,1021 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Processing statistics files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/4-Budgets.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Processing-statistics-files">
+<h1>Processing statistics files<a class="headerlink" href="#Processing-statistics-files" title="Link to this heading"></a></h1>
+<p>In this example we show how pysemtools can be used for a typical post processing workflow. In this case, the data is from a turbulent pipe simulation.</p>
+<p>From a simulation output file, to a number of plots that can be used for science.</p>
+<p>Note that many operations are not trivial and require some coding, but we have packed most of it in self contained functions that are called in this example. If you need to understand how those work, the best way is to go directly to the source code and get inspired.</p>
+<p>Note that the name of the modules used here are subject to change. If they are restructured, the names will be modified on the example as well.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<br/></pre></div>
+</div>
+</div>
+</section>
+<section id="Download-the-statistics-data">
+<h2>Download the statistics data<a class="headerlink" href="#Download-the-statistics-data" title="Link to this heading"></a></h2>
+<p>We have prepared some data that can be used for analysis. You can download it from github.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository with the data</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git ../data/sem_data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+fatal: destination path &#39;../data/sem_data&#39; already exists and is not an empty directory.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+32768
+</pre></div></div>
+</div>
+<p>In this example, we start from the fact that the data is already averaged. Previous examples show how one can average files.</p>
+<p>Furthemore, we use the Neko statistics files that have the averages of 44 particular fields that can be expanded with more by using derivatives.</p>
+</section>
+<section id="Set-up-the-relevant-paths">
+<h2>Set up the relevant paths<a class="headerlink" href="#Set-up-the-relevant-paths" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">stats_dir</span>        <span class="o">=</span> <span class="s2">&quot;../data/sem_data/statistics/pipe_nelv_5000/&quot;</span>
+<span class="n">stats2D_filename</span> <span class="o">=</span> <span class="s2">&quot;batch_fluid_stats0.f00000&quot;</span>
+</pre></div>
+</div>
+</div>
+<section id="Visualize-the-data">
+<h3>Visualize the data<a class="headerlink" href="#Visualize-the-data" title="Link to this heading"></a></h3>
+<p>In our case, the data is 2D, so it is very easy to visualize it in python.</p>
+<p>In this case we visualize the streamwise velocity average</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">pynekread</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldRegistry</span>
+
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">stats_dir</span><span class="o">+</span><span class="n">stats2D_filename</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+
+<span class="n">fld</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s2">&quot;fld&quot;</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="n">stats_dir</span><span class="o">+</span><span class="n">stats2D_filename</span><span class="p">,</span> <span class="n">file_key</span><span class="o">=</span><span class="s2">&quot;pres&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_8_0.png" src="../_images/_notebooks_4-Budgets_8_0.png" />
+</div>
+</div>
+</section>
+<section id="Extrude-the-2D-data">
+<h3>Extrude the 2D data<a class="headerlink" href="#Extrude-the-2D-data" title="Link to this heading"></a></h3>
+<p>The scripts we have compiled work in 3D fields. Our data has already been averaged in the streamwise direction by the solver. To fix that, we will extrude our data into a 3d field with one element.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.RS_budgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_2Dstats_to_3D</span>
+
+<span class="n">stats3D_filename</span> <span class="o">=</span> <span class="s2">&quot;batch_fluid_stats_3D0.f00000&quot;</span>
+<span class="n">convert_2Dstats_to_3D</span><span class="p">(</span>
+    <span class="n">stats_dir</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">stats2D_filename</span><span class="p">,</span>
+    <span class="n">stats_dir</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="n">stats3D_filename</span><span class="p">,</span>
+    <span class="n">datatype</span><span class="o">=</span><span class="s1">&#39;single&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Number of scalar fields: 40
+fields in the give file:  [&#39;vel_0&#39;, &#39;vel_1&#39;, &#39;pres&#39;, &#39;temp&#39;, &#39;scal_0&#39;, &#39;scal_1&#39;, &#39;scal_2&#39;, &#39;scal_3&#39;, &#39;scal_4&#39;, &#39;scal_5&#39;, &#39;scal_6&#39;, &#39;scal_7&#39;, &#39;scal_8&#39;, &#39;scal_9&#39;, &#39;scal_10&#39;, &#39;scal_11&#39;, &#39;scal_12&#39;, &#39;scal_13&#39;, &#39;scal_14&#39;, &#39;scal_15&#39;, &#39;scal_16&#39;, &#39;scal_17&#39;, &#39;scal_18&#39;, &#39;scal_19&#39;, &#39;scal_20&#39;, &#39;scal_21&#39;, &#39;scal_22&#39;, &#39;scal_23&#39;, &#39;scal_24&#39;, &#39;scal_25&#39;, &#39;scal_26&#39;, &#39;scal_27&#39;, &#39;scal_28&#39;, &#39;scal_29&#39;, &#39;scal_30&#39;, &#39;scal_31&#39;, &#39;scal_32&#39;, &#39;scal_33&#39;, &#39;scal_34&#39;, &#39;scal_35&#39;, &#39;scal_36&#39;, &#39;scal_37&#39;, &#39;scal_38&#39;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/adperez/software/pySEMTools/pysemtools/postprocessing/statistics/RS_budgets.py:138: UserWarning: The number of scalar fields above 39 is not supported. This was done to make converted 2D statistics files consistent! Limiting the number to 39...
+  warnings.warn(&#34;The number of scalar fields above 39 is not supported. &#34;+
+/home/adperez/software/pySEMTools/pysemtools/postprocessing/statistics/RS_budgets.py:212: UserWarning: The s39 field (z-velocity) was not removed from the file. Be careful with potential inconsistencies!
+  warnings.warn(&#39;The s39 field (z-velocity) was not removed from the file. &#39;+
+</pre></div></div>
+</div>
+</section>
+<section id="Calculate-extra-fields">
+<h3>Calculate extra fields<a class="headerlink" href="#Calculate-extra-fields" title="Link to this heading"></a></h3>
+<p>As mentioned before, the solver already calculates the statistics of 44 fields. These are then used in this step to calculate 99 more that will ultimately be used to obtain the budgets.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.RS_budgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">compute_and_write_additional_pstat_fields</span>
+
+<span class="n">fname_mesh</span>       <span class="o">=</span> <span class="n">stats3D_filename</span>
+<span class="n">fname_mean</span>       <span class="o">=</span> <span class="n">stats3D_filename</span>
+<span class="n">fname_stat</span>       <span class="o">=</span> <span class="n">fname_mean</span>
+<span class="n">which_code</span>       <span class="o">=</span> <span class="s2">&quot;neko&quot;</span>
+<span class="n">nek5000_stat_type</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">if_do_dssum_on_derivatives</span> <span class="o">=</span> <span class="kc">False</span>          <span class="c1"># whether to do dssum to computed derivatives... strongly NOT recommended</span>
+
+<span class="n">compute_and_write_additional_pstat_fields</span><span class="p">(</span>
+    <span class="n">stats_dir</span><span class="p">,</span>
+    <span class="n">fname_mesh</span><span class="p">,</span>
+    <span class="n">fname_mean</span><span class="p">,</span>
+    <span class="n">fname_stat</span><span class="p">,</span>
+    <span class="n">if_write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">which_code</span><span class="o">=</span><span class="n">which_code</span><span class="p">,</span>
+    <span class="n">nek5000_stat_type</span><span class="o">=</span><span class="n">nek5000_stat_type</span><span class="p">,</span>
+    <span class="n">if_do_dssum_on_derivatives</span><span class="o">=</span><span class="n">if_do_dssum_on_derivatives</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+working on: UU
+working on: VV
+working on: WW
+working on: UV
+working on: UW
+working on: VW
+working on: UUU
+working on: VVV
+working on: WWW
+working on: UUV
+working on: UUW
+working on: UVV
+working on: UVW
+working on: VVW
+working on: UWW
+working on: VWW
+-------As a great man once said: run successful: dying ...
+</pre></div></div>
+</div>
+</section>
+<section id="Interpolate-the-data">
+<h3>Interpolate the data<a class="headerlink" href="#Interpolate-the-data" title="Link to this heading"></a></h3>
+<p>We now have the data in the spectral element mesh. For some operations, like averaging, having everything in a polar mesh would make everything easier. For that, we introduce interpolation steps. The deep explanations on how interpolation works are in dedicated examples. Here we just make use of the appropiate functions.</p>
+<section id="Generate-a-set-of-points-to-interpolate-into">
+<h4>Generate a set of points to interpolate into<a class="headerlink" href="#Generate-a-set-of-points-to-interpolate-into" title="Link to this heading"></a></h4>
+<p>First we generate a set of query points.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">geometric_stretching</span><span class="p">(</span><span class="n">dx0</span><span class="p">,</span><span class="n">stretching</span><span class="p">,</span><span class="n">dxmax</span><span class="p">,</span><span class="n">xmax</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">dx_base</span>     <span class="o">=</span> <span class="n">dx0</span> <span class="o">*</span> <span class="p">(</span><span class="n">stretching</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1001</span><span class="p">))</span>
+    <span class="n">x_base</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span> <span class="n">dx_base</span> <span class="p">)</span>
+    <span class="n">N_inrange</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span> <span class="n">x_base</span><span class="o">&lt;=</span><span class="n">xmax</span> <span class="p">)</span>
+    <span class="n">x_base</span>      <span class="o">=</span> <span class="n">x_base</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">N_inrange</span><span class="p">]</span>
+    <span class="n">x_base</span>      <span class="o">=</span> <span class="n">x_base</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">x_base</span><span class="p">)</span>
+
+    <span class="n">x</span>                <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N_inrange</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>             <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">N_inrange</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_base</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="c1">#%% convert polar to Cartesian coordinates</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">polar_to_cartesian</span><span class="p">(</span><span class="n">R</span><span class="p">,</span><span class="n">T</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">X</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span><span class="n">Y</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">user_defined_interpolating_points</span><span class="p">():</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pysemtools.interpolation.pointclouds</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pcs</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pysemtools.interpolation.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">interp_utils</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;generate interpolation points&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create the coordinates of the plane you want</span>
+    <span class="n">theta_bbox</span>  <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span>
+
+    <span class="n">ntheta</span>  <span class="o">=</span> <span class="mi">168</span><span class="o">*</span><span class="mi">7</span>
+    <span class="n">nz</span>      <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># add one point to exclude since periodic</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span> <span class="n">theta_bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="n">theta_bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">,</span> <span class="n">ntheta</span><span class="o">+</span><span class="mi">1</span> <span class="p">)</span>
+    <span class="c1"># z     = np.linspace( z_bbox[0] , z_bbox[1] , nz+1 )</span>
+
+    <span class="c1"># exclude last points since periodic</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="p">(</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ntheta</span><span class="p">]</span><span class="o">+</span><span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">)</span>
+    <span class="n">z</span>     <span class="o">=</span> <span class="mf">.5</span>
+    <span class="c1"># z     = .5 * ( z[0:nz]+z[1:])</span>
+
+    <span class="n">re_tau</span>      <span class="o">=</span> <span class="mf">1000.</span>
+    <span class="n">dr0</span>         <span class="o">=</span> <span class="mf">.3</span><span class="o">/</span><span class="n">re_tau</span>
+    <span class="n">stretching</span>  <span class="o">=</span> <span class="mf">1.05</span>
+    <span class="n">drmax</span>       <span class="o">=</span> <span class="mf">15.</span><span class="o">/</span><span class="n">re_tau</span>
+    <span class="n">rmax</span>        <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="n">r_base</span>      <span class="o">=</span> <span class="n">geometric_stretching</span><span class="p">(</span><span class="n">dr0</span><span class="p">,</span><span class="n">stretching</span><span class="p">,</span><span class="n">drmax</span><span class="p">,</span><span class="n">rmax</span><span class="p">)</span>
+    <span class="n">r_base</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="mf">0.1</span><span class="o">/</span><span class="n">re_tau</span>    <span class="c1"># to avoid potential issues when maping to the exact walls</span>
+    <span class="n">r_base</span>      <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">r_base</span>
+    <span class="n">nr</span>          <span class="o">=</span> <span class="n">r_base</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">Nstruct</span>     <span class="o">=</span> <span class="p">[</span><span class="n">nr</span><span class="p">,</span> <span class="n">ntheta</span><span class="p">,</span> <span class="n">nz</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Nstruct=&#39;</span><span class="p">,</span> <span class="n">Nstruct</span><span class="p">)</span>
+
+    <span class="n">R</span><span class="p">,</span><span class="n">T</span><span class="p">,</span><span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">r_base</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
+
+    <span class="c1"># r_crit  = 0.8</span>
+    <span class="c1"># kplus   = 40.0</span>
+    <span class="c1"># Lz      = 4.0 * np.pi</span>
+    <span class="c1"># nmodesZ = 1.0 * 42</span>
+<span class="c1">##    R,T,Z   = shift_points_to_cosine_pipe(R,T,Z , re_tau,r_crit,kplus,Lz,nmodesZ )</span>
+    <span class="n">X</span><span class="p">,</span><span class="n">Y</span>     <span class="o">=</span> <span class="n">polar_to_cartesian</span><span class="p">(</span><span class="n">R</span><span class="p">,</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_array_to_list</span><span class="p">(</span><span class="n">nr</span><span class="p">,</span> <span class="n">ntheta</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="p">[</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">Nstruct</span>
+
+<span class="c1"># Call the functions</span>
+
+<span class="c1"># Call the functions</span>
+<span class="c1"># NOTE: this should either be called from rank 0 only and then propoerly distributed into mpi ranks</span>
+<span class="c1">#       or each rank should generate its own points</span>
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">xyz</span> <span class="p">,</span> <span class="n">Nstruct_from_function</span> <span class="o">=</span> <span class="n">user_defined_interpolating_points</span><span class="p">()</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+generate interpolation points
+Nstruct= [105, 1176, 1]
+</pre></div></div>
+</div>
+</section>
+<section id="Perform-the-interpolation">
+<h4>Perform the interpolation<a class="headerlink" href="#Perform-the-interpolation" title="Link to this heading"></a></h4>
+<p>Note that finding the points always takes a while.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.RS_budgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate_all_stat_and_pstat_fields_onto_points</span>
+
+<span class="n">if_do_dssum_before_interp</span>        <span class="o">=</span> <span class="kc">False</span>    <span class="c1"># whether to do dssum before interpolation</span>
+<span class="n">if_create_boundingBox_for_interp</span> <span class="o">=</span> <span class="kc">False</span>    <span class="c1"># whether to create a bounding box around the point cloud</span>
+                                            <span class="c1"># useful for cases where there is a cluster of points somewhere</span>
+<span class="n">if_pass_points_to_rank0_only</span>     <span class="o">=</span> <span class="kc">True</span>     <span class="c1"># pass all points to rank0 only. this is to avoid passing duplicate points</span>
+                                            <span class="c1"># alternative is for each rank to generate its own points only, but that is too complex</span>
+
+<span class="n">interpolate_all_stat_and_pstat_fields_onto_points</span><span class="p">(</span>
+    <span class="n">stats_dir</span><span class="p">,</span>
+    <span class="n">fname_mesh</span><span class="p">,</span>
+    <span class="n">fname_mean</span><span class="p">,</span>
+    <span class="n">fname_stat</span><span class="p">,</span>
+    <span class="n">xyz</span><span class="p">,</span>
+    <span class="n">which_code</span><span class="o">=</span><span class="n">which_code</span><span class="p">,</span>
+    <span class="n">nek5000_stat_type</span><span class="o">=</span><span class="n">nek5000_stat_type</span><span class="p">,</span>
+    <span class="n">if_do_dssum_before_interp</span><span class="o">=</span><span class="n">if_do_dssum_before_interp</span><span class="p">,</span>
+    <span class="n">if_create_boundingBox_for_interp</span><span class="o">=</span><span class="n">if_create_boundingBox_for_interp</span><span class="p">,</span>
+    <span class="n">if_pass_points_to_rank0_only</span><span class="o">=</span><span class="n">if_pass_points_to_rank0_only</span>
+<span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//batch_fluid_stats_3D0.f00000
+Number of scalar fields: 40
+---working on field  0 from a total of  44
+---working on field  1 from a total of  44
+---working on field  2 from a total of  44
+---working on field  3 from a total of  44
+---working on field  4 from a total of  44
+---working on field  5 from a total of  44
+---working on field  6 from a total of  44
+---working on field  7 from a total of  44
+---working on field  8 from a total of  44
+---working on field  9 from a total of  44
+---working on field  10 from a total of  44
+---working on field  11 from a total of  44
+---working on field  12 from a total of  44
+---working on field  13 from a total of  44
+---working on field  14 from a total of  44
+---working on field  15 from a total of  44
+---working on field  16 from a total of  44
+---working on field  17 from a total of  44
+---working on field  18 from a total of  44
+---working on field  19 from a total of  44
+---working on field  20 from a total of  44
+---working on field  21 from a total of  44
+---working on field  22 from a total of  44
+---working on field  23 from a total of  44
+---working on field  24 from a total of  44
+---working on field  25 from a total of  44
+---working on field  26 from a total of  44
+---working on field  27 from a total of  44
+---working on field  28 from a total of  44
+---working on field  29 from a total of  44
+---working on field  30 from a total of  44
+---working on field  31 from a total of  44
+---working on field  32 from a total of  44
+---working on field  33 from a total of  44
+---working on field  34 from a total of  44
+---working on field  35 from a total of  44
+---working on field  36 from a total of  44
+---working on field  37 from a total of  44
+---working on field  38 from a total of  44
+---working on field  39 from a total of  44
+---working on field  40 from a total of  44
+---working on field  41 from a total of  44
+---working on field  42 from a total of  44
+---working on field  43 from a total of  44
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUdx0.f00000
+---working on field  0 from a total of  9
+---working on field  1 from a total of  9
+---working on field  2 from a total of  9
+---working on field  3 from a total of  9
+---working on field  4 from a total of  9
+---working on field  5 from a total of  9
+---working on field  6 from a total of  9
+---working on field  7 from a total of  9
+---working on field  8 from a total of  9
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//d2Udx20.f00000
+---working on field  0 from a total of  9
+---working on field  1 from a total of  9
+---working on field  2 from a total of  9
+---working on field  3 from a total of  9
+---working on field  4 from a total of  9
+---working on field  5 from a total of  9
+---working on field  6 from a total of  9
+---working on field  7 from a total of  9
+---working on field  8 from a total of  9
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnPdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dPUdx0.f00000
+---working on field  0 from a total of  9
+---working on field  1 from a total of  9
+---working on field  2 from a total of  9
+---working on field  3 from a total of  9
+---working on field  4 from a total of  9
+---working on field  5 from a total of  9
+---working on field  6 from a total of  9
+---working on field  7 from a total of  9
+---working on field  8 from a total of  9
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnUUdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnVVdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnWWdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnUVdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnUWdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dnVWdxn0.f00000
+---working on field  0 from a total of  6
+---working on field  1 from a total of  6
+---working on field  2 from a total of  6
+---working on field  3 from a total of  6
+---working on field  4 from a total of  6
+---working on field  5 from a total of  6
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUUUdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dVVVdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dWWWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUUVdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUUWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUVVdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUVWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dVVWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dUWWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+----------- working on file:  ../data/sem_data/statistics/pipe_nelv_5000//dVWWdx0.f00000
+---working on field  0 from a total of  3
+---working on field  1 from a total of  3
+---working on field  2 from a total of  3
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Generate-relevant-plots-(in-serial)">
+<h3>Generate relevant plots (in serial)<a class="headerlink" href="#Generate-relevant-plots-(in-serial)" title="Link to this heading"></a></h3>
+<p>We now read the data that has been interpolated and generate the plots. We make a particular note here that this region of the example can only be executed in serial. Everything before can be done in parallel with MPI support.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#%% load the required functions</span>
+<span class="n">path_to_files</span>   <span class="o">=</span> <span class="s2">&quot;./&quot;</span>
+
+<span class="c1"># pipe flow at Re_tau=1000</span>
+<span class="n">Reynolds_number</span>     <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">0.0000530504</span>
+
+<span class="n">If_convert_to_single</span> <span class="o">=</span> <span class="kc">True</span>     <span class="c1"># converts the statiscs/budegts data into single precision</span>
+<span class="n">If_average</span>           <span class="o">=</span> <span class="kc">True</span>     <span class="c1"># calculate average in space</span>
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">Nstruct</span>     <span class="o">=</span> <span class="n">Nstruct_from_function</span> <span class="c1"># structured formation of the interpolation mesh</span>
+
+<span class="n">fname_averaged</span>  <span class="o">=</span> <span class="s1">&#39;averaged_and_renamed_interpolated_fields.hdf5&#39;</span>   <span class="c1"># name of the hdf5 written after rehsaping into structured formation and averaging in space</span>
+<span class="n">fname_budget</span>    <span class="o">=</span> <span class="s2">&quot;pstat3d_format.hdf5&quot;</span>     <span class="c1"># name of the hdf5 file containing calculated budgets</span>
+<br/><br/></pre></div>
+</div>
+</div>
+<section id="Perform-averaging-(Optional)">
+<h4>Perform averaging (Optional)<a class="headerlink" href="#Perform-averaging-(Optional)" title="Link to this heading"></a></h4>
+<p>In some cases, more averaging in some particular direction might be needed. IN this example we show how that could be done. In this example, axis 2 has only one point, therefore this averaging operation does nothing. We keep it here to show one possible operation to be done to the fields.</p>
+<p>In this particular case all the function does is to replicate all the data into 8 points in the z direction, to also assume that we have a 3d field when performing the rotations to be performed later.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: the use of Reynolds number assumes all fields are in non-dimensional form</span>
+<span class="c1">#       this should be fixed later</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_interpolated_stat_hdf5_fields</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">av_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="mi">8</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">read_interpolated_stat_hdf5_fields</span><span class="p">(</span>
+            <span class="n">path_to_files</span> <span class="p">,</span>
+            <span class="n">Reynolds_number</span> <span class="p">,</span>
+            <span class="n">If_average</span> <span class="p">,</span>
+            <span class="n">If_convert_to_single</span> <span class="p">,</span>
+            <span class="n">Nstruct</span> <span class="p">,</span>
+            <span class="n">av_func</span> <span class="p">,</span>
+            <span class="n">output_fname</span> <span class="o">=</span> <span class="n">fname_averaged</span>
+            <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+reading xyz coordinates...
+Done in 0.00 seconds.
+reading the 44 statistics fields...
+Done in 0.07 seconds.
+reading the additional 99 fields...
+Finished reading all fields.
+Done in 0.19 seconds.
+Converting arrays into single precision...
+Conversion complete.
+Done in 0.01 seconds.
+Reshaping into arrays...
+Reshaping complete.
+Done in 0.00 seconds.
+Permuting arrays into the original shape...
+Permutation complete.
+Done in 0.00 seconds.
+Taking the user-specified average using function av_func...
+Averaging complete.
+Done in 0.52 seconds.
+Saving the data in HDF5 format...
+Done in 1.12 seconds.
+Data saved successfully in HDF5 format.
+</pre></div></div>
+</div>
+</section>
+<section id="Calculate-the-budgets">
+<h4>Calculate the budgets<a class="headerlink" href="#Calculate-the-budgets" title="Link to this heading"></a></h4>
+<p>Use the interpolated aditional fields to finally calculate the budget terms in cartesian coordinates.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># NOTE: budgets are done in Cartesian cooridnates</span>
+<span class="c1"># NOTE: this part uses Re number, meaning it assumes fields are in non-dimensional form</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.RS_budgets_interpolatedPoints_notMPI</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_budgets_in_Cartesian</span>
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">calculate_budgets_in_Cartesian</span><span class="p">(</span>
+            <span class="n">path_to_files</span>   <span class="o">=</span> <span class="n">path_to_files</span> <span class="p">,</span>
+            <span class="n">input_filename</span>  <span class="o">=</span> <span class="n">fname_averaged</span> <span class="p">,</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="n">fname_budget</span> <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Reynolds number =  18849.99924600003
+--------------working on XYZ coordinates...
+Number of points:  (105, 1176, 8)
+Done in 0.02 seconds.
+--------------working on mean velocities...
+Done in 0.02 seconds.
+--------------working on Reynolds stresses...
+Done in 0.08 seconds.
+--------------working on pressure and its moments...
+Done in 0.21 seconds.
+--------------working on tripple products...
+Done in 0.48 seconds.
+--------------working on velocity kurtosis...
+Done in 0.24 seconds.
+--------------working on velocity gradients...
+Time taken: 0.06 seconds
+--------------working on momentum convection terms...
+Time taken: 0.10 seconds
+--------------working on the residual momentum convection terms...
+Time taken: 0.09 seconds
+--------------working on momentum pressure terms...
+Warning: assuming rho=1 everywhere!
+Time taken: 0.02 seconds
+--------------working on production terms...
+Time taken: 0.45 seconds
+--------------working on convection terms...
+Time taken: 0.76 seconds
+--------------working on momentum turbulent diffusion terms...
+Time taken: 0.12 seconds
+--------------working on dissipation terms...
+Time taken: 0.38 seconds
+--------------working on turbulent transport...
+Done in 2.73 seconds.
+--------------working on viscous diffusion...
+Done in 0.91 seconds.
+--------------working on momentum viscous diffusion terms...
+Done in 0.08 seconds.
+--------------working on momentum residual terms...
+Done in 0.03 seconds.
+--------------working on pressure-rate-of-strain terms...
+Done in 0.18 seconds.
+--------------working on pressure transport terms...
+Done in 0.29 seconds.
+--------------working on velocity-pressure-gradient terms...
+Done in 0.07 seconds.
+--------------working on TKE budgets...
+Done in 0.02 seconds.
+All computations completed and data saved successfully.
+</pre></div></div>
+</div>
+</section>
+<section id="Rotate-and-perform-averages">
+<h4>Rotate and perform averages<a class="headerlink" href="#Rotate-and-perform-averages" title="Link to this heading"></a></h4>
+<p>All the tensors calculated can be rotated into cylindrical coordinates, which match better the pipe. One can the perfomr azimuthal averages and plot the values.</p>
+<p>Here we show the values from the provided data with those of a reference simulation.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="k">def</span><span class="w"> </span><span class="nf">define_cylindrical_coord_system_vectors</span><span class="p">(</span><span class="n">XYZ</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="c1"># unit vector in direction 1 is along z</span>
+    <span class="n">v1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">XYZ</span><span class="p">)</span>
+    <span class="n">v1</span><span class="p">[</span><span class="o">...</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># unit vector in direction 2 is along the wall normal</span>
+    <span class="c1"># this is based on dimension one of XYZ corresponding to r</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="n">XYZ</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span><span class="o">-</span><span class="n">XYZ</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">v2</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span><span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="n">v2</span> <span class="o">=</span> <span class="n">v2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
+
+    <span class="c1"># the last vector in a right-handed orthogonal coordinate system is the cross product of the first two</span>
+    <span class="n">v3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span>
+
+<span class="c1"># NOTE: not properly scripted yet, for demonstraiton purposes only</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.tensor_manipulations</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotate_6c2D_tensor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.tensor_manipulations</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotate_vector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.tensor_manipulations</span><span class="w"> </span><span class="kn">import</span> <span class="n">define_rotation_tensor_from_vectors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.tensor_manipulations</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotate_2D_tensor</span>
+
+<span class="n">path_to_refdata</span>     <span class="o">=</span> <span class="n">stats_dir</span><span class="o">+</span><span class="s2">&quot;/ref_data/&quot;</span>
+<span class="n">fnames_refdata_vel</span>  <span class="o">=</span> <span class="s1">&#39;PIPE_Re1K_MEAN.dat&#39;</span>
+<span class="n">fnames_refdata_RS</span>   <span class="o">=</span> <span class="s1">&#39;PIPE_Re1K_RMS.dat&#39;</span>
+<span class="n">fnames_refdata_buds</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PIPE_Re1K_RSTE_uzuz.dat&#39;</span><span class="p">,</span><span class="s1">&#39;PIPE_Re1K_RSTE_urur.dat&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;PIPE_Re1K_RSTE_utut.dat&#39;</span><span class="p">,</span><span class="s1">&#39;PIPE_Re1K_RSTE_uruz.dat&#39;</span><span class="p">]</span>
+
+<span class="n">input_filename</span> <span class="o">=</span> <span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fname_budget</span>
+
+<span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">:</span>
+        <span class="n">XYZ</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;XYZ&#39;</span><span class="p">][:])</span>
+        <span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span>    <span class="o">=</span> <span class="n">define_cylindrical_coord_system_vectors</span><span class="p">(</span><span class="n">XYZ</span><span class="p">)</span>
+        <span class="n">Q</span>           <span class="o">=</span> <span class="n">define_rotation_tensor_from_vectors</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span><span class="n">v2</span><span class="p">,</span><span class="n">v3</span><span class="p">)</span>
+        <span class="n">Qtrans</span>      <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span><span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span> <span class="p">,</span> <span class="mi">4</span><span class="p">,</span><span class="mi">3</span> <span class="p">))</span>
+        <span class="n">Nxyz</span>        <span class="o">=</span> <span class="n">XYZ</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="n">UVW</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;UVW&#39;</span><span class="p">][:])</span>
+        <span class="n">Rij</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;Rij&#39;</span><span class="p">][:])</span>
+        <span class="n">dUidXj</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;dUidXj&#39;</span><span class="p">][:])</span>
+
+        <span class="n">Prod_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;Prod_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">Diss_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;Diss_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">PRS_ij</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;PRS_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">Conv_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;Conv_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">PressTrans_ij</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;PressTrans_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">TurbTrans_ij</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;TurbTrans_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">VelPressGrad_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;VelPressGrad_ij&#39;</span><span class="p">][:])</span>
+        <span class="n">ViscDiff_ij</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;ViscDiff_ij&#39;</span><span class="p">][:])</span>
+
+        <span class="n">UVW</span>     <span class="o">=</span> <span class="n">rotate_vector</span><span class="p">(</span><span class="n">UVW</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">UVW</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">UVW</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Rij</span>             <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">Rij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">Prod_ij</span>         <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">Prod_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">Diss_ij</span>         <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">Diss_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">PRS_ij</span>          <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">PRS_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">Conv_ij</span>         <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">Conv_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">PressTrans_ij</span>   <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">PressTrans_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">TurbTrans_ij</span>    <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">TurbTrans_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">VelPressGrad_ij</span> <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">VelPressGrad_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">ViscDiff_ij</span>     <span class="o">=</span> <span class="n">rotate_6c2D_tensor</span><span class="p">(</span><span class="n">ViscDiff_ij</span><span class="p">,</span><span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+
+
+        <span class="n">Rij</span>             <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">Rij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Prod_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">Prod_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Diss_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">Diss_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">PRS_ij</span>          <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">PRS_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">Conv_ij</span>         <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">Conv_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">PressTrans_ij</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">PressTrans_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">TurbTrans_ij</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">TurbTrans_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">VelPressGrad_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">VelPressGrad_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ViscDiff_ij</span>     <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">ViscDiff_ij</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">Res_ij</span> <span class="o">=</span> <span class="n">Prod_ij</span> <span class="o">+</span> <span class="n">Diss_ij</span> <span class="o">+</span> <span class="n">PRS_ij</span> <span class="o">+</span> <span class="n">Conv_ij</span> <span class="o">+</span> <span class="n">PressTrans_ij</span> <span class="o">+</span> <span class="n">TurbTrans_ij</span> <span class="o">+</span> <span class="n">ViscDiff_ij</span>
+
+        <span class="n">dUidXj</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span> <span class="n">dUidXj</span> <span class="p">,</span> <span class="p">(</span><span class="n">Nxyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Nxyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">Nxyz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span> <span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;F&quot;</span> <span class="p">)</span>
+        <span class="n">dUidXj</span>  <span class="o">=</span> <span class="n">rotate_2D_tensor</span><span class="p">(</span><span class="n">dUidXj</span> <span class="p">,</span> <span class="n">Qtrans</span><span class="p">,</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">dUidXj</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span> <span class="n">dUidXj</span> <span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span> <span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+        <span class="c1"># Rer     = 1 / 0.0000530504 #</span>
+        <span class="n">Rer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">input_file</span><span class="p">[</span><span class="s1">&#39;Rer_here&#39;</span><span class="p">])</span>
+
+        <span class="n">fluid_nu</span>        <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">Rer</span>
+        <span class="c1"># print(dUidXj[0,...])</span>
+        <span class="n">tauW_over_rho</span>   <span class="o">=</span> <span class="n">fluid_nu</span> <span class="o">*</span> <span class="n">dUidXj</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">u_tau</span>           <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tauW_over_rho</span><span class="p">)</span>
+        <span class="n">delta_nu</span>        <span class="o">=</span> <span class="n">fluid_nu</span> <span class="o">/</span> <span class="n">u_tau</span>
+        <span class="n">Re_tau</span>          <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">delta_nu</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Re_tau = &#39;</span><span class="p">,</span> <span class="n">Re_tau</span> <span class="p">)</span>
+
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">XYZ</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span><span class="o">...</span><span class="p">]</span><span class="o">-</span><span class="n">XYZ</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">...</span><span class="p">]</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dr</span><span class="o">**</span><span class="mi">2</span> <span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dr</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">r</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+        <span class="n">rtmp</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="n">r</span>    <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Nxyz</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">rtmp</span>
+
+        <span class="n">yplus</span> <span class="o">=</span> <span class="n">r</span><span class="o">/</span><span class="n">delta_nu</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">UVW</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span><span class="n">u_tau</span>   <span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+        <span class="c1">#df = pd.read_csv(path_to_refdata+&#39;/&#39;+fnames_refdata_vel, delim_whitespace=True, header=None)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_vel</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">5</span><span class="p">]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mf">.5</span><span class="p">,</span><span class="n">Re_tau</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="s1">&#39;Uplus&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Rij</span><span class="p">[:,:</span><span class="mi">4</span><span class="p">]</span> <span class="o">/</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">2</span>  <span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+        <span class="c1">#df = pd.read_csv(path_to_refdata+&#39;/&#39;+fnames_refdata_RS, delim_whitespace=True, header=None)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_RS</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mf">.5</span><span class="p">,</span><span class="n">Re_tau</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="s1">&#39;RSplus&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">11</span><span class="o">+</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Prod_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>       <span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Diss_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>       <span class="p">,</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">PRS_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>        <span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">PressTrans_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span> <span class="p">,</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">TurbTrans_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>  <span class="p">,</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">ViscDiff_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>   <span class="p">,</span><span class="s1">&#39;grey&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Res_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>        <span class="p">,</span><span class="s1">&#39;:k&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">k</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_buds</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="o">-</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mf">.5</span><span class="p">,</span><span class="n">Re_tau</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">((</span><span class="s1">&#39;Production&#39;</span><span class="p">,</span><span class="s1">&#39;Dissipation&#39;</span><span class="p">,</span><span class="s1">&#39;PRS&#39;</span><span class="p">,</span><span class="s1">&#39;Pres. Trans.&#39;</span><span class="p">,</span><span class="s1">&#39;Turb. Tran.&#39;</span><span class="p">,</span><span class="s1">&#39;Visc. Diff&#39;</span><span class="p">,</span><span class="s1">&#39;Residual&#39;</span><span class="p">))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="s1">&#39;budget&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Re_tau =  996.50208315011
+(104, 1176, 8)
+(104,)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_1.png" src="../_images/_notebooks_4-Budgets_24_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_2.png" src="../_images/_notebooks_4-Budgets_24_2.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_3.png" src="../_images/_notebooks_4-Budgets_24_3.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_4.png" src="../_images/_notebooks_4-Budgets_24_4.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_5.png" src="../_images/_notebooks_4-Budgets_24_5.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_4-Budgets_24_6.png" src="../_images/_notebooks_4-Budgets_24_6.png" />
+</div>
+</div>
+<p>Now we are done! From simulation outputs to results!</p>
+<p>There are some slight discrepancies, but those are not necesarly related to the python post-processing.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

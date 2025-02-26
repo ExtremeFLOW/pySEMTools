@@ -37,7 +37,7 @@
     "\n",
     "# Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens\n",
     "import os\n",
-    "os.environ[\"PYNEKTOOLS_HIDE_LOG\"] = 'true'\n"
+    "os.environ[\"PYSEMTOOLS_HIDE_LOG\"] = 'true'\n"
    ]
   },
   {
@@ -76,8 +76,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from pynektools.io.wrappers import read_data\n",
-    "from pynektools.postprocessing.statistics.uq import NOBM\n",
+    "from pysemtools.io.wrappers import read_data\n",
+    "from pysemtools.postprocessing.statistics.uq import NOBM\n",
     "\n",
     "# Read the mesh dat for latter plotting\n",
     "mesh_data = read_data(comm, query_points_fname, [\"x\", \"y\", \"z\"], dtype = np.single)\n",
@@ -114,7 +114,7 @@
     }
    ],
    "source": [
-    "from pynektools.postprocessing.plotting import isosurfaces\n",
+    "from pysemtools.postprocessing.plotting import isosurfaces\n",
     "from IPython.display import Image, display\n",
     "\n",
     "isos = {}\n",
@@ -210,7 +210,7 @@
     }
    ],
    "source": [
-    "from pynektools.postprocessing.statistics.file_field_index import file_field_index\n",
+    "from pysemtools.postprocessing.statistics.file_field_index import file_field_index\n",
     "\n",
     "# Specify the source of the data\n",
     "key_index = file_field_index(source_code=\"Neko_old\") # Neko old alludes to statistics written between 2 files\n",
@@ -232,8 +232,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from pynektools.postprocessing.rotations import cartesian_to_cylindrical_rotation_matrix as rotation_matrix\n",
-    "from pynektools.postprocessing.rotations import rotate_tensor\n",
+    "from pysemtools.postprocessing.rotations import cartesian_to_cylindrical_rotation_matrix as rotation_matrix\n",
+    "from pysemtools.postprocessing.rotations import rotate_tensor\n",
     "import os\n",
     "\n",
     "# Specify the components of the tensor. This should match the key in the file\n",

@@ -1,0 +1,719 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Direct sampling with Gaussian process regression &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Direct sampling with Gaussian process regression</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/1-Direct_sampling.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Direct-sampling-with-Gaussian-process-regression">
+<h1>Direct sampling with Gaussian process regression<a class="headerlink" href="#Direct-sampling-with-Gaussian-process-regression" title="Link to this heading"></a></h1>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<p>mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_DEBUG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Import-modules-from-pysemtools">
+<h2>Import modules from pysemtools<a class="headerlink" href="#Import-modules-from-pysemtools" title="Link to this heading"></a></h2>
+<p>In this case we will import all the data types that we currently support, as well as io functions that are required to populate them.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data types</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.coef</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coef</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span><span class="p">,</span> <span class="n">FieldRegistry</span>
+
+<span class="c1"># Readers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">preadnek</span><span class="p">,</span> <span class="n">pynekread</span>
+
+<span class="c1"># Writers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">pwritenek</span><span class="p">,</span> <span class="n">pynekwrite</span>
+
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;../data/mixlay0.f00001&#39;</span>
+</pre></div>
+</div>
+</div>
+<section id="Read-the-data">
+<h3>Read the data<a class="headerlink" href="#Read-the-data" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Read the data</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">)</span>
+
+<span class="c1"># Get the coefficients</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:06,875 - Mesh - INFO - Initializing empty Mesh object.
+2025-02-25 16:06:06,877 - Field - INFO - Initializing empty Field object
+2025-02-25 16:06:06,878 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
+2025-02-25 16:06:06,884 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-02-25 16:06:06,884 - Mesh - INFO - Initializing common attributes.
+2025-02-25 16:06:06,885 - Mesh - INFO - Getting vertices
+2025-02-25 16:06:06,886 - Mesh - INFO - Getting edge centers
+2025-02-25 16:06:06,892 - Mesh - INFO - Facet centers not available for 2D
+2025-02-25 16:06:06,894 - Mesh - INFO - Mesh object initialized.
+2025-02-25 16:06:06,895 - Mesh - INFO - Mesh data is of type: float64
+2025-02-25 16:06:06,895 - Mesh - INFO - Elapsed time: 0.011792229999999997s
+2025-02-25 16:06:06,896 - pynekread - INFO - Reading field data
+2025-02-25 16:06:06,903 - pynekread - INFO - File read
+2025-02-25 16:06:06,904 - pynekread - INFO - Elapsed time: 0.025885378s
+2025-02-25 16:06:06,904 - Coef - INFO - Initializing Coef object
+2025-02-25 16:06:06,905 - Coef - INFO - Getting derivative matrices
+2025-02-25 16:06:06,907 - Coef - INFO - Calculating the components of the jacobian
+2025-02-25 16:06:06,923 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2025-02-25 16:06:06,925 - Coef - INFO - Calculating the mass matrix
+2025-02-25 16:06:06,927 - Coef - INFO - Coef object initialized
+2025-02-25 16:06:06,928 - Coef - INFO - Coef data is of type: float64
+2025-02-25 16:06:06,928 - Coef - INFO - Elapsed time: 0.023874119s
+</pre></div></div>
+</div>
+</section>
+<section id="Compress-the-data-with-GPR">
+<h3>Compress the data with GPR<a class="headerlink" href="#Compress-the-data-with-GPR" title="Link to this heading"></a></h3>
+<section id="Initialize-the-Direct-sampler">
+<h4>Initialize the Direct sampler<a class="headerlink" href="#Initialize-the-Direct-sampler" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.compression.gpc_direct_sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">DirectSampler</span>
+
+<span class="c1"># Initialize a sampler with numpy (default)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">DirectSampler</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+
+<span class="c1"># Initialize a sampler with the torch backend</span>
+<span class="n">ds_torch</span> <span class="o">=</span> <span class="n">DirectSampler</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="s1">&#39;torch&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:08,194 - DirectSampler - INFO - Initializing the DirectSampler from a Mesh object
+2025-02-25 16:06:08,200 - DirectSampler - INFO - Initializing the DirectSampler from a Mesh object
+</pre></div></div>
+</div>
+</section>
+<section id="Sample-the-data">
+<h4>Sample the data<a class="headerlink" href="#Sample-the-data" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Select the options</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">16</span><span class="o">+</span><span class="mi">8</span> <span class="c1"># To compare with the svd, since each element will save 16 coefficients</span>
+<span class="n">bitrate</span> <span class="o">=</span> <span class="n">n_samples</span><span class="o">/</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="o">*</span><span class="n">msh</span><span class="o">.</span><span class="n">ly</span><span class="o">*</span><span class="n">msh</span><span class="o">.</span><span class="n">lz</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">sample_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">],</span> <span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">covariance_method</span><span class="o">=</span><span class="s2">&quot;average&quot;</span><span class="p">,</span> <span class="n">covariance_elements_to_average</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">compression_method</span><span class="o">=</span><span class="s2">&quot;fixed_bitrate&quot;</span><span class="p">,</span> <span class="n">bitrate</span> <span class="o">=</span> <span class="n">bitrate</span><span class="p">)</span>
+<span class="n">ds</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">toc</span><span class="p">()</span>
+
+<span class="c1"># Keep modes to 16 to keep the same amount of data between the 2 versions</span>
+<span class="n">n_samples</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">bitrate</span> <span class="o">=</span> <span class="n">n_samples</span><span class="o">/</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="o">*</span><span class="n">msh</span><span class="o">.</span><span class="n">ly</span><span class="o">*</span><span class="n">msh</span><span class="o">.</span><span class="n">lz</span><span class="p">)</span>
+<span class="n">ds_torch</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">tic</span><span class="p">()</span>
+<span class="n">ds_torch</span><span class="o">.</span><span class="n">sample_field</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">],</span> <span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">covariance_method</span><span class="o">=</span><span class="s2">&quot;svd&quot;</span><span class="p">,</span> <span class="n">covariance_keep_modes</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">compression_method</span><span class="o">=</span><span class="s2">&quot;fixed_bitrate&quot;</span><span class="p">,</span> <span class="n">bitrate</span> <span class="o">=</span> <span class="n">bitrate</span><span class="p">,</span> <span class="n">max_samples_per_it</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ds_torch</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">toc</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:08,215 - DirectSampler - INFO - Sampling the field with options: covariance_method: {covariance_method}, compression_method: {compression_method}
+2025-02-25 16:06:08,216 - DirectSampler - INFO - Estimating the covariance matrix
+2025-02-25 16:06:08,217 - DirectSampler - INFO - Transforming the field into to legendre space
+2025-02-25 16:06:08,220 - DirectSampler - INFO - Estimating the covariance matrix using the averaging method method. Averaging over 100 elements at a time
+2025-02-25 16:06:08,221 - DirectSampler - INFO - Covariance saved in field uncompressed_data[&#34;u&#34;][&#34;kw&#34;]
+2025-02-25 16:06:08,222 - DirectSampler - INFO - Sampling the field using the fixed bitrate method. using settings: {&#39;method&#39;: &#39;fixed_bitrate&#39;, &#39;bitrate&#39;: np.float64(0.375), &#39;n_samples&#39;: 24}
+2025-02-25 16:06:08,223 - DirectSampler - INFO - Proccesing up to 1600/1600 element
+2025-02-25 16:06:09,903 - DirectSampler - INFO - Sampled_field saved in field uncompressed_data[&#34;u&#34;][&#34;field&#34;]
+2025-02-25 16:06:09,904 - DirectSampler - INFO - Elapsed time: 1.6895673430000002s
+2025-02-25 16:06:09,905 - DirectSampler - INFO - Sampling the field with options: covariance_method: {covariance_method}, compression_method: {compression_method}
+2025-02-25 16:06:09,906 - DirectSampler - INFO - Estimating the covariance matrix
+2025-02-25 16:06:09,907 - DirectSampler - INFO - Transforming the field into to legendre space
+2025-02-25 16:06:09,909 - DirectSampler - INFO - Estimating the covariance matrix using the SVD method. Keeping 16 modes
+2025-02-25 16:06:09,916 - DirectSampler - INFO - U saved in field uncompressed_data[&#34;u&#34;][&#34;U&#34;]
+2025-02-25 16:06:09,916 - DirectSampler - INFO - s saved in field uncompressed_data[&#34;u&#34;][&#34;s&#34;]
+2025-02-25 16:06:09,917 - DirectSampler - INFO - Vt saved in field uncompressed_data[&#34;u&#34;][&#34;Vt&#34;]
+2025-02-25 16:06:09,918 - DirectSampler - INFO - Sampling the field using the fixed bitrate method. using settings: {&#39;method&#39;: &#39;fixed_bitrate&#39;, &#39;bitrate&#39;: np.float64(0.125), &#39;n_samples&#39;: 8}
+2025-02-25 16:06:09,919 - DirectSampler - INFO - Using backend: torch on device: cpu
+2025-02-25 16:06:09,921 - DirectSampler - INFO - Processing up to 256/1600 element
+Getting covariance matrix
+2025-02-25 16:06:10,157 - DirectSampler - INFO - Processing up to 512/1600 element
+Getting covariance matrix
+2025-02-25 16:06:10,385 - DirectSampler - INFO - Processing up to 768/1600 element
+Getting covariance matrix
+2025-02-25 16:06:10,603 - DirectSampler - INFO - Processing up to 1024/1600 element
+Getting covariance matrix
+2025-02-25 16:06:10,824 - DirectSampler - INFO - Processing up to 1280/1600 element
+Getting covariance matrix
+2025-02-25 16:06:11,051 - DirectSampler - INFO - Processing up to 1536/1600 element
+Getting covariance matrix
+2025-02-25 16:06:11,272 - DirectSampler - INFO - Processing up to 1600/1600 element
+Getting covariance matrix
+2025-02-25 16:06:11,339 - DirectSampler - INFO - Sampled_field saved in field uncompressed_data[&#34;u&#34;][&#34;field&#34;]
+2025-02-25 16:06:11,340 - DirectSampler - INFO - Elapsed time: 1.4345206940000006s
+</pre></div></div>
+</div>
+</section>
+<section id="Encode-it">
+<h4>Encode it<a class="headerlink" href="#Encode-it" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ds</span><span class="o">.</span><span class="n">compress_samples</span><span class="p">(</span><span class="n">lossless_compressor</span><span class="o">=</span><span class="s2">&quot;bzip2&quot;</span><span class="p">)</span>
+
+<span class="n">ds_torch</span><span class="o">.</span><span class="n">compress_samples</span><span class="p">(</span><span class="n">lossless_compressor</span><span class="o">=</span><span class="s2">&quot;bzip2&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:11,347 - DirectSampler - INFO - Compressing the data using the lossless compressor: bzip2
+2025-02-25 16:06:11,348 - DirectSampler - INFO - Compressing data in uncompressed_data
+2025-02-25 16:06:11,349 - DirectSampler - INFO - Compressing data for field [&#34;u&#34;]:
+2025-02-25 16:06:11,349 - DirectSampler - INFO - Compressing [&#34;kw&#34;] for field [&#34;u&#34;]
+2025-02-25 16:06:11,353 - DirectSampler - INFO - Compressing [&#34;field&#34;] for field [&#34;u&#34;]
+2025-02-25 16:06:11,430 - DirectSampler - INFO - Compressing the data using the lossless compressor: bzip2
+2025-02-25 16:06:11,431 - DirectSampler - INFO - Compressing data in uncompressed_data
+2025-02-25 16:06:11,432 - DirectSampler - INFO - Compressing data for field [&#34;u&#34;]:
+2025-02-25 16:06:11,432 - DirectSampler - INFO - Compressing [&#34;U&#34;] for field [&#34;u&#34;]
+2025-02-25 16:06:11,455 - DirectSampler - INFO - Compressing [&#34;s&#34;] for field [&#34;u&#34;]
+2025-02-25 16:06:11,457 - DirectSampler - INFO - Compressing [&#34;Vt&#34;] for field [&#34;u&#34;]
+2025-02-25 16:06:11,459 - DirectSampler - INFO - Compressing [&#34;field&#34;] for field [&#34;u&#34;]
+</pre></div></div>
+</div>
+</section>
+<section id="Write-it-out">
+<h4>Write it out<a class="headerlink" href="#Write-it-out" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ds</span><span class="o">.</span><span class="n">write_compressed_samples</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+
+<span class="n">ds_torch</span><span class="o">.</span><span class="n">write_compressed_samples</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;test_torch&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:11,625 - DirectSampler - INFO - Parallel HDF5 not available; creating folder to store rank files.
+2025-02-25 16:06:11,630 - DirectSampler - INFO - Parallel HDF5 not available; creating folder to store rank files.
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Decompress-the-data">
+<h3>Decompress the data<a class="headerlink" href="#Decompress-the-data" title="Link to this heading"></a></h3>
+<section id="id1">
+<h4>Read the data<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ds_read</span> <span class="o">=</span> <span class="n">DirectSampler</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="n">ds_torch_read</span> <span class="o">=</span> <span class="n">DirectSampler</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;test_torch&quot;</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="s1">&#39;torch&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:11,642 - DirectSampler - INFO - Initializing the DirectSampler from file: test
+2025-02-25 16:06:11,673 - DirectSampler - INFO - Initializing the DirectSampler from file: test_torch
+</pre></div></div>
+</div>
+</section>
+<section id="Reconstruct-the-data-from-the-samples">
+<h4>Reconstruct the data from the samples<a class="headerlink" href="#Reconstruct-the-data-from-the-samples" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">u_np</span><span class="p">,</span> <span class="n">u_std_np</span> <span class="o">=</span> <span class="n">ds_read</span><span class="o">.</span><span class="n">reconstruct_field</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">get_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">u_d</span><span class="p">,</span> <span class="n">u_std_d</span> <span class="o">=</span> <span class="n">ds_torch_read</span><span class="o">.</span><span class="n">reconstruct_field</span><span class="p">(</span><span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">get_mean</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">get_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:11,725 - DirectSampler - INFO - Proccesing up to 1600/1600 element
+2025-02-25 16:06:11,901 - DirectSampler - INFO - Processing up to 256/1600 elements
+2025-02-25 16:06:11,920 - DirectSampler - INFO - Processing up to 512/1600 elements
+2025-02-25 16:06:11,932 - DirectSampler - INFO - Processing up to 768/1600 elements
+2025-02-25 16:06:11,944 - DirectSampler - INFO - Processing up to 1024/1600 elements
+2025-02-25 16:06:11,959 - DirectSampler - INFO - Processing up to 1280/1600 elements
+2025-02-25 16:06:11,972 - DirectSampler - INFO - Processing up to 1536/1600 elements
+2025-02-25 16:06:11,986 - DirectSampler - INFO - Processing up to 1600/1600 elements
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Visualize-the-data">
+<h3>Visualize the data<a class="headerlink" href="#Visualize-the-data" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># General settings</span>
+
+<span class="n">u</span> <span class="o">=</span> <span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span>
+<span class="n">u_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">u</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">err_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Numpy">
+<h4>Numpy<a class="headerlink" href="#Numpy" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><br/><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+
+<span class="n">c00</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">u_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u$&quot;</span><span class="p">)</span>
+
+<span class="n">c01</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">u_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">u_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_</span><span class="si">{np}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+<span class="n">c10</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">u_std_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_{np,std}$&quot;</span><span class="p">)</span>
+
+<span class="n">c11</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">u_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">-</span> <span class="n">u</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">levels</span><span class="o">=</span><span class="n">err_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_</span><span class="si">{np}</span><span class="s2"> - u$&quot;</span><span class="p">)</span>
+
+<span class="n">cbar0</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c00</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+<span class="n">cbar10</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c10</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">cbar11</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c11</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-Direct_sampling_21_0.png" src="../_images/_notebooks_1-Direct_sampling_21_0.png" />
+</div>
+</div>
+</section>
+<section id="Torch">
+<h4>Torch<a class="headerlink" href="#Torch" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+
+<span class="n">c00</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">u_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u$&quot;</span><span class="p">)</span>
+
+<span class="n">c01</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">u_d</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">u_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_</span><span class="si">{d}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+<span class="n">c10</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">u_std_d</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_{d,std}$&quot;</span><span class="p">)</span>
+
+<span class="n">c11</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">u_d</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">-</span> <span class="n">u</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span> <span class="n">levels</span><span class="o">=</span><span class="n">err_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$u_</span><span class="si">{d}</span><span class="s2"> - u$&quot;</span><span class="p">)</span>
+
+<span class="n">cbar0</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c00</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+<span class="n">cbar10</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c10</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">cbar11</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c11</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-Direct_sampling_23_0.png" src="../_images/_notebooks_1-Direct_sampling_23_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Test-the-derivative">
+<h3>Test the derivative<a class="headerlink" href="#Test-the-derivative" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initiate the mesh partitioning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh_connectivity</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeshConnectivity</span>
+
+<span class="n">msh_conn</span> <span class="o">=</span> <span class="n">MeshConnectivity</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">use_hashtable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dudx</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdx</span><span class="p">)</span>
+<span class="n">dudy</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdy</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdy</span><span class="p">)</span>
+
+<span class="n">dudx_np</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u_np</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdx</span><span class="p">)</span>
+<span class="n">dudy_np</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u_np</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdy</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdy</span><span class="p">)</span>
+
+<span class="n">dudx_d</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u_d</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdx</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdx</span><span class="p">)</span>
+<span class="n">dudy_d</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudxyz</span><span class="p">(</span><span class="n">u_d</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">coef</span><span class="o">.</span><span class="n">drdy</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dsdy</span><span class="p">)</span>
+
+<span class="n">dudx_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">dudy_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">4.6</span><span class="p">,</span> <span class="mf">7.6</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-25 16:06:23,923 - MeshConnectivity - INFO - Initializing MeshConnectivity
+2025-02-25 16:06:23,927 - MeshConnectivity - INFO - Computing local connectivity
+2025-02-25 16:06:24,092 - MeshConnectivity - INFO - Computing global connectivity
+2025-02-25 16:06:24,093 - MeshConnectivity - INFO - Computing multiplicity
+2025-02-25 16:06:24,117 - MeshConnectivity - INFO - MeshConnectivity initialized
+2025-02-25 16:06:24,118 - MeshConnectivity - INFO - Elapsed time: 0.19136693400000127s
+2025-02-25 16:06:24,119 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,131 - Coef - INFO - done
+2025-02-25 16:06:24,132 - Coef - INFO - Elapsed time: 0.01263638300000025s
+2025-02-25 16:06:24,133 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,144 - Coef - INFO - done
+2025-02-25 16:06:24,145 - Coef - INFO - Elapsed time: 0.01127096700000152s
+2025-02-25 16:06:24,146 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,153 - Coef - INFO - done
+2025-02-25 16:06:24,154 - Coef - INFO - Elapsed time: 0.008089545000000697s
+2025-02-25 16:06:24,155 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,163 - Coef - INFO - done
+2025-02-25 16:06:24,164 - Coef - INFO - Elapsed time: 0.00871785100000011s
+2025-02-25 16:06:24,165 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,173 - Coef - INFO - done
+2025-02-25 16:06:24,173 - Coef - INFO - Elapsed time: 0.008021931000001814s
+2025-02-25 16:06:24,174 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-02-25 16:06:24,183 - Coef - INFO - done
+2025-02-25 16:06:24,184 - Coef - INFO - Elapsed time: 0.008556538000000558s
+</pre></div></div>
+</div>
+<section id="id2">
+<h4>Numpy<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+
+<span class="n">c00</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudx_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du/dx$&quot;</span><span class="p">)</span>
+
+<span class="n">c01</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudx_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du_</span><span class="si">{np}</span><span class="s2">/dx$&quot;</span><span class="p">)</span>
+
+<span class="n">c10</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudy_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$dudy$&quot;</span><span class="p">)</span>
+
+<span class="n">c11</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy_np</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudy_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du_</span><span class="si">{np}</span><span class="s2">/dy$&quot;</span><span class="p">)</span>
+
+<span class="n">cbar0</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c00</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+<span class="n">cbar10</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c10</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,:])</span>
+
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-Direct_sampling_27_0.png" src="../_images/_notebooks_1-Direct_sampling_27_0.png" />
+</div>
+</div>
+</section>
+<section id="id3">
+<h4>Torch<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">dpi</span> <span class="o">=</span> <span class="mi">200</span><span class="p">)</span>
+
+<span class="n">c00</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudx_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du/dx$&quot;</span><span class="p">)</span>
+
+<span class="n">c01</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudx_d</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudx_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du_</span><span class="si">{d}</span><span class="s2">/dx$&quot;</span><span class="p">)</span>
+
+<span class="n">c10</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudy_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du/dy$&quot;</span><span class="p">)</span>
+
+<span class="n">c11</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tricontourf</span><span class="p">(</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">msh</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span><span class="n">dudy_d</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">levels</span><span class="o">=</span><span class="n">dudy_levels</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$du_</span><span class="si">{d}</span><span class="s2">/dy$&quot;</span><span class="p">)</span>
+
+<span class="n">cbar0</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c00</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
+<span class="n">cbar10</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">c10</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,:])</span>
+
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">6.5</span><span class="p">])</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mf">5.5</span><span class="p">,</span><span class="mf">8.5</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-Direct_sampling_29_0.png" src="../_images/_notebooks_1-Direct_sampling_29_0.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

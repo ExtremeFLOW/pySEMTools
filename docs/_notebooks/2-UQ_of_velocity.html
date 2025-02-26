@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>UQ of velocity fields &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>UQ of velocity fields &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -104,7 +104,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -133,16 +133,16 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 
 <span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYNEKTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
 <br/></pre></div>
 </div>
 </div>
@@ -164,8 +164,8 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.wrappers</span> <span class="kn">import</span> <span class="n">read_data</span>
-<span class="kn">from</span> <span class="nn">pynektools.postprocessing.statistics.uq</span> <span class="kn">import</span> <span class="n">NOBM</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.uq</span><span class="w"> </span><span class="kn">import</span> <span class="n">NOBM</span>
 
 <span class="c1"># Read the mesh dat for latter plotting</span>
 <span class="n">mesh_data</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">)</span>
@@ -187,8 +187,8 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.plotting</span> <span class="kn">import</span> <span class="n">isosurfaces</span>
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">isosurfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
 
 <span class="n">isos</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="c1">#isos[&quot;u&quot;] = np.linspace(-0.007, 0.007, 2)</span>
@@ -251,7 +251,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.statistics.file_field_index</span> <span class="kn">import</span> <span class="n">file_field_index</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.file_field_index</span><span class="w"> </span><span class="kn">import</span> <span class="n">file_field_index</span>
 
 <span class="c1"># Specify the source of the data</span>
 <span class="n">key_index</span> <span class="o">=</span> <span class="n">file_field_index</span><span class="p">(</span><span class="n">source_code</span><span class="o">=</span><span class="s2">&quot;Neko_old&quot;</span><span class="p">)</span> <span class="c1"># Neko old alludes to statistics written between 2 files</span>
@@ -272,9 +272,9 @@ u
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.postprocessing.rotations</span> <span class="kn">import</span> <span class="n">cartesian_to_cylindrical_rotation_matrix</span> <span class="k">as</span> <span class="n">rotation_matrix</span>
-<span class="kn">from</span> <span class="nn">pynektools.postprocessing.rotations</span> <span class="kn">import</span> <span class="n">rotate_tensor</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.rotations</span><span class="w"> </span><span class="kn">import</span> <span class="n">cartesian_to_cylindrical_rotation_matrix</span> <span class="k">as</span> <span class="n">rotation_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.rotations</span><span class="w"> </span><span class="kn">import</span> <span class="n">rotate_tensor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># Specify the components of the tensor. This should match the key in the file</span>
 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">):</span>
@@ -369,7 +369,7 @@ u
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
 
 <span class="c1"># Load mass matrix</span>
 <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>

@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>adios2 &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>adios2 &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -31,7 +31,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -87,7 +87,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -109,8 +109,8 @@
 <h1>adios2<a class="headerlink" href="#adios2" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the adios2 module.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.stream.</span></span><span class="sig-name descname"><span class="pre">DataStreamer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_nek</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.stream.DataStreamer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.adios2.stream.</span></span><span class="sig-name descname"><span class="pre">DataStreamer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_nek</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.stream.DataStreamer" title="Link to this definition"></a></dt>
 <dd><p>Class used to communicate data between codes using adios2.</p>
 <p>Use this to send and recieve data.</p>
 <p>The data is always transported as a 1d array, so it is necessary to reshape.</p>
@@ -140,13 +140,13 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.finalize" title="pynektools.io.adios2.stream.DataStreamer.finalize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finalize</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.adios2.stream.DataStreamer.finalize" title="pysemtools.io.adios2.stream.DataStreamer.finalize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finalize</span></code></a>()</p></td>
 <td><p>Finalize the execution of the module.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.recieve" title="pynektools.io.adios2.stream.DataStreamer.recieve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recieve</span></code></a>([fld, variable])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.adios2.stream.DataStreamer.recieve" title="pysemtools.io.adios2.stream.DataStreamer.recieve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">recieve</span></code></a>([fld, variable])</p></td>
 <td><p>Recieve data from another code using adios2.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.stream.DataStreamer.stream" title="pynektools.io.adios2.stream.DataStreamer.stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream</span></code></a>(fld)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.adios2.stream.DataStreamer.stream" title="pysemtools.io.adios2.stream.DataStreamer.stream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stream</span></code></a>(fld)</p></td>
 <td><p>Send data to another code using adios2.</p></td>
 </tr>
 </tbody>
@@ -170,15 +170,15 @@ with other classes to, for example, write data to disk.</p>
 </pre></div>
 </div>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.finalize">
-<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.finalize" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.stream.DataStreamer.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.stream.DataStreamer.finalize" title="Link to this definition"></a></dt>
 <dd><p>Finalize the execution of the module.</p>
 <p>Used to close reader and writer. The stream will end and the code will not be coupled.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.recieve">
-<span class="sig-name descname"><span class="pre">recieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f2py_field'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.recieve" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.stream.DataStreamer.recieve">
+<span class="sig-name descname"><span class="pre">recieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'f2py_field'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.stream.DataStreamer.recieve" title="Link to this definition"></a></dt>
 <dd><p>Recieve data from another code using adios2.</p>
 <p>The data is always transported as a 1d array, so it is necessary to reshape to deinred shape.</p>
 <dl class="field-list simple">
@@ -203,8 +203,8 @@ This name can remain the same during the execution even if different quantities 
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.io.adios2.stream.DataStreamer.stream">
-<span class="sig-name descname"><span class="pre">stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.stream.DataStreamer.stream" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.stream.DataStreamer.stream">
+<span class="sig-name descname"><span class="pre">stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.stream.DataStreamer.stream" title="Link to this definition"></a></dt>
 <dd><p>Send data to another code using adios2.</p>
 <p>Couple 2 code or executables.</p>
 <dl class="field-list simple">
@@ -220,8 +220,8 @@ This name can remain the same during the execution even if different quantities 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">DataCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.compress.DataCompressor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">DataCompressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mesh_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.compress.DataCompressor" title="Link to this definition"></a></dt>
 <dd><p>Class used to write compressed data to disk.</p>
 <p>This Assumes that the input data has a msh object available.</p>
 <dl class="field-list simple">
@@ -239,10 +239,10 @@ This name can remain the same during the execution even if different quantities 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.io.adios2.compress.DataCompressor.read" title="pynektools.io.adios2.compress.DataCompressor.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(comm[, fname, variable_names])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.adios2.compress.DataCompressor.read" title="pysemtools.io.adios2.compress.DataCompressor.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read</span></code></a>(comm[, fname, variable_names])</p></td>
 <td><p>Read data from disk using adios2.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.io.adios2.compress.DataCompressor.write" title="pynektools.io.adios2.compress.DataCompressor.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(comm[, fname, variable_names, data])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.adios2.compress.DataCompressor.write" title="pysemtools.io.adios2.compress.DataCompressor.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write</span></code></a>(comm[, fname, variable_names, data])</p></td>
 <td><p>Write data to disk using adios2.</p></td>
 </tr>
 </tbody>
@@ -258,8 +258,8 @@ This name can remain the same during the execution even if different quantities 
 </pre></div>
 </div>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor.read">
-<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor.read" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.compress.DataCompressor.read">
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.compress.DataCompressor.read" title="Link to this definition"></a></dt>
 <dd><p>Read data from disk using adios2.</p>
 <p>Read compressed data and internally decompress it.</p>
 <dl class="field-list simple">
@@ -291,8 +291,8 @@ the ndarrays in the list are 1d.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.io.adios2.compress.DataCompressor.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.DataCompressor.write" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.compress.DataCompressor.write">
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compress.bp'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.compress.DataCompressor.write" title="Link to this definition"></a></dt>
 <dd><p>Write data to disk using adios2.</p>
 <p>Lossless compression with bzip2.</p>
 <dl class="field-list simple">
@@ -323,8 +323,8 @@ The arrays must be 1d.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.io.adios2.compress.write_field">
-<span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">write_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.write_field" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.compress.write_field">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">write_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrd_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.compress.write_field" title="Link to this definition"></a></dt>
 <dd><p>Wrapper to data compressor writer.</p>
 <p>Writes nek like data compressed.</p>
 <dl class="field-list simple">
@@ -353,8 +353,8 @@ The arrays must be 1d.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.io.adios2.compress.read_field">
-<span class="sig-prename descclassname"><span class="pre">pynektools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">read_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.io.adios2.compress.read_field" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.io.adios2.compress.read_field">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.adios2.compress.</span></span><span class="sig-name descname"><span class="pre">read_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'compressed_field0.f00001'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.adios2.compress.read_field" title="Link to this definition"></a></dt>
 <dd><p>Wrapper to data compressor reader.</p>
 <p>Reads nek like data compressed.</p>
 <dl class="field-list simple">

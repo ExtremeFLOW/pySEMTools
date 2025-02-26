@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Processing statistics files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/5-homogeneous_direction_averaging.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Processing-statistics-files">
+<h1>Processing statistics files<a class="headerlink" href="#Processing-statistics-files" title="Link to this heading"></a></h1>
+<p>In this example we show how one can use pysemtools to average fields in space.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Clone-the-data">
+<h3>Clone the data<a class="headerlink" href="#Clone-the-data" title="Link to this heading"></a></h3>
+<p>Get some data from a public repository</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository with the data</span>
+<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git ../data/sem_data&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+fatal: destination path &#39;../data/sem_data&#39; already exists and is not an empty directory.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+32768
+</pre></div></div>
+</div>
+<section id="Create-a-file-name-sequence">
+<h4>Create a file name sequence<a class="headerlink" href="#Create-a-file-name-sequence" title="Link to this heading"></a></h4>
+<p>This file name sequence will be used to read and average the data.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_files</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">folder_path</span> <span class="o">=</span> <span class="s2">&quot;../data/sem_data/statistics/channel_nelv_5000/&quot;</span>
+<span class="n">file_sequence</span> <span class="o">=</span><span class="p">[</span><span class="n">folder_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;batch_mean_field0.f</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Average-the-file-sequence-in-the-homogeneous-direction">
+<h3>Average the file sequence in the homogeneous direction<a class="headerlink" href="#Average-the-file-sequence-in-the-homogeneous-direction" title="Link to this heading"></a></h3>
+<p>Simply call the function that performs the average</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.space_averaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">space_average_field_files</span>
+
+<span class="c1"># call the routine</span>
+<span class="n">space_average_field_files</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">file_sequence</span><span class="o">=</span><span class="n">file_sequence</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">,</span> <span class="n">rel_tol</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span> <span class="n">output_word_size</span><span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">write_mesh</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">homogeneous_dir</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">output_in_3d</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-02-18 14:54:45,825 - space_average_field_files - INFO - Averaging field files in sequence: [&#39;../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000&#39;]
+2025-02-18 14:54:45,827 - space_average_field_files - INFO - Reading the mesh from the first file in the sequence
+2025-02-18 14:54:45,827 - space_average_field_files - INFO - Output files will be saved in: ./
+2025-02-18 14:54:45,828 - Mesh - INFO - Initializing empty Mesh object.
+2025-02-18 14:54:45,829 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-02-18 14:54:45,844 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-02-18 14:54:45,846 - Mesh - INFO - Initializing common attributes.
+2025-02-18 14:54:45,847 - Mesh - INFO - Getting vertices
+2025-02-18 14:54:45,849 - Mesh - INFO - Getting edge centers
+2025-02-18 14:54:45,921 - Mesh - INFO - Getting facet centers
+2025-02-18 14:54:45,967 - Mesh - INFO - Mesh object initialized.
+2025-02-18 14:54:45,968 - Mesh - INFO - Mesh data is of type: float32
+2025-02-18 14:54:45,969 - Mesh - INFO - Elapsed time: 0.12440090699999473s
+2025-02-18 14:54:45,970 - pynekread - INFO - File read
+2025-02-18 14:54:45,970 - pynekread - INFO - Elapsed time: 0.1414608279999925s
+2025-02-18 14:54:45,971 - space_average_field_files - INFO - Initializing coefficients
+2025-02-18 14:54:45,972 - Coef - INFO - Initializing Coef object
+2025-02-18 14:54:45,973 - Coef - INFO - Getting derivative matrices
+2025-02-18 14:54:45,976 - Coef - INFO - Calculating the components of the jacobian
+2025-02-18 14:54:46,519 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2025-02-18 14:54:46,573 - Coef - INFO - Calculating the mass matrix
+2025-02-18 14:54:46,575 - Coef - INFO - Coef object initialized
+2025-02-18 14:54:46,576 - Coef - INFO - Coef data is of type: float32
+2025-02-18 14:54:46,576 - Coef - INFO - Elapsed time: 0.6042016179999905s
+2025-02-18 14:54:46,577 - space_average_field_files - INFO - Averaging in the direction: z
+2025-02-18 14:54:46,577 - space_average_field_files - INFO - Identifying unique cross-sections in each rank separately
+2025-02-18 14:54:46,603 - space_average_field_files - INFO - Identifying which rank will take charge of the 2D elements
+2025-02-18 14:54:46,604 - space_average_field_files - WARNING - This might be slow...
+2025-02-18 14:54:46,605 - space_average_field_files - WARNING - It might be slower with many ranks...
+2025-02-18 14:54:46,606 - space_average_field_files - WARNING - Consider using only as many as necesary for data to fit in memory
+2025-02-18 14:54:46,691 - space_average_field_files - INFO - done!
+2025-02-18 14:54:46,692 - space_average_field_files - INFO - Elapsed time: 0.08553983400003062s
+2025-02-18 14:54:46,692 - space_average_field_files - INFO - Mapping the indices of the original elements to those of the unique elements in the specified direction
+2025-02-18 14:54:46,960 - space_average_field_files - INFO - Getting 2D slices
+2025-02-18 14:54:47,059 - space_average_field_files - INFO - Verifying averaging
+2025-02-18 14:54:47,083 - space_average_field_files - INFO - Averaging test passed: True
+2025-02-18 14:54:47,084 - space_average_field_files - INFO - Creating 2D mesh object on ranks that have them
+2025-02-18 14:54:47,086 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-02-18 14:54:47,087 - Mesh - INFO - Initializing common attributes.
+2025-02-18 14:54:47,087 - Mesh - INFO - Getting vertices
+2025-02-18 14:54:47,088 - Mesh - INFO - Getting edge centers
+2025-02-18 14:54:47,093 - Mesh - INFO - Facet centers not available for 2D
+2025-02-18 14:54:47,095 - Mesh - INFO - Mesh object initialized.
+2025-02-18 14:54:47,095 - Mesh - INFO - Mesh data is of type: float32
+2025-02-18 14:54:47,097 - Mesh - INFO - Elapsed time: 0.01059433499995066s
+2025-02-18 14:54:47,098 - Field - INFO - Initializing empty Field object
+2025-02-18 14:54:47,099 - pynekwrite - INFO - Writing file: ./2dcoordinates0.f00000
+2025-02-18 14:54:47,102 - pynekwrite - INFO - Elapsed time: 0.0035358829999836416s
+=================================================================================================
+2025-02-18 14:54:47,104 - Field - INFO - Initializing empty Field object
+2025-02-18 14:54:47,104 - space_average_field_files - INFO - Starting to go through the files in the index:
+2025-02-18 14:54:47,105 - space_average_field_files - INFO - Reading file ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-02-18 14:54:47,107 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-02-18 14:54:47,109 - pynekread - INFO - Reading field data
+2025-02-18 14:54:47,144 - pynekread - INFO - File read
+2025-02-18 14:54:47,151 - pynekread - INFO - Elapsed time: 0.04427590400001691s
+2025-02-18 14:54:47,155 - space_average_field_files - INFO - Averaging the fields in the specified direction
+2025-02-18 14:54:47,355 - space_average_field_files - INFO - z velocity field found in the file and output in 3D is not requested. Saving z velocity as the last scalar
+2025-02-18 14:54:47,407 - space_average_field_files - INFO - Averaging finished, writing to file ./z_avg_batch_mean_field0.f00000
+2025-02-18 14:54:47,408 - pynekwrite - INFO - Writing file: ./z_avg_batch_mean_field0.f00000
+2025-02-18 14:54:47,411 - pynekwrite - INFO - Elapsed time: 0.002557305999971504s
+2025-02-18 14:54:47,411 - space_average_field_files - INFO - Run finished
+2025-02-18 14:54:47,412 - space_average_field_files - INFO - Elapsed time: 0.3065160890000129s
+</pre></div></div>
+</div>
+<p>That’s it! check your file in, e.g., Visit or paraview and check how it turned out!</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

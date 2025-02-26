@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Element distribution interpolation &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Element distribution interpolation &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -140,9 +140,9 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
@@ -156,9 +156,9 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
-<span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
-<span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">FieldRegistry</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldRegistry</span>
 </pre></div>
 </div>
 </div>
@@ -208,7 +208,7 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the module</span>
-<span class="kn">from</span> <span class="nn">pynektools.interpolation.mesh_to_mesh</span> <span class="kn">import</span> <span class="n">PMapper</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.interpolation.mesh_to_mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">PMapper</span>
 
 <span class="c1"># Here specify that it should be equal in the 3 direction</span>
 <span class="n">mapper</span> <span class="o">=</span> <span class="n">PMapper</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;GLL&#39;</span><span class="p">,</span> <span class="s1">&#39;GLL&#39;</span><span class="p">,</span> <span class="s1">&#39;EQ&#39;</span><span class="p">])</span>
@@ -285,7 +285,7 @@ True
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the module</span>
-<span class="kn">from</span> <span class="nn">pynektools.interpolation.mesh_to_mesh</span> <span class="kn">import</span> <span class="n">PRefiner</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.interpolation.mesh_to_mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">PRefiner</span>
 
 <span class="c1"># Here specify that it should be equal in the 3 direction</span>
 <span class="n">pr</span> <span class="o">=</span> <span class="n">PRefiner</span><span class="p">(</span><span class="n">n_old</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">n_new</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span>

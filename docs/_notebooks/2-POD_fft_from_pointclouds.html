@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>POD and fft from pointclouds &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>POD and fft from pointclouds &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -78,7 +78,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">POD and fft from pointclouds</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Set-up-the-input-parameters">Set up the input parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Call-the-pynektools-routines">Call the pynektools routines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Call-the-pysemtools-routines">Call the pysemtools routines</a></li>
 </ul>
 </li>
 </ul>
@@ -99,7 +99,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -128,19 +128,19 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 
 <span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYNEKTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
 </pre></div>
 </div>
 </div>
@@ -162,14 +162,14 @@
 </div>
 </div>
 </section>
-<section id="Call-the-pynektools-routines">
-<h3>Call the pynektools routines<a class="headerlink" href="#Call-the-pynektools-routines" title="Link to this heading"></a></h3>
+<section id="Call-the-pysemtools-routines">
+<h3>Call the pysemtools routines<a class="headerlink" href="#Call-the-pysemtools-routines" title="Link to this heading"></a></h3>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the pynektools routines</span>
-<span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">pod_fourier_1_homogenous_direction</span><span class="p">,</span> <span class="n">physical_space</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import the pysemtools routines</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.rom.fft_pod_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">pod_fourier_1_homogenous_direction</span><span class="p">,</span> <span class="n">physical_space</span>
 
 <span class="c1"># Perform the POD with your input data</span>
 <span class="n">pod</span><span class="p">,</span> <span class="n">ioh</span><span class="p">,</span> <span class="n">_3d_bm_shape</span><span class="p">,</span> <span class="n">number_of_frequencies</span><span class="p">,</span> <span class="n">N_samples</span> <span class="o">=</span> <span class="n">pod_fourier_1_homogenous_direction</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">file_sequence</span><span class="p">,</span> <span class="n">pod_fields</span><span class="p">,</span> <span class="n">mass_matrix_fname</span><span class="p">,</span> <span class="n">mass_matrix_key</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">fft_axis</span><span class="p">)</span>
@@ -181,7 +181,7 @@
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/adperez/software/pyNekTools/pynektools/rom/fft_pod_wrappers.py:365: ComplexWarning: Casting complex values to real discards the imaginary part
+/home/adperez/software/pySEMTools/pysemtools/rom/fft_pod_wrappers.py:365: ComplexWarning: Casting complex values to real discards the imaginary part
   ioh[kappa].bm1sqrt[:, :] = np.copy(ioh[kappa].xi[:, :])
 </pre></div></div>
 </div>
@@ -195,7 +195,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">write_3dfield_to_file</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.rom.fft_pod_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_3dfield_to_file</span>
 
 <span class="c1"># Load the mesh</span>
 <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">mesh_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -285,7 +285,7 @@ Writing ./pod_reconstructed_data_47
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">save_pod_state</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.rom.fft_pod_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_pod_state</span>
 
 <span class="c1"># Save the POD state</span>
 <span class="n">save_pod_state</span><span class="p">(</span><span class="s2">&quot;pod_state.hdf5&quot;</span><span class="p">,</span> <span class="n">pod</span><span class="p">)</span>
@@ -705,7 +705,7 @@ Total POD energy: 0.0014341827489845003
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.rom.fft_pod_wrappers</span> <span class="kn">import</span> <span class="n">degenerate_scaling</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.rom.fft_pod_wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">degenerate_scaling</span>
 
 <span class="c1"># Check the left singular vectors</span>
 <span class="n">all_passed</span> <span class="o">=</span> <span class="kc">True</span>
@@ -799,7 +799,7 @@ The right singular vectors are orthogonal: True
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
 
 <span class="c1"># Input parameters</span>
 <span class="n">kappa</span> <span class="o">=</span> <span class="mi">1</span>
@@ -844,7 +844,7 @@ The right singular vectors are orthogonal: True
     <span class="n">pl</span><span class="o">.</span><span class="n">add_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">: wavenumber </span><span class="si">{</span><span class="n">kappa</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> mode </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">font</span> <span class="o">=</span> <span class="s2">&quot;courier&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="s2">&quot;upper_left&quot;</span><span class="p">)</span>
 
 <span class="c1"># Capture the plot as an image and show it (This is just to make the notebook render better on github)</span>
-<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
 <span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
 <span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
 <span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>

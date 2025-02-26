@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interpolating file sequences &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Interpolating file sequences &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -71,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Interpolating file sequences</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pysemtools">Import modules from pysemtools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Interpolate-fields-from-a-list">Interpolate fields from a list</a></li>
 </ul>
 </li>
@@ -99,7 +99,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -127,27 +127,27 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 
 <span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYNEKTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
 </pre></div>
 </div>
 </div>
 </section>
-<section id="Import-modules-from-pynektools">
-<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<section id="Import-modules-from-pysemtools">
+<h2>Import modules from pysemtools<a class="headerlink" href="#Import-modules-from-pysemtools" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.interpolation.wrappers</span> <span class="kn">import</span> <span class="n">interpolate_fields_from_disk</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.interpolation.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate_fields_from_disk</span>
 </pre></div>
 </div>
 </div>
@@ -166,7 +166,7 @@
 </div>
 </div>
 <p>Additionally, we need a dictionary that we call settings. Here we give the information about where the fields will be read from.</p>
-<p>We can provide as an input the file name sequence to be read by the interpolator. Or one can provide a file index produces by the indexing module of pynektools.</p>
+<p>We can provide as an input the file name sequence to be read by the interpolator. Or one can provide a file index produces by the indexing module of pysemtools.</p>
 <p>Lastly we must say which fields to interpolate. If one passes the list with the string “all”, all fields in the file are interpolated.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:

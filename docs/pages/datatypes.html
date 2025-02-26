@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data types &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Data types &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -23,7 +23,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Interpolation" href="interpolation.html" />
-    <link rel="prev" title="PyNekTools" href="../index.html" /> 
+    <link rel="prev" title="PySEMTools" href="../index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,7 +35,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -48,12 +48,12 @@
               <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data types</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.extrude_2d_sem_mesh"><code class="docutils literal notranslate"><span class="pre">extrude_2d_sem_mesh()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_angular_rotation_tensor"><code class="docutils literal notranslate"><span class="pre">get_angular_rotation_tensor()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_gradient"><code class="docutils literal notranslate"><span class="pre">get_gradient()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.get_strain_tensor"><code class="docutils literal notranslate"><span class="pre">get_strain_tensor()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.write_fld_file_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_file_from_list()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pynektools.datatypes.utils.write_fld_subdomain_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_subdomain_from_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.extrude_2d_sem_mesh"><code class="docutils literal notranslate"><span class="pre">extrude_2d_sem_mesh()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.get_angular_rotation_tensor"><code class="docutils literal notranslate"><span class="pre">get_angular_rotation_tensor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.get_gradient"><code class="docutils literal notranslate"><span class="pre">get_gradient()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.get_strain_tensor"><code class="docutils literal notranslate"><span class="pre">get_strain_tensor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.write_fld_file_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_file_from_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.datatypes.utils.write_fld_subdomain_from_list"><code class="docutils literal notranslate"><span class="pre">write_fld_subdomain_from_list()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
@@ -99,7 +99,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -130,10 +130,10 @@
 </div></blockquote>
 <p>Some functions using these classes are in the utils module. Here we show them:</p>
 <hr class="docutils" />
-<p id="module-pynektools.datatypes.utils">Module for utility functions for the datatypes module</p>
+<p id="module-pysemtools.datatypes.utils">Module for utility functions for the datatypes module</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.extrude_2d_sem_mesh">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">extrude_2d_sem_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="msh.html#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="field.html#pynektools.datatypes.field.Field" title="pynektools.datatypes.field.Field"><span class="pre">Field</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="field.html#pynektools.datatypes.field.FieldRegistry" title="pynektools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.extrude_2d_sem_mesh" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.extrude_2d_sem_mesh">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">extrude_2d_sem_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lz</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="msh.html#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="field.html#pysemtools.datatypes.field.Field" title="pysemtools.datatypes.field.Field"><span class="pre">Field</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="field.html#pysemtools.datatypes.field.FieldRegistry" title="pysemtools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.extrude_2d_sem_mesh" title="Link to this definition"></a></dt>
 <dd><p>Extrude a 2D SEM mesh to 3D.</p>
 <p>Extrude a 2D SEM mesh to 3D by replicating the mesh and fields in the z direction.</p>
 <dl class="field-list simple">
@@ -164,8 +164,8 @@ Defaults to GLL points from -1 to 1.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_angular_rotation_tensor">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_angular_rotation_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_angular_rotation_tensor" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.get_angular_rotation_tensor">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_angular_rotation_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.get_angular_rotation_tensor" title="Link to this definition"></a></dt>
 <dd><p>Calculate the antisymetric part of the gradient.</p>
 <p>Calculate the antisymetric part of the gradient tensor, defined as:</p>
 <div class="math notranslate nohighlight">
@@ -197,8 +197,8 @@ Defaults to GLL points from -1 to 1.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_gradient">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_gradient" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.get_gradient">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.get_gradient" title="Link to this definition"></a></dt>
 <dd><p>Get gradient from a 3D field vector field wrt x, y, z directions.</p>
 <p>The gradient of a vector field is a tensor. The gradient of a scalar field is a vector field.</p>
 <p>For each point in a vector field <span class="math notranslate nohighlight">\(u_i = [u_1, u_2, u_3]\)</span> in space with coordinates
@@ -238,8 +238,8 @@ Each entry in the list should be a 4D ndarray with the shape (nelv, lz, ly, lx).
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.get_strain_tensor">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_strain_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.get_strain_tensor" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.get_strain_tensor">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">get_strain_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.get_strain_tensor" title="Link to this definition"></a></dt>
 <dd><p>Calculate the symetric part of the gradient.</p>
 <p>Calculate the symetric part of the gradient tensor, defined as:</p>
 <div class="math notranslate nohighlight">
@@ -271,8 +271,8 @@ Each entry in the list should be a 4D ndarray with the shape (nelv, lz, ly, lx).
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.write_fld_file_from_list">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_file_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.write_fld_file_from_list" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.write_fld_file_from_list">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_file_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.write_fld_file_from_list" title="Link to this definition"></a></dt>
 <dd><p>Write fld file from a field list, each field written as a scalar.</p>
 <p>This function writes a fld from a field list in the scalar positions.</p>
 <dl class="field-list simple">
@@ -312,8 +312,8 @@ create a empty field object and update its metadata with the correct positions.<
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="pynektools.datatypes.utils.write_fld_subdomain_from_list">
-<span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_subdomain_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.utils.write_fld_subdomain_from_list" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.utils.write_fld_subdomain_from_list">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.utils.</span></span><span class="sig-name descname"><span class="pre">write_fld_subdomain_from_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.utils.write_fld_subdomain_from_list" title="Link to this definition"></a></dt>
 <dd><p>Write a subdomain and p-refine of the sem mesh into an fld file from a field list.</p>
 <p>This function writes a fld from a field list in the scalar positions.
 In a subdomain specified by the list of list subdomain.</p>
@@ -348,7 +348,7 @@ the format is: subdomain = [[x_min, x_max],[y_min, y_max],[z_min, z_max]].
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../index.html" class="btn btn-neutral float-left" title="PyNekTools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../index.html" class="btn btn-neutral float-left" title="PySEMTools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="interpolation.html" class="btn btn-neutral float-right" title="Interpolation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

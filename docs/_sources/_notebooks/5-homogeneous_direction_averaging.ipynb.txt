@@ -1,0 +1,225 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "31a94bbd-34ef-404b-a9be-4f3a216a8c3c",
+   "metadata": {},
+   "source": [
+    "# Processing statistics files\n",
+    "\n",
+    "In this example we show how one can use pysemtools to average fields in space."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "f9ad6337-6ba4-47c7-b687-0bf119a5b637",
+   "metadata": {},
+   "source": [
+    "#### Import general modules"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "8b4ca2be-46e8-443b-ab44-6d1a60abfec4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Import required modules\n",
+    "from mpi4py import MPI #equivalent to the use of MPI_init() in C\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n",
+    "\n",
+    "# Get mpi info\n",
+    "comm = MPI.COMM_WORLD\n",
+    "\n",
+    "# Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens\n",
+    "import os\n",
+    "os.environ[\"PYSEMTOOLS_HIDE_LOG\"] = 'false'\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c9fe3375",
+   "metadata": {},
+   "source": [
+    "### Clone the data\n",
+    "\n",
+    "Get some data from a public repository"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "e6fc779c",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "fatal: destination path '../data/sem_data' already exists and is not an empty directory.\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "32768"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Clone the repository with the data\n",
+    "os.system(\"git clone https://github.com/adperezm/sem_data.git ../data/sem_data\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "68eb11f9",
+   "metadata": {},
+   "source": [
+    "## Create a file name sequence\n",
+    "\n",
+    "This file name sequence will be used to read and average the data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "92d5a9f3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "n_files = 1\n",
+    "folder_path = \"../data/sem_data/statistics/channel_nelv_5000/\"\n",
+    "file_sequence =[folder_path + f\"batch_mean_field0.f{str(i).zfill(5)}\" for i in range(n_files)]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "035408d0",
+   "metadata": {},
+   "source": [
+    "### Average the file sequence in the homogeneous direction\n",
+    "\n",
+    "Simply call the function that performs the average"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "ba353c0d",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2025-02-18 14:54:45,825 - space_average_field_files - INFO - Averaging field files in sequence: ['../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000']\n",
+      "2025-02-18 14:54:45,827 - space_average_field_files - INFO - Reading the mesh from the first file in the sequence\n",
+      "2025-02-18 14:54:45,827 - space_average_field_files - INFO - Output files will be saved in: ./\n",
+      "2025-02-18 14:54:45,828 - Mesh - INFO - Initializing empty Mesh object.\n",
+      "2025-02-18 14:54:45,829 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000\n",
+      "2025-02-18 14:54:45,844 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2025-02-18 14:54:45,846 - Mesh - INFO - Initializing common attributes.\n",
+      "2025-02-18 14:54:45,847 - Mesh - INFO - Getting vertices\n",
+      "2025-02-18 14:54:45,849 - Mesh - INFO - Getting edge centers\n",
+      "2025-02-18 14:54:45,921 - Mesh - INFO - Getting facet centers\n",
+      "2025-02-18 14:54:45,967 - Mesh - INFO - Mesh object initialized.\n",
+      "2025-02-18 14:54:45,968 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2025-02-18 14:54:45,969 - Mesh - INFO - Elapsed time: 0.12440090699999473s\n",
+      "2025-02-18 14:54:45,970 - pynekread - INFO - File read\n",
+      "2025-02-18 14:54:45,970 - pynekread - INFO - Elapsed time: 0.1414608279999925s\n",
+      "2025-02-18 14:54:45,971 - space_average_field_files - INFO - Initializing coefficients\n",
+      "2025-02-18 14:54:45,972 - Coef - INFO - Initializing Coef object\n",
+      "2025-02-18 14:54:45,973 - Coef - INFO - Getting derivative matrices\n",
+      "2025-02-18 14:54:45,976 - Coef - INFO - Calculating the components of the jacobian\n",
+      "2025-02-18 14:54:46,519 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix\n",
+      "2025-02-18 14:54:46,573 - Coef - INFO - Calculating the mass matrix\n",
+      "2025-02-18 14:54:46,575 - Coef - INFO - Coef object initialized\n",
+      "2025-02-18 14:54:46,576 - Coef - INFO - Coef data is of type: float32\n",
+      "2025-02-18 14:54:46,576 - Coef - INFO - Elapsed time: 0.6042016179999905s\n",
+      "2025-02-18 14:54:46,577 - space_average_field_files - INFO - Averaging in the direction: z\n",
+      "2025-02-18 14:54:46,577 - space_average_field_files - INFO - Identifying unique cross-sections in each rank separately\n",
+      "2025-02-18 14:54:46,603 - space_average_field_files - INFO - Identifying which rank will take charge of the 2D elements\n",
+      "2025-02-18 14:54:46,604 - space_average_field_files - WARNING - This might be slow...\n",
+      "2025-02-18 14:54:46,605 - space_average_field_files - WARNING - It might be slower with many ranks...\n",
+      "2025-02-18 14:54:46,606 - space_average_field_files - WARNING - Consider using only as many as necesary for data to fit in memory\n",
+      "2025-02-18 14:54:46,691 - space_average_field_files - INFO - done!\n",
+      "2025-02-18 14:54:46,692 - space_average_field_files - INFO - Elapsed time: 0.08553983400003062s\n",
+      "2025-02-18 14:54:46,692 - space_average_field_files - INFO - Mapping the indices of the original elements to those of the unique elements in the specified direction\n",
+      "2025-02-18 14:54:46,960 - space_average_field_files - INFO - Getting 2D slices\n",
+      "2025-02-18 14:54:47,059 - space_average_field_files - INFO - Verifying averaging\n",
+      "2025-02-18 14:54:47,083 - space_average_field_files - INFO - Averaging test passed: True\n",
+      "2025-02-18 14:54:47,084 - space_average_field_files - INFO - Creating 2D mesh object on ranks that have them\n",
+      "2025-02-18 14:54:47,086 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.\n",
+      "2025-02-18 14:54:47,087 - Mesh - INFO - Initializing common attributes.\n",
+      "2025-02-18 14:54:47,087 - Mesh - INFO - Getting vertices\n",
+      "2025-02-18 14:54:47,088 - Mesh - INFO - Getting edge centers\n",
+      "2025-02-18 14:54:47,093 - Mesh - INFO - Facet centers not available for 2D\n",
+      "2025-02-18 14:54:47,095 - Mesh - INFO - Mesh object initialized.\n",
+      "2025-02-18 14:54:47,095 - Mesh - INFO - Mesh data is of type: float32\n",
+      "2025-02-18 14:54:47,097 - Mesh - INFO - Elapsed time: 0.01059433499995066s\n",
+      "2025-02-18 14:54:47,098 - Field - INFO - Initializing empty Field object\n",
+      "2025-02-18 14:54:47,099 - pynekwrite - INFO - Writing file: ./2dcoordinates0.f00000\n",
+      "2025-02-18 14:54:47,102 - pynekwrite - INFO - Elapsed time: 0.0035358829999836416s\n",
+      "=================================================================================================\n",
+      "2025-02-18 14:54:47,104 - Field - INFO - Initializing empty Field object\n",
+      "2025-02-18 14:54:47,104 - space_average_field_files - INFO - Starting to go through the files in the index: \n",
+      "2025-02-18 14:54:47,105 - space_average_field_files - INFO - Reading file ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000\n",
+      "2025-02-18 14:54:47,107 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000\n",
+      "2025-02-18 14:54:47,109 - pynekread - INFO - Reading field data\n",
+      "2025-02-18 14:54:47,144 - pynekread - INFO - File read\n",
+      "2025-02-18 14:54:47,151 - pynekread - INFO - Elapsed time: 0.04427590400001691s\n",
+      "2025-02-18 14:54:47,155 - space_average_field_files - INFO - Averaging the fields in the specified direction\n",
+      "2025-02-18 14:54:47,355 - space_average_field_files - INFO - z velocity field found in the file and output in 3D is not requested. Saving z velocity as the last scalar\n",
+      "2025-02-18 14:54:47,407 - space_average_field_files - INFO - Averaging finished, writing to file ./z_avg_batch_mean_field0.f00000\n",
+      "2025-02-18 14:54:47,408 - pynekwrite - INFO - Writing file: ./z_avg_batch_mean_field0.f00000\n",
+      "2025-02-18 14:54:47,411 - pynekwrite - INFO - Elapsed time: 0.002557305999971504s\n",
+      "2025-02-18 14:54:47,411 - space_average_field_files - INFO - Run finished\n",
+      "2025-02-18 14:54:47,412 - space_average_field_files - INFO - Elapsed time: 0.3065160890000129s\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pysemtools.postprocessing.statistics.space_averaging import space_average_field_files\n",
+    "\n",
+    "# call the routine\n",
+    "space_average_field_files(comm, file_sequence=file_sequence, output_folder=\"./\", dtype=np.single, rel_tol = 1e-5, output_word_size= 4, write_mesh=True, homogeneous_dir=\"z\", output_in_3d=False)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "a749a52f",
+   "metadata": {},
+   "source": [
+    "That's it! check your file in, e.g., Visit or paraview and check how it turned out!"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "python3.10",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

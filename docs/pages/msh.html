@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mesh &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Mesh &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -31,7 +31,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -87,7 +87,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -109,8 +109,8 @@
 <h1>Mesh<a class="headerlink" href="#mesh" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the Mesh class, which contains the coordinates of the domain and aditional suporting data.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.msh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh" title="Link to this definition"></a></dt>
 <dd><p>Class that contains coordinate and partitioning data of the domain.</p>
 <p>This class needs to be used generaly as it contains the coordinates of the domain and
 some information about the partitioning of the domain.</p>
@@ -159,22 +159,22 @@ some information about the partitioning of the domain.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.get_edge_centers" title="pynektools.datatypes.msh.Mesh.get_edge_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edge_centers</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_edge_centers" title="pysemtools.datatypes.msh.Mesh.get_edge_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edge_centers</span></code></a>()</p></td>
 <td><p>Get the edge centers of the domain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.get_facet_centers" title="pynektools.datatypes.msh.Mesh.get_facet_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_facet_centers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_facet_centers" title="pysemtools.datatypes.msh.Mesh.get_facet_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_facet_centers</span></code></a>()</p></td>
 <td><p>Get the centroid of each facet</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.get_vertices" title="pynektools.datatypes.msh.Mesh.get_vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vertices</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_vertices" title="pysemtools.datatypes.msh.Mesh.get_vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vertices</span></code></a>()</p></td>
 <td><p>Get the vertices of the domain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_common" title="pynektools.datatypes.msh.Mesh.init_common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_common</span></code></a>(comm)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_common" title="pysemtools.datatypes.msh.Mesh.init_common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_common</span></code></a>(comm)</p></td>
 <td><p>Initialize common attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_from_coords" title="pynektools.datatypes.msh.Mesh.init_from_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_coords</span></code></a>(comm, x, y, z)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="pysemtools.datatypes.msh.Mesh.init_from_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_coords</span></code></a>(comm, x, y, z)</p></td>
 <td><p>Initialize from coordinates.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh.Mesh.init_from_data" title="pynektools.datatypes.msh.Mesh.init_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_data</span></code></a>(comm, data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_data" title="pysemtools.datatypes.msh.Mesh.init_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_data</span></code></a>(comm, data)</p></td>
 <td><p>Initialize form data.</p></td>
 </tr>
 </tbody>
@@ -192,19 +192,19 @@ some information about the partitioning of the domain.</p>
 </dl>
 <p class="rubric">Examples</p>
 <p>If a hexadata object: data is read from disk, the mesh object can be created directly from it.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If the coordinates are already available, the mesh object can be created from them.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.msh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This is useful in situations where the coordinates are generated in the code or streamed into python from another source.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.get_edge_centers">
-<span class="sig-name descname"><span class="pre">get_edge_centers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.get_edge_centers" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.get_edge_centers">
+<span class="sig-name descname"><span class="pre">get_edge_centers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.get_edge_centers" title="Link to this definition"></a></dt>
 <dd><p>Get the edge centers of the domain.</p>
 <p>Get all the edge centers of the domain in 2D or 3D.</p>
 <p class="rubric">Notes</p>
@@ -213,8 +213,8 @@ we store 3 coordinates for each edge.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.get_facet_centers">
-<span class="sig-name descname"><span class="pre">get_facet_centers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.get_facet_centers" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.get_facet_centers">
+<span class="sig-name descname"><span class="pre">get_facet_centers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.get_facet_centers" title="Link to this definition"></a></dt>
 <dd><p>Get the centroid of each facet</p>
 <p>Find the “centroid of each facet. This is used to find the shared facets between elements.</p>
 <p class="rubric">Notes</p>
@@ -223,8 +223,8 @@ This means that these values can be outside or inside the element. However the s
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.get_vertices">
-<span class="sig-name descname"><span class="pre">get_vertices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.get_vertices" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.get_vertices">
+<span class="sig-name descname"><span class="pre">get_vertices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.get_vertices" title="Link to this definition"></a></dt>
 <dd><p>Get the vertices of the domain.</p>
 <p>Get all the vertices of the domain in 2D or 3D.</p>
 <p class="rubric">Notes</p>
@@ -233,8 +233,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_common">
-<span class="sig-name descname"><span class="pre">init_common</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_common" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.init_common">
+<span class="sig-name descname"><span class="pre">init_common</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.init_common" title="Link to this definition"></a></dt>
 <dd><p>Initialize common attributes.</p>
 <p>This function is used to initialize the common attributes of the mesh object.</p>
 <dl class="field-list simple">
@@ -254,8 +254,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_from_coords">
-<span class="sig-name descname"><span class="pre">init_from_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_from_coords" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.init_from_coords">
+<span class="sig-name descname"><span class="pre">init_from_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="Link to this definition"></a></dt>
 <dd><p>Initialize from coordinates.</p>
 <p>This function is used to initialize the mesh object from x, y, z ndarrays.</p>
 <dl class="field-list simple">
@@ -281,8 +281,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh.Mesh.init_from_data">
-<span class="sig-name descname"><span class="pre">init_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh.Mesh.init_from_data" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.init_from_data">
+<span class="sig-name descname"><span class="pre">init_from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.init_from_data" title="Link to this definition"></a></dt>
 <dd><p>Initialize form data.</p>
 <p>This function is used to initialize the mesh object from a hexadata object.</p>
 <dl class="field-list simple">
@@ -310,8 +310,8 @@ we store 3 coordinates for each vertex.</p>
 <h1>MeshConnectivity<a class="headerlink" href="#meshconnectivity" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the MeshConnectivity class. This class determines the connectivity from the geometry and can be used to perform parallel operations like dssum.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.msh_connectivity.</span></span><span class="sig-name descname"><span class="pre">MeshConnectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hashtable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_simultaneous_sends</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh_connectivity.</span></span><span class="sig-name descname"><span class="pre">MeshConnectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hashtable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_simultaneous_sends</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_face</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity" title="Link to this definition"></a></dt>
 <dd><p>Class to compute the connectivity of the mesh</p>
 <p>Uses facets and vertices to determine which elements are connected to each other</p>
 <dl class="field-list simple">
@@ -323,35 +323,49 @@ we store 3 coordinates for each vertex.</p>
 </dd>
 <dt><strong>rel_tol</strong><span class="classifier">float</span></dt><dd><p>The relative tolerance to use when comparing the coordinates of the facets/edges</p>
 </dd>
+<dt><strong>use_hashtable</strong><span class="classifier">bool</span></dt><dd><p>Whether to use a hashtable to define connectivity. This is faster but uses more memory</p>
+</dd>
+<dt><strong>max_simultaneous_sends</strong><span class="classifier">int</span></dt><dd><p>The maximum number of simultaneous sends to use when sending data to other ranks. A lower number 
+saves memory for buffers but is slower.</p>
+</dd>
+<dt><strong>max_elem_per_vertex</strong><span class="classifier">int</span></dt><dd><p>The maximum number of elements that share a vertex. The default values are 4 for 2D and 8 for 3D (Works for a structured mesh)
+The default value is selected if this input is left as None</p>
+</dd>
+<dt><strong>max_elem_per_edge</strong><span class="classifier">int</span></dt><dd><p>The maximum number of elements that share an edge. The default values are 2 for 2D and 4 for 3D (Works for a structured mesh)
+The default value is selected if this input is left as None</p>
+</dd>
+<dt><strong>max_elem_per_face</strong><span class="classifier">int</span></dt><dd><p>The maximum number of elements that share a face. The default values are 2 for 3D (Works for a structured mesh)
+The default value is selected if this input is left as None</p>
+</dd>
 </dl>
 </dd>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum</span></code></a>([field, msh, average])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum</span></code></a>([field, msh, average])</p></td>
 <td><p>Computes the dssum of the field</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_global" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_global"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum_global</span></code></a>([local_dssum_field, field, msh])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum_global</span></code></a>([local_dssum_field, field, msh])</p></td>
 <td><p>Computes the global dssum of the field</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_local" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_local"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum_local</span></code></a>([field, msh])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum_local</span></code></a>([field, msh])</p></td>
 <td><p>Computes the local dssum of the field</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_multiplicity</span></code></a>(msh)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_multiplicity</span></code></a>(msh)</p></td>
 <td><p>Computes the multiplicity of the elements in the mesh</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_connectivity</span></code></a>(msh)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_connectivity</span></code></a>(msh)</p></td>
 <td><p>Computes the global connectivity of the mesh</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="pynektools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_connectivity</span></code></a>(msh)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_connectivity</span></code></a>(msh)</p></td>
 <td><p>Computes the local connectivity of the mesh</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum">
-<span class="sig-name descname"><span class="pre">dssum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'multiplicity'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum">
+<span class="sig-name descname"><span class="pre">dssum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">average</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'multiplicity'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum" title="Link to this definition"></a></dt>
 <dd><p>Computes the dssum of the field</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -374,8 +388,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_global">
-<span class="sig-name descname"><span class="pre">dssum_global</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_dssum_field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_global" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global">
+<span class="sig-name descname"><span class="pre">dssum_global</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_dssum_field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global" title="Link to this definition"></a></dt>
 <dd><p>Computes the global dssum of the field</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -398,8 +412,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_local">
-<span class="sig-name descname"><span class="pre">dssum_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.dssum_local" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local">
+<span class="sig-name descname"><span class="pre">dssum_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local" title="Link to this definition"></a></dt>
 <dd><p>Computes the local dssum of the field</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -420,8 +434,8 @@ we store 3 coordinates for each vertex.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity">
-<span class="sig-name descname"><span class="pre">get_multiplicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity">
+<span class="sig-name descname"><span class="pre">get_multiplicity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="Link to this definition"></a></dt>
 <dd><p>Computes the multiplicity of the elements in the mesh</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -436,8 +450,8 @@ The minimum multiplicity is 1, since the point is always shared with itself.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity">
-<span class="sig-name descname"><span class="pre">global_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity">
+<span class="sig-name descname"><span class="pre">global_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="Link to this definition"></a></dt>
 <dd><p>Computes the global connectivity of the mesh</p>
 <p>Currently this function sends data from all to all.</p>
 <dl class="field-list simple">
@@ -462,8 +476,8 @@ can know which is the facet that corresponds.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity">
-<span class="sig-name descname"><span class="pre">local_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity">
+<span class="sig-name descname"><span class="pre">local_connectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="Link to this definition"></a></dt>
 <dd><p>Computes the local connectivity of the mesh</p>
 <p>This function checks elements within a rank</p>
 <dl class="field-list simple">
@@ -497,8 +511,8 @@ the unique pairs are the ones that are checked in global connecitivy,</p>
 <p>Descriptions of the contents of the MeshPartitioner class.
 This allows to redistribute elements among ranks based on a partitioning algorithm.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_partitioning.MeshPartitioner">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.msh_partitioning.</span></span><span class="sig-name descname"><span class="pre">MeshPartitioner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_partitioning.MeshPartitioner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh_partitioning.</span></span><span class="sig-name descname"><span class="pre">MeshPartitioner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner" title="Link to this definition"></a></dt>
 <dd><p>A class that repartitons SEM mesh data using a given partitioning algorithm.</p>
 <p>The idea is to be able to chose subdomains of the mesh and split the elements such that the load is balanced among the ranks.</p>
 <p>One could use this to repartition the data if the condition array is full of True values, but the idea is to be able to use any condition array.</p>
@@ -518,20 +532,20 @@ Each numpy array should have the same length as the number of elements in the me
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field" title="pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_partitioned_field</span></code></a>([fld, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field" title="pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_partitioned_field</span></code></a>([fld, ...])</p></td>
 <td><p>Create a partitioned field object</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh" title="pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_partitioned_mesh</span></code></a>([msh, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh" title="pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_partitioned_mesh</span></code></a>([msh, ...])</p></td>
 <td><p>Create a partitioned mesh object</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements" title="pynektools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redistribute_field_elements</span></code></a>([field, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements" title="pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements"><code class="xref py py-obj docutils literal notranslate"><span class="pre">redistribute_field_elements</span></code></a>([field, ...])</p></td>
 <td><p>Redistribute the elements of the mesh object to different ranks</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field">
-<span class="sig-name descname"><span class="pre">create_partitioned_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="field.html#pynektools.datatypes.field.Field" title="pynektools.datatypes.field.Field"><span class="pre">Field</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="field.html#pynektools.datatypes.field.FieldRegistry" title="pynektools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="field.html#pynektools.datatypes.field.FieldRegistry" title="pynektools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a></span></span><a class="headerlink" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field">
+<span class="sig-name descname"><span class="pre">create_partitioned_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fld</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="field.html#pysemtools.datatypes.field.Field" title="pysemtools.datatypes.field.Field"><span class="pre">Field</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="field.html#pysemtools.datatypes.field.FieldRegistry" title="pysemtools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="field.html#pysemtools.datatypes.field.FieldRegistry" title="pysemtools.datatypes.field.FieldRegistry"><span class="pre">FieldRegistry</span></a></span></span><a class="headerlink" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field" title="Link to this definition"></a></dt>
 <dd><p>Create a partitioned field object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -552,8 +566,8 @@ Each numpy array should have the same length as the number of elements in the me
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh">
-<span class="sig-name descname"><span class="pre">create_partitioned_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_conectivity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pynektools.datatypes.msh.Mesh" title="pynektools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></span><a class="headerlink" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh">
+<span class="sig-name descname"><span class="pre">create_partitioned_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_conectivity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a></span></span><a class="headerlink" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh" title="Link to this definition"></a></dt>
 <dd><p>Create a partitioned mesh object</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -574,8 +588,8 @@ Each numpy array should have the same length as the number of elements in the me
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements">
-<span class="sig-name descname"><span class="pre">redistribute_field_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pynektools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements">
+<span class="sig-name descname"><span class="pre">redistribute_field_elements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">partitioning_algorithm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'load_balanced_linear'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements" title="Link to this definition"></a></dt>
 <dd><p>Redistribute the elements of the mesh object to different ranks</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

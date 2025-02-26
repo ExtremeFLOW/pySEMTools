@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Field &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Field &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -31,7 +31,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -87,7 +87,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -109,8 +109,8 @@
 <h1>Field<a class="headerlink" href="#field" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the Field class, which is used to collect data to be post-processed.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.Field">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.field.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.Field" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.Field">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.field.</span></span><span class="sig-name descname"><span class="pre">Field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.Field" title="Link to this definition"></a></dt>
 <dd><p>Class that contains fields.</p>
 <p>This is the main class used to contain data that can be used for post processing.
 The data does not generarly need to be present in this class, as it is typically enough to have
@@ -147,7 +147,7 @@ The keys for these dictionaries are the same as for Hexadata objects, i.e. vel, 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.field.Field.update_vars" title="pynektools.datatypes.field.Field.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.Field.update_vars" title="pysemtools.datatypes.field.Field.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
 <td><p>Update number of fields.</p></td>
 </tr>
 </tbody>
@@ -165,7 +165,7 @@ The keys for these dictionaries are the same as for Hexadata objects, i.e. vel, 
 </dl>
 <p class="rubric">Examples</p>
 <p>If a hexadata object: data is read from disk, the field object can be created directly from it.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -179,7 +179,7 @@ as follows:</p>
 </div>
 <p>A field object can be created empty and then fields can be added to it. Useful to write data to disk.
 if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">update_vars</span><span class="p">()</span>
@@ -187,15 +187,15 @@ if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the f
 </div>
 <p>This fld object can then be used to write fld files from field u created in the code.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.Field.update_vars">
-<span class="sig-name descname"><span class="pre">update_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.Field.update_vars" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.Field.update_vars">
+<span class="sig-name descname"><span class="pre">update_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.Field.update_vars" title="Link to this definition"></a></dt>
 <dd><p>Update number of fields.</p>
 <p>Update the number of fields in the class in the event that
 it has been modified. This is needed for writing data properly if more arrays are added to the class.</p>
 <p class="rubric">Examples</p>
 <p>A field object can be created empty and then fields can be added to it. Useful to write data to disk.
 if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the field object as follows:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynektools.datatypes.field</span> <span class="kn">import</span> <span class="n">Field</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">Field</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s2">&quot;vel&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fld</span><span class="o">.</span><span class="n">update_vars</span><span class="p">()</span>
@@ -211,8 +211,8 @@ if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the f
 <h1>FieldRegistry<a class="headerlink" href="#fieldregistry" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the FieldRegistry class, which extends the Field class and is used to collect data to be post-processed.</p>
 <dl class="py class">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.FieldRegistry">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pynektools.datatypes.field.</span></span><span class="sig-name descname"><span class="pre">FieldRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.FieldRegistry" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.field.</span></span><span class="sig-name descname"><span class="pre">FieldRegistry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry" title="Link to this definition"></a></dt>
 <dd><p>Class that contains fields.</p>
 <p>This class extends the main field class, as it contains a registry that allows to easily reference the fields.</p>
 <dl class="field-list simple">
@@ -228,23 +228,23 @@ if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the f
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.field.FieldRegistry.add_field" title="pynektools.datatypes.field.FieldRegistry.add_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_field</span></code></a>(comm[, field_name, field, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.add_field" title="pysemtools.datatypes.field.FieldRegistry.add_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_field</span></code></a>(comm[, field_name, field, ...])</p></td>
 <td><p>Add fields to the registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.field.FieldRegistry.clear" title="pynektools.datatypes.field.FieldRegistry.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.clear" title="pysemtools.datatypes.field.FieldRegistry.clear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear</span></code></a>()</p></td>
 <td><p>Clear the registry and the fields.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pynektools.datatypes.field.FieldRegistry.rename_registry_key" title="pynektools.datatypes.field.FieldRegistry.rename_registry_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rename_registry_key</span></code></a>([old_key, new_key])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.rename_registry_key" title="pysemtools.datatypes.field.FieldRegistry.rename_registry_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rename_registry_key</span></code></a>([old_key, new_key])</p></td>
 <td><p>Rename a key in the registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pynektools.datatypes.field.FieldRegistry.update_vars" title="pynektools.datatypes.field.FieldRegistry.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.update_vars" title="pysemtools.datatypes.field.FieldRegistry.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
 <td><p>Update the registry with the fields that are present in the fields dictionary.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.FieldRegistry.add_field">
-<span class="sig-name descname"><span class="pre">add_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.FieldRegistry.add_field" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry.add_field">
+<span class="sig-name descname"><span class="pre">add_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_name=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry.add_field" title="Link to this definition"></a></dt>
 <dd><p>Add fields to the registry. They will be stored in the fields dictionary to easily write them.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -275,14 +275,14 @@ Only for “vel” we read the 2/3 components at the same time</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.FieldRegistry.clear">
-<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.FieldRegistry.clear" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry.clear" title="Link to this definition"></a></dt>
 <dd><p>Clear the registry and the fields.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.FieldRegistry.rename_registry_key">
-<span class="sig-name descname"><span class="pre">rename_registry_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.FieldRegistry.rename_registry_key" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry.rename_registry_key">
+<span class="sig-name descname"><span class="pre">rename_registry_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry.rename_registry_key" title="Link to this definition"></a></dt>
 <dd><p>Rename a key in the registry.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -299,8 +299,8 @@ Only for “vel” we read the 2/3 components at the same time</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="pynektools.datatypes.field.FieldRegistry.update_vars">
-<span class="sig-name descname"><span class="pre">update_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pynektools.datatypes.field.FieldRegistry.update_vars" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry.update_vars">
+<span class="sig-name descname"><span class="pre">update_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry.update_vars" title="Link to this definition"></a></dt>
 <dd><p>Update the registry with the fields that are present in the fields dictionary.</p>
 </dd></dl>
 

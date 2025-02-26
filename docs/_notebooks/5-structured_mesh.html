@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Generating structured meshes &mdash; PyNekTools develop documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+  <title>Generating structured meshes &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -36,7 +36,7 @@
           
           
           <a href="../index.html" class="icon icon-home">
-            PyNekTools
+            PySEMTools
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -70,7 +70,7 @@
 <li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Generating structured meshes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Import-general-modules">Import general modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pynektools">Import modules from pynektools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Import-modules-from-pysemtools">Import modules from pysemtools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Create-an-structured-mesh">Create an structured mesh</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Mass-matrix">Mass matrix</a></li>
 </ul>
@@ -107,7 +107,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">PyNekTools</a>
+          <a href="../index.html">PySEMTools</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -137,9 +137,9 @@
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
@@ -151,13 +151,13 @@
 </div>
 </div>
 </section>
-<section id="Import-modules-from-pynektools">
-<h2>Import modules from pynektools<a class="headerlink" href="#Import-modules-from-pynektools" title="Link to this heading"></a></h2>
+<section id="Import-modules-from-pysemtools">
+<h2>Import modules from pysemtools<a class="headerlink" href="#Import-modules-from-pysemtools" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pynektools.io.ppymech.neksuite</span> <span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
 </pre></div>
 </div>
 </div>
@@ -169,7 +169,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pynektools.interpolation.pointclouds</span> <span class="k">as</span> <span class="nn">pcs</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pysemtools.interpolation.pointclouds</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pcs</span>
 
 <span class="c1"># Generate the bounding box of the points</span>
 <span class="n">r_bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">]</span>
@@ -239,7 +239,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pynektools.interpolation.utils</span> <span class="k">as</span> <span class="nn">interp_utils</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pysemtools.interpolation.utils</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">interp_utils</span>
 
 <span class="n">xyz</span> <span class="o">=</span> <span class="n">interp_utils</span><span class="o">.</span><span class="n">transform_from_array_to_list</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="n">ny</span><span class="p">,</span><span class="n">nz</span><span class="p">,[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
 </pre></div>
@@ -267,7 +267,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">h5py</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
 
 <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;points.hdf5&#39;</span>
 <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
