@@ -34,7 +34,7 @@ def read_data(comm, fname: str, keys: list[str], parallel_io: bool = False, dtyp
     # Check the file extension
     path = os.path.dirname(fname)
     prefix = os.path.basename(fname).split('.')[0]
-    extension = os.path.basename(fname).split('.')[1]
+    extension = os.path.basename(fname).split('.')[-1]
 
     # Read the data
     if extension == 'hdf5':
@@ -140,7 +140,7 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
     # Check the file extension
     path = os.path.dirname(fname)
     prefix = os.path.basename(fname).split('.')[0]
-    extension = os.path.basename(fname).split('.')[1]
+    extension = os.path.basename(fname).split('.')[-1]
 
     # Write the data
     if extension == 'hdf5':
