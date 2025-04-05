@@ -11,7 +11,7 @@ from pysemtools.interpolation.point_interpolator.multiple_point_helper_functions
 import numpy as np
 
 comm = MPI.COMM_WORLD
-dtype = torch.float
+dtype = torch.float64
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 if device == 'cuda:0': 
     torch.cuda.set_device(device)
@@ -132,3 +132,5 @@ def test_autograd():
     passed = torch.allclose(j_autograd, j_polynomial)
 
     assert passed
+
+test_autograd()

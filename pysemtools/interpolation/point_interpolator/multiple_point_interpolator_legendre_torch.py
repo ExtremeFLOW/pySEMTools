@@ -816,20 +816,24 @@ class LegendreInterpolator(MultiplePointInterpolator):
                 return_length=False,
             )
 
-            element_candidates = []
-            i = 0
-            if progress_bar:
-                pbar = tqdm(total=probes.shape[0])
-            for pt in probes:
-                element_candidates.append([])
-                for e in candidate_elements[i]:
-                    if pt_in_bbox(pt, bbox[e], rel_tol=elem_percent_expansion):
-                        element_candidates[i].append(e)
-                i = i + 1
+            # New way of checking as of april 4 2025
+            if 0==0:
+                element_candidates = refine_candidates(probes, candidate_elements, bbox, rel_tol=elem_percent_expansion)
+            else:
+                element_candidates = []
+                i = 0
                 if progress_bar:
-                    pbar.update(1)
-            if progress_bar:
-                pbar.close()
+                    pbar = tqdm(total=probes.shape[0])
+                for pt in probes:
+                    element_candidates.append([])
+                    for e in candidate_elements[i]:
+                        if pt_in_bbox(pt, bbox[e], rel_tol=elem_percent_expansion):
+                            element_candidates[i].append(e)
+                    i = i + 1
+                    if progress_bar:
+                        pbar.update(1)
+                if progress_bar:
+                    pbar.close()
 
         # Identify variables
         max_pts = self.max_pts
@@ -981,7 +985,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     better_test = np.where(
                         test_error < test_pattern[real_index_pt_not_found_this_it]
                     )[0]
-                    set_as_found = np.where(test_error < test_pattern_for_found)[0]
+                    #set_as_found = np.where(test_error < test_pattern_for_found)[0]
 
                     if len(better_test) > 0:
                         probes_rst[real_list[better_test], 0] = result_r[
@@ -1148,8 +1152,79 @@ def pt_in_bbox(pt, bbox, rel_tol=0.01):
 
     return state
 
+def pt_in_bbox_vectorized(pt, bboxes, rel_tol):
+    """
+    Check if a point (pt) is inside multiple bounding boxes.
+    
+    Parameters:
+        pt : array-like of shape (3,)
+            The (x, y, z) coordinates of the point.
+        bboxes : ndarray of shape (N, 6)
+            Each row is [xmin, xmax, ymin, ymax, zmin, zmax].
+        rel_tol : float
+            Relative tolerance used to expand the bounding box.
+    
+    Returns:
+        mask : ndarray of shape (N,)
+            Boolean array where True indicates the point is within the expanded bbox.
+    """
+    # For the x dimension:
+    dx = bboxes[:, 1] - bboxes[:, 0]
+    tol_x = dx * rel_tol / 2.0
+    lower_x = bboxes[:, 0] - tol_x
+    upper_x = bboxes[:, 1] + tol_x
 
-def get_points_not_found_index(err_code, checked_elements, element_candidates, max_pts):
+    # For the y dimension:
+    dy = bboxes[:, 3] - bboxes[:, 2]
+    tol_y = dy * rel_tol / 2.0
+    lower_y = bboxes[:, 2] - tol_y
+    upper_y = bboxes[:, 3] + tol_y
+
+    # For the z dimension:
+    dz = bboxes[:, 5] - bboxes[:, 4]
+    tol_z = dz * rel_tol / 2.0
+    lower_z = bboxes[:, 4] - tol_z
+    upper_z = bboxes[:, 5] + tol_z
+
+    return ((pt[0] >= lower_x) & (pt[0] <= upper_x) &
+            (pt[1] >= lower_y) & (pt[1] <= upper_y) &
+            (pt[2] >= lower_z) & (pt[2] <= upper_z))
+
+def refine_candidates(probes, candidate_elements, bboxes, rel_tol):
+    """
+    Refine candidate elements for each probe by keeping only those where the probe 
+    lies within the corresponding expanded bounding box.
+    
+    Parameters:
+        probes : ndarray of shape (N, 3)
+            The (x, y, z) coordinates of each probe.
+        candidate_elements : list of lists
+            Each inner list contains candidate bbox indices (from a kd-tree query) for a probe.
+        bboxes : ndarray of shape (M, 6)
+            All bounding boxes, each row is [xmin, xmax, ymin, ymax, zmin, zmax].
+        rel_tol : float
+            Relative tolerance (expansion factor) for the bbox check.
+    
+    Returns:
+        refined_candidates : list of lists
+            For each probe, a list of candidate indices for which the point lies inside the bbox.
+    """
+    refined_candidates = []
+    for i, pt in enumerate(probes):
+        cands = candidate_elements[i]
+        if cands:  # if non-empty
+            # Convert candidate indices to a numpy array
+            cands = np.array(cands, dtype=int)
+            # Get the corresponding bounding boxes
+            candidate_bboxes = bboxes[cands]
+            # Vectorized check: get a boolean mask for candidates that pass the bbox test
+            mask = pt_in_bbox_vectorized(pt, candidate_bboxes, rel_tol)
+            refined_candidates.append(cands[mask].tolist())
+        else:
+            refined_candidates.append([])
+    return refined_candidates
+
+def get_points_not_found_index_slow_obsolete(err_code, checked_elements, element_candidates, max_pts):
     # Get the index of points that have not been found
     pt_not_found_indices = np.where(err_code != 1)[0]
     # Get the indices of these points that still have elements remaining to check
@@ -1164,6 +1239,17 @@ def get_points_not_found_index(err_code, checked_elements, element_candidates, m
     # Select only the maximum number of points
     pt_not_found_indices = pt_not_found_indices[:max_pts]
     return pt_not_found_indices
+
+def get_points_not_found_index(err_code, checked_elements, element_candidates, max_pts):
+    # Find candidate indices where err_code != 1
+    candidate_idx = np.flatnonzero(err_code != 1)
+    result = []
+    for i in candidate_idx:
+        if len(checked_elements[i]) < len(element_candidates[i]):
+            result.append(i)
+            if len(result) >= max_pts:
+                break
+    return np.array(result)
 
 
 def get_element_to_check(pt_not_found_indices, element_candidates, checked_elements):
