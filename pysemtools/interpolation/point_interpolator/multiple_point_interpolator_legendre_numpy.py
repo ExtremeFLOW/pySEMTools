@@ -9,6 +9,7 @@ from .multiple_point_helper_functions_numpy import (
     legendre_basis_at_xtest,
     legendre_basis_derivative_at_xtest,
     lag_interp_matrix_at_xtest,
+    bar_interp_matrix_at_xtest,
 )
 
 
@@ -33,6 +34,15 @@ class LegendreInterpolator(MultiplePointInterpolator):
         self.x_e_hat = None
         self.y_e_hat = None
         self.z_e_hat = None
+
+        # Precompute the barycentric weights
+        x_vec = self.x_gll[:, 0, 0, 0]
+        n = x_vec.shape[0] 
+        # Compute the barycentric weights - maybe have them as an input
+        # For each k, compute: w[k] = 1 / ∏_{j ≠ k} (x_vec[k] - x_vec[j])
+        diff = x_vec[:, None] - x_vec[None, :]  # shape: (n, n)
+        np.fill_diagonal(diff, 1.0)
+        self.barycentric_w = 1.0 / np.prod(diff, axis=1)  # shape: (n,)
 
     def project_element_into_basis(self, x_e, y_e, z_e, apply_1d_ops=True):
         """Project the element data into the appropiate basis"""
@@ -316,7 +326,15 @@ class LegendreInterpolator(MultiplePointInterpolator):
             self.tj[:npoints, :nelems],
         )
 
-    def interpolate_field_at_rst(self, rj, sj, tj, field_e, apply_1d_ops=True):
+    def interpolate_field_at_rst(self, rj, sj, tj, field_e, apply_1d_ops=True, formula = 'barycentric'):
+        """
+        """
+        if formula == 'barycentric':
+            return self.interpolate_field_at_rst_barycentric(rj, sj, tj, field_e, apply_1d_ops)
+        elif formula == 'lagrange':
+            return self.interpolate_field_at_rst_lagrange(rj, sj, tj, field_e, apply_1d_ops)
+
+    def interpolate_field_at_rst_lagrange(self, rj, sj, tj, field_e, apply_1d_ops=True):
         """
         Interpolate each point in a given field.
         EACH POINT RECIEVES ONE FIELD! SO FIELDS MIGHT BE DUPLICATED
@@ -338,6 +356,41 @@ class LegendreInterpolator(MultiplePointInterpolator):
         lk_r = lag_interp_matrix_at_xtest(self.x_gll, self.rj[:npoints, :nelems, :, :])
         lk_s = lag_interp_matrix_at_xtest(self.x_gll, self.sj[:npoints, :nelems, :, :])
         lk_t = lag_interp_matrix_at_xtest(self.x_gll, self.tj[:npoints, :nelems, :, :])
+
+        if not apply_1d_ops:
+            raise RuntimeError("Only worrking by applying 1d operators")
+        elif apply_1d_ops:
+            field_at_rst = apply_operators_3d(
+                lk_r.transpose(0, 1, 3, 2),
+                lk_s.transpose(0, 1, 3, 2),
+                lk_t.transpose(0, 1, 3, 2),
+                self.field_e[:npoints, :nelems, :, :],
+            )
+
+        return field_at_rst
+    
+    def interpolate_field_at_rst_barycentric(self, rj, sj, tj, field_e, apply_1d_ops=True):
+        """
+        Interpolate each point in a given field.
+        EACH POINT RECIEVES ONE FIELD! SO FIELDS MIGHT BE DUPLICATED
+
+        """
+        npoints = rj.shape[0]
+        nelems = rj.shape[1]
+        n = field_e.shape[2] * field_e.shape[3] * field_e.shape[4]
+
+        self.rj[:npoints, :nelems, :, :] = rj[:, :, :, :]
+        self.sj[:npoints, :nelems, :, :] = sj[:, :, :, :]
+        self.tj[:npoints, :nelems, :, :] = tj[:, :, :, :]
+
+        # Assing the inputs to proper formats
+        self.field_e[:npoints, :nelems, :, :] = field_e.reshape(npoints, nelems, n, 1)[
+            :, :, :, :
+        ]
+
+        lk_r = bar_interp_matrix_at_xtest(self.x_gll, self.rj[:npoints, :nelems, :, :], w=self.barycentric_w)
+        lk_s = bar_interp_matrix_at_xtest(self.x_gll, self.sj[:npoints, :nelems, :, :], w=self.barycentric_w)
+        lk_t = bar_interp_matrix_at_xtest(self.x_gll, self.tj[:npoints, :nelems, :, :], w=self.barycentric_w)
 
         if not apply_1d_ops:
             raise RuntimeError("Only worrking by applying 1d operators")
@@ -608,70 +661,60 @@ class LegendreInterpolator(MultiplePointInterpolator):
             test_pattern,
         )
 
-    def interpolate_field_from_rst(
-        self, probes_info, interpolation_buffer=None, sampled_field=None, settings=None
-    ):
-
-        # Parse the inputs
-        ## Probes information
-        probes = probes_info.get("probes", None)
-        probes_rst = probes_info.get("probes_rst", None)
-        el_owner = probes_info.get("el_owner", None)
-        err_code = probes_info.get("err_code", None)
-        # Settings
-        if not isinstance(settings, NoneType):
-            progress_bar = settings.get("progress_bar", False)
-        else:
-            progress_bar = False
+    def interpolate_field_from_rst(self, probes_info, interpolation_buffer=None, sampled_field=None, settings=None):
+        # --- Parse Inputs ---
+        probes      = probes_info.get("probes", None)
+        probes_rst  = probes_info.get("probes_rst", None)
+        el_owner    = probes_info.get("el_owner", None)
+        err_code    = probes_info.get("err_code", None)
+        
+        # Get settings; default progress_bar to False
+        progress_bar = settings.get("progress_bar", False) if settings is not None else False
 
         max_pts = self.max_pts
-        pts_n = probes.shape[0]
-        iterations = np.ceil((pts_n / max_pts))
+        num_probes = probes.shape[0]
 
-        sampled_field_at_probe = np.empty((probes.shape[0]))
-        probe_interpolated = np.zeros((probes.shape[0]))
+        # --- Precompute and Initialize ---
+        valid_err = (err_code != 0)
+        # Create an index array for all probes
+        all_indices = np.arange(num_probes)
+        # Only consider probes with err_code != 0
+        remaining = all_indices[valid_err].copy()
 
-        for i in range(0, int(iterations)):
+        # Prepare output arrays
+        sampled_field_at_probe = np.empty(num_probes)
+        # Use a boolean mask to mark interpolated probes
+        interpolated_mask = np.zeros(num_probes, dtype=bool)
 
-            # Check the probes to interpolate this iteration
-            probes_to_interpolate = np.where(
-                (err_code != 0) & (probe_interpolated == 0)
-            )[0]
-            probes_to_interpolate = probes_to_interpolate[:max_pts]
+        # --- Main Loop ---
+        while remaining.size > 0:
+            # Select a batch of up to max_pts indices
+            current = remaining[:max_pts]
+            npoints = current.shape[0]
+            
+            # Immediately mark these indices as processed
+            interpolated_mask[current] = True
 
-            # Check the number of probes
-            npoints = len(probes_to_interpolate)
-            nelems = 1
-
-            if npoints == 0:
-                break
-
-            # Inmediately update the points that will be interpolated
-            probe_interpolated[probes_to_interpolate] = 1
-
-            rst_new_shape = (npoints, nelems, 1, 1)
-            field_new_shape = (
-                npoints,
-                nelems,
-                sampled_field.shape[1],
-                sampled_field.shape[2],
-                sampled_field.shape[3],
+            # Calculate new shapes based on npoints (assumes nelems == 1)
+            # Adjust these shapes as needed based on the actual dimensions of your arrays.
+            rst_new_shape   = (npoints, 1, 1, 1)
+            field_new_shape = (npoints, 1) + sampled_field.shape[1:]
+            
+            # Call the interpolation routine on the current set of probes
+            interpolation_buffer[:npoints, :1] = self.interpolate_field_at_rst(
+                probes_rst[current, 0].reshape(rst_new_shape),
+                probes_rst[current, 1].reshape(rst_new_shape),
+                probes_rst[current, 2].reshape(rst_new_shape),
+                sampled_field[el_owner[current]].reshape(field_new_shape)
             )
-
-            interpolation_buffer[:npoints, :nelems] = self.interpolate_field_at_rst(
-                probes_rst[probes_to_interpolate, 0].reshape(rst_new_shape),
-                probes_rst[probes_to_interpolate, 1].reshape(rst_new_shape),
-                probes_rst[probes_to_interpolate, 2].reshape(rst_new_shape),
-                sampled_field[el_owner[probes_to_interpolate]].reshape(field_new_shape),
-            )
-
-            # Populate the sampled field
-            sampled_field_at_probe[probes_to_interpolate] = interpolation_buffer[
-                :npoints, :nelems
-            ].reshape(npoints)
+            
+            # Store the interpolated values back into the result array
+            sampled_field_at_probe[current] = interpolation_buffer[:npoints, 0].reshape(npoints)
+            
+            # Update the remaining indices: only those that have valid errors and were not processed
+            remaining = all_indices[valid_err & (~interpolated_mask)]
 
         return sampled_field_at_probe
-
 
 def determine_initial_guess(self, npoints=1, nelems=1):
     """

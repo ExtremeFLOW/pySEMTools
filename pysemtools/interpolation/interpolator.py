@@ -547,7 +547,7 @@ class Interpolator:
         self.rank = rank
         
         if local_data_structure == "kdtree":
-            self.my_tree = dstructure_kdtree(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)    
+            self.my_tree = dstructure_kdtree(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion, max_pts = self.max_pts)    
         
         elif local_data_structure == "bounding_boxes":            
             # First each rank finds their bounding box
@@ -556,6 +556,9 @@ class Interpolator:
 
         elif local_data_structure == "rtree":
             self.my_tree = dstructure_rtree(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)
+        
+        elif local_data_structure == "hashtable":
+            self.my_tree = dstructure_hashtable(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion, max_pts = self.max_pts)
 
         nelv = self.x.shape[0]
         self.ranks_ive_checked = []
@@ -1003,6 +1006,9 @@ class Interpolator:
 
         elif local_data_structure == "rtree":
             self.my_tree = dstructure_rtree(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)
+        
+        elif local_data_structure == "hashtable":
+            self.my_tree = dstructure_hashtable(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)
 
         # nelv = self.x.shape[0]
         self.ranks_ive_checked = []
@@ -1225,6 +1231,9 @@ class Interpolator:
 
         elif local_data_structure == "rtree":
             self.my_tree = dstructure_rtree(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)
+        
+        elif local_data_structure == "hashtable":
+            self.my_tree = dstructure_hashtable(self.log, self.x, self.y, self.z, elem_percent_expansion = elem_percent_expansion)
 
         # nelv = self.x.shape[0]
         self.ranks_ive_checked = []
@@ -2305,10 +2314,30 @@ class dstructure_kdtree(dstructure):
 
         self.log = logger
         self.elem_percent_expansion = kwargs.get("elem_percent_expansion", 0.01)
+        self.max_pts = kwargs.get("max_pts", 128)
  
         # First each rank finds their bounding box
         self.log.write("info", "Finding bounding box of sem mesh")
         self.my_bbox = get_bbox_from_coordinates(x, y, z)
+
+        # Expand the bounding boxes just once to make it faster later
+        self.expanded_bbox = np.empty_like(self.my_bbox) 
+        rel_tol = self.elem_percent_expansion
+        # For x
+        dx = self.my_bbox[:, 1] - self.my_bbox[:, 0]
+        tol_x = dx * rel_tol / 2.0
+        self.expanded_bbox[:, 0] = self.my_bbox[:, 0] - tol_x
+        self.expanded_bbox[:, 1] = self.my_bbox[:, 1] + tol_x
+        # For y
+        dy = self.my_bbox[:, 3] - self.my_bbox[:, 2]
+        tol_y = dy * rel_tol / 2.0
+        self.expanded_bbox[:, 2] = self.my_bbox[:, 2] - tol_y
+        self.expanded_bbox[:, 3] = self.my_bbox[:, 3] + tol_y
+        # For z
+        dz = self.my_bbox[:, 5] - self.my_bbox[:, 4]
+        tol_z = dz * rel_tol / 2.0
+        self.expanded_bbox[:, 4] = self.my_bbox[:, 4] - tol_z
+        self.expanded_bbox[:, 5] = self.my_bbox[:, 5] + tol_z
     
         # Get bbox centroids and max radius from center to corner
         self.my_bbox_centroids, self.my_bbox_maxdist = (
@@ -2321,34 +2350,32 @@ class dstructure_kdtree(dstructure):
 
     def search(self, probes: np.ndarray, progress_bar = False):
         
-        candidate_elements = self.my_tree.query_ball_point(
-            x=probes,
-            r=self.my_bbox_maxdist * (1 + 1e-6),
-            p=2.0,
-            eps=self.elem_percent_expansion,
-            workers=1,
-            return_sorted=False,
-            return_length=False,
-        )
+        chunk_size = self.max_pts*1000
+        n_chunks = int(np.ceil(probes.shape[0] / chunk_size))
+        element_candidates = []
 
-        # New way of checking as of april 4 2025
-        if 0==0:
-            element_candidates = refine_candidates(probes, candidate_elements, self.my_bbox, rel_tol=self.elem_percent_expansion)
-        else:
-            element_candidates = []
-            i = 0
-            if progress_bar:
-                pbar = tqdm(total=probes.shape[0])
-            for pt in probes:
-                element_candidates.append([])
-                for e in candidate_elements[i]:
-                    if pt_in_bbox(pt, self.my_bbox[e], rel_tol=self.elem_percent_expansion):
-                        element_candidates[i].append(e)
-                i = i + 1
-                if progress_bar:
-                    pbar.update(1)
-            if progress_bar:
-                pbar.close()
+        for chunk_id in range(n_chunks):
+            start = chunk_id * chunk_size
+            end = (chunk_id + 1) * chunk_size
+            if end > probes.shape[0]:
+                end = probes.shape[0]
+
+            candidate_elements = self.my_tree.query_ball_point(
+                x=probes[start:end],
+                r=self.my_bbox_maxdist * (1 + 1e-6),
+                p=2.0,
+                eps=self.elem_percent_expansion,
+                workers=1,
+                return_sorted=False,
+                return_length=False,
+            )
+
+            # New way of checking as of april 4 2025
+            # I am already passing the expanded bounding box, so I take relative tolerance = 0
+            element_candidates_ = refine_candidates(probes[start:end], candidate_elements, self.expanded_bbox, rel_tol=0)
+
+            # Extend with the chunked data
+            element_candidates.extend(element_candidates_)
 
         return element_candidates
 
@@ -2383,37 +2410,264 @@ class dstructure_rtree(dstructure):
             element_candidates.append(list(self.my_tree.intersection(query_point)))
 
         return element_candidates
-    
-def refine_candidates(probes, candidate_elements, bboxes, rel_tol):
+
+class dstructure_hashtable(dstructure):
+    """
+    """
+
+    def __init__(self, logger, x: np.ndarray, y: np.ndarray, z: np.ndarray, **kwargs):
+        """Initialize"""
+        super().__init__()
+
+        self.log = logger
+        self.elem_percent_expansion = kwargs.get("elem_percent_expansion", 0.01)
+        self.max_pts = kwargs.get("max_pts", 128)
+        
+        # First each rank finds their bounding box
+        self.log.write("info", "Finding bounding box of sem mesh")
+        self.my_bbox = get_bbox_from_coordinates(x, y, z)
+
+        bin_size = np.prod(x.shape)
+        bin_size_1d = int(np.round(np.cbrt(bin_size))) 
+        bin_size = bin_size_1d**3
+
+        # Find the values that delimit a cubic boundin box
+        # for the whole domain
+        self.log.write("info", "Finding bounding box tha delimits the ranks")
+        
+        self.domain_min_x = np.min(x)
+        self.domain_min_y = np.min(y)
+        self.domain_min_z = np.min(z)
+        self.domain_max_x = np.max(x)
+        self.domain_max_y = np.max(y)
+        self.domain_max_z = np.max(z) 
+        self.bin_size_1d = bin_size_1d
+
+        # See wich element has points in which bin
+        self.log.write("info", "Creating bin mesh for the rank")
+        bins_of_points = self.binning_hash(x, y, z)
+        
+        # Create the empty bin to rank map
+        approach = 1
+        if approach == 0:
+        
+            self.bin_to_elem_map = {i : (np.unique(np.where(bins_of_points == i)[0]).astype(np.int32)).tolist() for i in range(0, bin_size)}
+
+        # Optimized 
+        elif approach == 1:
+
+            nelv = bins_of_points.shape[0]
+            bin_size = bin_size_1d ** 3
+
+            # Initialize an empty dictionary
+            bin_to_elem_map = {}
+
+            # Fill the bins
+            for el in range(nelv):
+                
+                unique_bins = np.unique(bins_of_points[el])
+                for b in unique_bins:
+                    if b not in bin_to_elem_map:
+                        bin_to_elem_map[b] = []
+                    
+                    if el not in bin_to_elem_map[b]:
+                        bin_to_elem_map[b].append(el)
+
+            # Fill the empty bins for completion
+            for i in range(bin_size):
+                if i not in bin_to_elem_map:
+                    bin_to_elem_map[i] = []
+
+            self.bin_to_elem_map = bin_to_elem_map
+
+
+    def binning_hash(self, x, y, z):
+        """
+        """
+
+        x_min = self.domain_min_x
+        x_max = self.domain_max_x
+        y_min = self.domain_min_y
+        y_max = self.domain_max_y
+        z_min = self.domain_min_z
+        z_max = self.domain_max_z
+        n_bins_1d = self.bin_size_1d
+        max_bins_1d = n_bins_1d - 1
+
+        bin_x = (np.floor((x - x_min) / ((x_max - x_min) / max_bins_1d))).astype(np.int32)
+        bin_y = (np.floor((y - y_min) / ((y_max - y_min) / max_bins_1d))).astype(np.int32)
+        bin_z = (np.floor((z - z_min) / ((z_max - z_min) / max_bins_1d))).astype(np.int32)
+
+        # Clip the bins to be in the range [0, n_bins_1d - 1]
+        bin_x = np.clip(bin_x, 0, max_bins_1d)
+        bin_y = np.clip(bin_y, 0, max_bins_1d)
+        bin_z = np.clip(bin_z, 0, max_bins_1d)
+
+        bin = bin_x + bin_y * n_bins_1d + bin_z * n_bins_1d**2
+        
+        return bin
+
+            
+    def search(self, probes: np.ndarray, **kwargs):
+
+        probe_to_bin = self.binning_hash(probes[:, 0], probes[:, 1], probes[:, 2])
+
+        element_candidates = [self.bin_to_elem_map[probe_to_bin[i]] for i in range(0, probes.shape[0])]
+
+        element_candidates = refine_candidates(probes, element_candidates, self.my_bbox, rel_tol=self.elem_percent_expansion)
+
+        return element_candidates
+
+def refine_candidates(probes, candidate_elements, bboxes, rel_tol = 0.01):
     """
     Refine candidate elements for each probe by keeping only those where the probe 
     lies within the corresponding expanded bounding box.
     
-    Parameters:
-        probes : ndarray of shape (N, 3)
-            The (x, y, z) coordinates of each probe.
-        candidate_elements : list of lists
-            Each inner list contains candidate bbox indices (from a kd-tree query) for a probe.
-        bboxes : ndarray of shape (M, 6)
-            All bounding boxes, each row is [xmin, xmax, ymin, ymax, zmin, zmax].
-        rel_tol : float
-            Relative tolerance (expansion factor) for the bbox check.
-    
-    Returns:
-        refined_candidates : list of lists
-            For each probe, a list of candidate indices for which the point lies inside the bbox.
     """
-    refined_candidates = []
-    for i, pt in enumerate(probes):
-        cands = candidate_elements[i]
-        if cands:  # if non-empty
-            # Convert candidate indices to a numpy array
-            cands = np.array(cands, dtype=int)
-            # Get the corresponding bounding boxes
-            candidate_bboxes = bboxes[cands]
-            # Vectorized check: get a boolean mask for candidates that pass the bbox test
-            mask = pt_in_bbox_vectorized(pt, candidate_bboxes, rel_tol)
-            refined_candidates.append(cands[mask].tolist())
-        else:
-            refined_candidates.append([])
+    # Flatten the candidate_elements lists, creating arrays that record for each candidate
+    # the corresponding probe index and candidate bbox index.
+    probe_indices = []
+    candidate_indices = []
+    
+    for i, cands in enumerate(candidate_elements):
+        if cands:  # if this probe has candidate bbox indices
+            probe_indices.extend([i] * len(cands))
+            candidate_indices.extend(cands)
+            
+    probe_indices = np.array(probe_indices)  # shape: (total_num_candidates,)
+    candidate_indices = np.array(candidate_indices)  # shape: (total_num_candidates,)
+    
+    # If no candidates exist overall, return a list of empty lists.
+    if probe_indices.size == 0:
+        return [[] for _ in range(probes.shape[0])]
+    
+    # Get the corresponding probes and bounding boxes for all candidate pairs.
+    pts = probes[probe_indices]           # shape: (total_num_candidates, 3)
+    candidate_bboxes = bboxes[candidate_indices]  # shape: (total_num_candidates, 6)
+    
+    # Compute the expanded boundaries for each candidate bbox.
+    if rel_tol > 1e-6:
+        # For x dimension:
+        dx = candidate_bboxes[:, 1] - candidate_bboxes[:, 0]
+        tol_x = dx * rel_tol / 2.0
+        lower_x = candidate_bboxes[:, 0] - tol_x
+        upper_x = candidate_bboxes[:, 1] + tol_x
+
+        # For y dimension:
+        dy = candidate_bboxes[:, 3] - candidate_bboxes[:, 2]
+        tol_y = dy * rel_tol / 2.0
+        lower_y = candidate_bboxes[:, 2] - tol_y
+        upper_y = candidate_bboxes[:, 3] + tol_y
+
+        # For z dimension:
+        dz = candidate_bboxes[:, 5] - candidate_bboxes[:, 4]
+        tol_z = dz * rel_tol / 2.0
+        lower_z = candidate_bboxes[:, 4] - tol_z
+        upper_z = candidate_bboxes[:, 5] + tol_z
+    else:
+        # No expansion needed, use original boundaries
+        lower_x = candidate_bboxes[:, 0]
+        upper_x = candidate_bboxes[:, 1]
+        lower_y = candidate_bboxes[:, 2]
+        upper_y = candidate_bboxes[:, 3]
+        lower_z = candidate_bboxes[:, 4]
+        upper_z = candidate_bboxes[:, 5]
+    
+    # Vectorized check: create a boolean mask indicating which candidate pair passes
+    valid_mask = ((pts[:, 0] >= lower_x) & (pts[:, 0] <= upper_x) &
+                  (pts[:, 1] >= lower_y) & (pts[:, 1] <= upper_y) &
+                  (pts[:, 2] >= lower_z) & (pts[:, 2] <= upper_z))
+    
+    # Filter the probe and candidate indices according to the valid mask.
+    valid_probe_indices = probe_indices[valid_mask]
+    valid_candidate_indices = candidate_indices[valid_mask]
+    
+    # Initialize the output list with empty lists for each probe.
+    refined_candidates = [[] for _ in range(probes.shape[0])]
+    
+    # Sort the valid candidate pairs by the probe index to group them together.
+    order = np.argsort(valid_probe_indices)
+    valid_probe_sorted = valid_probe_indices[order]
+    valid_candidate_sorted = valid_candidate_indices[order]
+    
+    # Use np.unique to get the boundaries for each probe in the sorted array.
+    unique_probes, start_idx, counts = np.unique(valid_probe_sorted, 
+                                                 return_index=True, 
+                                                 return_counts=True)
+    
+    # Fill the refined_candidates for each probe.
+    for probe, idx, count in zip(unique_probes, start_idx, counts):
+        refined_candidates[probe] = valid_candidate_sorted[idx: idx + count].tolist()
+    
     return refined_candidates
+
+def expand_elements(arrays: list = None, rel_tol = 0.01):
+    '''Scale the elements to an expanded range'''
+    
+    rescaled_arrays = []
+    for x in arrays:
+        # Calculate scaling parameters
+        element_min = np.min(x, axis=(1, 2, 3), keepdims=True)
+        element_max = np.max(x, axis=(1, 2, 3), keepdims=True)
+        delta = element_max - element_min
+        new_min = element_min - delta * rel_tol / 2
+        new_max = element_max + delta * rel_tol / 2
+
+        # Rescale
+        rescaled_arrays.append(new_min + (x - element_min) * (new_max - new_min) / delta)
+
+    return rescaled_arrays
+
+def linearize_elements(x, y, z, factor: int = 2, rel_tol = 0.01):
+    '''Scale the elements to an expanded range'''
+    
+    # Calculate scaling parameters
+    min_x = np.min(x, axis=(1, 2, 3))
+    max_x = np.max(x, axis=(1, 2, 3))
+    dx = max_x - min_x
+
+    min_y = np.min(y, axis=(1, 2, 3))
+    max_y = np.max(y, axis=(1, 2, 3))
+    dy = max_y - min_y
+
+    min_z = np.min(z, axis=(1, 2, 3))
+    max_z = np.max(z, axis=(1, 2, 3))
+    dz = max_z - min_z
+
+    # Calculate the new min and max values
+    new_min_x = min_x - dx * rel_tol / 2
+    new_max_x = max_x + dx * rel_tol / 2
+    new_min_y = min_y - dy * rel_tol / 2
+    new_max_y = max_y + dy * rel_tol / 2
+    new_min_z = min_z - dz * rel_tol / 2
+    new_max_z = max_z + dz * rel_tol / 2
+
+    # Create new linear grid over the elements
+    nelv = x.shape[0]
+    lz = x.shape[1]
+    ly = x.shape[2]
+    lx = x.shape[3]
+    x_r = np.empty((nelv, factor*lz, factor*ly, factor*lx), dtype=x.dtype)
+    y_r = np.empty((nelv, factor*lz, factor*ly, factor*lx), dtype=y.dtype)
+    z_r = np.empty((nelv, factor*lz, factor*ly, factor*lx), dtype=z.dtype)
+    for e in range(nelv):
+        x_1d = np.linspace(new_min_x[e], new_max_x[e], lx*factor)
+        y_1d = np.linspace(new_min_y[e], new_max_y[e], ly*factor)
+        z_1d = np.linspace(new_min_z[e], new_max_z[e], lz*factor)
+
+        zz, yy, xx = np.meshgrid(z_1d, y_1d, x_1d, indexing='ij')
+
+        x_r[e] = xx
+        y_r[e] = yy
+        z_r[e] = zz
+
+    bbox = np.zeros((nelv, 6))
+    bbox[:,0] = min_x
+    bbox[:,1] = max_x
+    bbox[:,2] = min_y
+    bbox[:,3] = max_y
+    bbox[:,4] = min_z
+    bbox[:,5] = max_z
+    
+
+    return x_r, y_r, z_r, bbox
