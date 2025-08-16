@@ -1,3 +1,58 @@
+##################################################################################################################################################
+##################################################################################################################################################
+"""
+    FUNCTIONS SUMMARY
+        
+    This script contains the following functions:
+    
+    1. generate_data(fname_3d)
+            - Reads mesh & field data and extracts element coordinate arrays.
+           
+    2. calculate_face_differences(assigned_data)
+            - Computes normalized average difference vectors between opposing element faces (r, s, t directions).
+            - First calculates the difference between corresponding points on opposing faces, then takes the average,
+            and finally normalizes the result.
+            
+    3. calculate_face_normals(assigned_data)
+            - Calculates raw face normal vectors for each of the six element faces.
+
+    4. calculate_face_averages(assigned_data)
+            - Computes normalized average difference vectors between opposing element faces (for re-verification).
+            - First calculates the average position of each face, then finds the difference between opposing faces,
+            and finally normalizes the result.
+            
+    5. face_mappings(cal_r, cal_s, cal_t)
+            - Maps local element axes (r, s, t) to global axes (x, y, z) based on dominant difference vector directions.
+            - Ensures unique directional assignment per element.
+            - Identifies the principal flow direction for each element.
+
+    6. compare_mappings(mappings, ref_mapping, method)
+            - Compares a mapping set to a reference mapping and computes match percentage.
+
+    7. compare_methods(mappings_fd, mappings_fa)
+            - Compares face-difference-based mappings to face-average-based mappings and computes match percentage (ideally they should be equal. if not then there is some issue)
+
+    8. align_normals(normals, normals_pair, direction_type)
+            - Ensures that paired face normals are consistently oriented and aligned with a reference. Using rank 0's element 0 as the reference, it compares face normals across all elements
+           and adjusts their orientations as needed.
+
+    9. reduce_face_normals(normals)
+            - After alignment, averages the paired face normals to produce a reduced set of normals per element (reducing 6 face normals to 3 per element i.e., one in each axis).
+
+    10. face_normals_mappings(averaged_normals)
+            - Maps element axes using reduced normals and identifies principal flow directions.
+           
+    11. reorder_assigned_data(assigned_data, mappings_fd, ref_mapping_fd)
+            - Reorders element coordinate data to match a given reference axis mapping. Initially, each element's coordinates are in local (r,s,t) space, which can vary in position within the element.
+            - This function maps them to the global (x,y,z) space using rank 0's element 0 as the reference.
+
+    12. correct_axis_signs(assigned_data_new, extract_reference_r, extract_reference_s, extract_reference_t, r_diff_new, s_diff_new, t_diff_new)
+            - Flips element axes if they are sign-inverted relative to a reference element (taken from rank 0's element 0).
+
+"""
+##################################################################################################################################################
+##################################################################################################################################################
+
 from mpi4py import MPI
 import numpy as np
 from ..datatypes.msh import Mesh
@@ -9,18 +64,17 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-def generate_data(fname_3d: str, fname_out: str):
+def generate_data(fname_3d: str):
     """
     Loads and processes 3D field data.
 
     This function:
-    - Reads mesh and field data from `fname_3d`.
-    - Extracts global coordinates of elements.
-    - Prepares structured mesh and field registry for further computations.
+        - Reads mesh and field data from `fname_3d`.
+        - Extracts global coordinates of elements.
+        - Prepares structured mesh and field registry for further computations.
 
     Args:
         fname_3d (str): Path to the input 3D field file.
-        fname_out (str): Path to the output processed field file.
 
     Returns:
         assigned_data (np.ndarray): Global coordinates of elements.
@@ -34,12 +88,13 @@ def generate_data(fname_3d: str, fname_out: str):
     fld_3d_r = FieldRegistry(comm)
     pynekread(fname_3d, comm, data_dtype=np.single, fld=fld_3d_r)
 
-    pynekwrite(fname_out, comm, msh=msh_3d, fld=fld_3d, write_mesh=True, wdsz=4)
-
-    data = read_data(comm, fname_out, ["x", "y", "z", "scal_0"], dtype = np.single)
+    # Based on your requirement one can also add "scal_0", "scal_1", ... for the data to read.For now we have only added "x", "y", "z" only.
+    data = read_data(comm, fname_3d, ["x", "y", "z"], dtype = np.single)
 
     # Extract global coordinates of elements
     x_global, y_global, z_global = data["x"], data["y"], data["z"]
+
+    # Determine the size of the data. For now we are using all available data
     size_data = x_global.shape[0]
 
     subset_x, subset_y, subset_z = (arr[:size_data] for arr in (x_global, y_global, z_global))
@@ -54,9 +109,9 @@ def calculate_face_differences(assigned_data):
     Computes face difference vectors for each element.
 
     The function calculates:
-    - r_diff: Difference between front and back faces.
-    - s_diff: Difference between top and bottom faces.
-    - t_diff: Difference between left and right faces.
+        - r_diff: Difference between front and back faces.
+        - s_diff: Difference between top and bottom faces.
+        - t_diff: Difference between left and right faces.
 
     Args:
         assigned_data (np.ndarray): Array containing element coordinates.
@@ -77,9 +132,9 @@ def calculate_face_normals(assigned_data):
     Computes normal vectors for each face of an element.
 
     Extracts:
-    - Front and back face normals.
-    - Left and right face normals.
-    - Top and bottom face normals.
+        - Front and back face normals.
+        - Left and right face normals.
+        - Top and bottom face normals.
 
     Args:
         assigned_data (np.ndarray): Array containing element coordinates.
@@ -129,9 +184,9 @@ def calculate_face_averages(assigned_data):
     Similar to calculate_face_differences, just for re-verification. It computes the average difference vectors for each face.
 
     The function calculates:
-    - r_avg_diff: Averaged difference between front and back faces.
-    - s_avg_diff: Averaged difference between top and bottom faces.
-    - t_avg_diff: Averaged difference between left and right faces.
+        - r_avg_diff: Averaged difference between front and back faces.
+        - s_avg_diff: Averaged difference between top and bottom faces.
+        - t_avg_diff: Averaged difference between left and right faces.
 
     Args:
         assigned_data (np.ndarray): Array containing element coordinates.
@@ -147,23 +202,36 @@ def calculate_face_averages(assigned_data):
     t_avg_diff = t_avg_diff/np.linalg.norm(t_avg_diff, axis=1, keepdims=True)
     return r_avg_diff, s_avg_diff, t_avg_diff
 
-# Method: 1
+# Methods for calculating the face mappings:
+# Method-1
 def face_mappings(cal_r, cal_s, cal_t):
     """
-    Determines face mappings based on directional differences.
+    Determines how each of the three local element axes (r, s, t) should be mapped to the global coordinate axes (x, y, z), based on the dominant 
+    component in their face-to-face difference vectors.
 
-    This function:
-    - Assigns maps local coordinate axes (r,s,t) to global coordinate axes (X,Y,Z).
-    - Determines mappings based on the dominant direction per face.
-    - Ensures unique assignments to avoid duplication.
+    The inputs are (num_elements, 3) arrays:
+        - cal_r: difference vectors between opposing r-faces
+        - cal_s: difference vectors between opposing s-faces
+        - cal_t: difference vectors between opposing t-faces
+        - Each vector contains the x, y, and z components of the difference.
+
+    Algorithm for each element:
+        - Take the absolute value of each component (x, y, z) in r, s, and t
+           to measure the magnitude in each direction.
+        - For each local axis (r, s, t):
+            a. Find the direction (x, y, or z) with the largest magnitude.
+            b. If that global direction is already assigned to another local axis,
+               invalidate it (-inf) and pick the next-largest direction.
+        - Assign each local axis to exactly one unique global axis.
 
     Args:
-        cal_r (np.ndarray): Difference vectors for r faces.
-        cal_s (np.ndarray): Difference vectors for s faces.
-        cal_t (np.ndarray): Difference vectors for t faces.
+        cal_r (np.ndarray): (num_elements, 3) array of r-face difference vectors.
+        cal_s (np.ndarray): (num_elements, 3) array of s-face difference vectors.
+        cal_t (np.ndarray): (num_elements, 3) array of t-face difference vectors.
 
     Returns:
-        List[Tuple[str, str, str]]: Face mappings for each element.
+        list[tuple]: One tuple per element ('x', 'y', 'z'),
+                     indicating how each local axis (r, s, t) maps to global axes.
     """
     num_elements = cal_r.shape[0]
     mappings = []
@@ -197,7 +265,7 @@ def face_mappings(cal_r, cal_s, cal_t):
             mappings.append(tuple(mapping))
     return mappings
 
-# Compare all methods:
+# Compare each method w.r.t reference mapping:
 def compare_mappings(mappings, ref_mapping, method: str):
     """
     Compares computed face mappings against a reference mapping.
@@ -224,6 +292,7 @@ def compare_mappings(mappings, ref_mapping, method: str):
     matching_percentage = (match_count / num_elements) * 100
     # print(f"Rank {rank} has matching percentage of {method} w.r.t ref_mapping_fd {ref_mapping}: {matching_percentage:.2f}%")
 
+# Compare all methods:
 def compare_methods(mappings_fd, mappings_fa):
     """
     Compares face difference-based mappings and face average-based mappings.
@@ -253,9 +322,8 @@ def compare_methods(mappings_fd, mappings_fa):
 def align_normals(normals, normals_pair, direction_type):
     """
     Aligns normal vectors for paired faces.
-
-    - Ensures consistency in direction for paired faces.
-    - Uses a reference normal based on `direction_type` for alignment.
+        - Ensures consistency in direction for paired faces.
+        - Uses a reference normal based on `direction_type` for alignment.
 
     Args:
         normals (np.ndarray): Array of normal vectors (shape: [num_elements, 6, 3]).
@@ -294,10 +362,10 @@ def reduce_face_normals(normals):
     Computes reduced normals for face pairs by ensuring consistency and averaging.
 
     This function:
-    - Separates face normals into paired groups (front/back, left/right, top/bottom).
-    - Aligns normals to maintain consistent orientation.
-    - Normalizes the face normal vectors.
-    - Computes averaged normals for each face pair.
+        - Separates face normals into paired groups (front/back, left/right, top/bottom).
+        - Aligns normals to maintain consistent orientation.
+        - Normalizes the face normal vectors.
+        - Computes averaged normals for each face pair.
 
     Args:
         normals (np.ndarray): Array of normal vectors (shape: [num_elements, 6, 3]).
@@ -329,15 +397,23 @@ def reduce_face_normals(normals):
      
     return averaged_normals
     
-def directions_face_normals(averaged_normals):
+def face_normals_mappings(averaged_normals):
     """
     Determines face normal mappings and flow directions.
-
-    This function:
-    - Assigns maps local coordinate axes (r,s,t) to global coordinate axes (X,Y,Z) based on dominant normal directions.
-    - Ensures unique directional assignment per element.
-    - Identifies the principal flow direction for each element.
-
+    Determines how each of the three local element axes (r, s, t) should be mapped to the global coordinate axes (x, y, z),based on the dominant component of their averaged face normals.
+    Also identifies the principal flow direction for each element.
+    
+    Algorithm for each element:
+        - Take the absolute value of each normal component to measure 
+           magnitude.
+        - For each local axis (r, s, t):
+            a. Find the global axis (x, y, or z) with the largest magnitude.
+            b. If that global axis is already assigned to another local axis,
+               invalidate it (-inf) and pick the next-largest direction.
+            c. Assign the chosen global axis to the current local axis.
+        - While assigning, once the global 'z' axis is assigned, mark that 
+           local axis index as the element's principal flow direction.
+           
     Args:
         averaged_normals (np.ndarray): Array of averaged face normals (shape: [num_elements, 3, 3]).
 
@@ -383,17 +459,19 @@ def directions_face_normals(averaged_normals):
 # Reordering of subset
 def reorder_assigned_data(assigned_data, mappings_fd, ref_mapping_fd):
     """
-    Reorders assigned data to match a reference mapping.
-
-    This function:
-    - Identifies mismatches between computed mappings and the reference mapping.
-    - Applies permutation swaps to correct element order.
-    - Ensures consistency in face assignments across all elements.
+    Reorders each element’s assigned data to match a given reference axis mapping.
+    The assigned data for each element is initially in local (r, s, t) order, which can differ between elements. This function ensures all elements use
+    the same axis order as a reference mapping (taken from rank 0's element 0).
+    For each element:
+        - Compare its current mapping (from mappings_fd) with the reference mapping.
+        - If they differ, determine the permutation needed to match the reference.
+        - Apply the corresponding swap or cycle of axes to reorder the data array.
+        - Leave the element unchanged if it already matches the reference order.
 
     Args:
-        assigned_data (np.ndarray): Array of element data.
-        mappings_fd (List[Tuple[str, str, str]]): Computed face difference mappings.
-        ref_mapping_fd (Tuple[str, str, str]): Reference mapping from rank 0.
+        assigned_data (np.ndarray): Array containing element data, shape: (num_elements, dim, dim, dim, ...).
+        mappings_fd (list[tuple[str, str, str]]): Axis mappings for each element, derived from face differences.
+        ref_mapping_fd (tuple[str, str, str]): Reference mapping tuple from rank 0's element 0.
 
     Returns:
         np.ndarray: Reordered element data matching the reference mapping.
@@ -448,24 +526,25 @@ def reorder_assigned_data(assigned_data, mappings_fd, ref_mapping_fd):
 
 def correct_axis_signs(assigned_data_new, extract_reference_r, extract_reference_s, extract_reference_t, r_diff_new, s_diff_new, t_diff_new):
     """
-    Adjusts the axis signs based on a reference element.
+    Aligns the sign (orientation) of each element's local axes with a reference element.
 
-    This function:
-    - Computes sign consistency using dot products.
-    - Flips axes if mismatched with the reference element.
-    - Ensures all elements conform to the correct axis orientation.
+    After reordering the axes to match the reference mapping, some elements may still have their local axes pointing in the opposite direction. 
+    This function corrects that by:
+        - Comparing each element's "r", "s", "t" difference vectors with the reference vectors using dot products to determine sign alignment.
+        - Flipping the data along the corresponding array axis if the sign is opposite.
+        - Ensuring all elements match the reference element's axis orientations.
 
     Args:
-        assigned_data_new (np.ndarray): Reordered element data.
-        extract_reference_r (np.ndarray): Reference r-axis direction.
-        extract_reference_s (np.ndarray): Reference s-axis direction.
-        extract_reference_t (np.ndarray): Reference t-axis direction.
-        r_diff_new (np.ndarray): Updated r-axis difference vectors.
-        s_diff_new (np.ndarray): Updated s-axis difference vectors.
-        t_diff_new (np.ndarray): Updated t-axis difference vectors.
+        assigned_data_new (np.ndarray): Element data after axis reordering.
+        extract_reference_r (np.ndarray): Reference r-axis direction vector.
+        extract_reference_s (np.ndarray): Reference s-axis direction vector.
+        extract_reference_t (np.ndarray): Reference t-axis direction vector.
+        r_diff_new (np.ndarray): Updated r-axis difference vectors for all elements.
+        s_diff_new (np.ndarray): Updated s-axis difference vectors for all elements.
+        t_diff_new (np.ndarray): Updated t-axis difference vectors for all elements.
 
     Returns:
-        np.ndarray: Corrected element data with aligned axes.
+        np.ndarray: A copy of "assigned_data_new" with all axes orientations corrected to match the reference element
     """
     assigned_data_final = np.copy(assigned_data_new)
 
