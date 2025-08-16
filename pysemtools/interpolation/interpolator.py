@@ -382,7 +382,7 @@ class RMASubWindow:
 
         return result[0]
 
-    def put(self, dest: int = None, data = None, dtype: np.dtype =None, displacement: int = 0, lock: bool = True, unlock: bool = True, flush: bool = True):
+    def put(self, dest: int = None, data = None, dtype: np.dtype =None, displacement: int = 0, lock: bool = True, unlock: bool = True, flush: bool = True, mask: np.ndarray = None):
 
         '''Put data into the buffer at the specified displacement.
         
@@ -411,13 +411,60 @@ class RMASubWindow:
 
         if data.dtype != self.buff.dtype:
             raise ValueError("Data to put and local buffer must have the same item size (same dtype)")
-        
-        byte_displacement = displacement * self.itemsize + self.start_offset
-        byte_count = data.size * self.itemsize
-        if lock: self.win.Lock(dest, MPI.LOCK_EXCLUSIVE)
-        self.win.Put([data.view(np.uint8), MPI.BYTE], dest, [byte_displacement, byte_count, MPI.BYTE]) # Just send bytes
-        if flush: self.win.Flush(dest)
-        if unlock: self.win.Unlock(dest)
+
+        # Send data if no mask is given 
+        mask_size = mask.size if mask is not None else 0
+        if mask is None or mask_size == 0:
+            byte_displacement = displacement * self.itemsize + self.start_offset
+            byte_count = data.size * self.itemsize
+            if lock: self.win.Lock(dest, MPI.LOCK_EXCLUSIVE)
+            self.win.Put([data.view(np.uint8), MPI.BYTE], dest, [byte_displacement, byte_count, MPI.BYTE]) # Just send bytes
+            if flush: self.win.Flush(dest)
+            if unlock: self.win.Unlock(dest)
+
+        # Send masked data if needed without duplicating data
+        elif isinstance(mask, np.ndarray):
+
+            # Determine the masked indices
+            idx = np.flatnonzero(mask)
+            strides = np.array(data.strides, dtype = np.intp)
+            row_size = idx.shape[0]
+            
+            # Perform a chunked send over the mask to avoid memory issues
+            if lock: self.win.Lock(dest, MPI.LOCK_EXCLUSIVE)
+
+            max_message_size = 100 * 1024 * 1024 # 100MB
+            bytes_per_row = strides[0]
+            row_chunk_size = max_message_size // strides[0]
+            byte_displacement = displacement * self.itemsize + self.start_offset
+            for row_chunk in range(0, row_size, row_chunk_size):
+                row_ids = idx[row_chunk:row_chunk + row_chunk_size]
+                row_displacements = row_ids * strides[0]
+                # Create a data type with len(row_displacements) entries long and bytes_per_row in each entry. The data is taken from the original input at the given displacement
+                row_dtype =  MPI.BYTE.Create_hindexed_block(blocklength=bytes_per_row, displacements=row_displacements)
+                row_dtype.Commit()
+                # Send
+                byte_count = row_ids.size * bytes_per_row
+                data_ = data.view()
+                try:
+                    data_.shape = data.size
+                except AttributeError:
+                    raise AttributeError("Error while reshaping the data to send. Make sure your probes are C contiguous")
+                self.win.Put([data_.view(np.uint8), 1, row_dtype], dest, [byte_displacement, byte_count, MPI.BYTE]) # Just send bytes
+                row_dtype.Free()
+                byte_displacement += byte_count
+
+            if flush: self.win.Flush(dest)
+            if unlock: self.win.Unlock(dest)
+    
+    def put_sequence(self, dest: int = None, data : list = None, dtype: np.dtype =None, displacement: int = 0, lock: bool = True, unlock: bool = True, flush: bool = True, mask: np.ndarray = None):
+
+        for idx in range(0, len(data)): 
+            self.put(dest, data[idx], dtype=dtype, displacement=displacement, lock=lock, unlock=unlock, flush=flush, mask=mask)
+            if mask is None:
+                displacement += data[idx].size
+            else:
+                displacement += np.flatnonzero(mask).size * data[idx].strides[0] / data[idx].itemsize # This way since we only mask rows
 
     def get(self, source: int = None, displacement: int = 0, counts: int = None, lock: bool = True, unlock: bool = True, flush: bool = True):
 
@@ -454,7 +501,7 @@ class RMASubWindow:
         self.win.Get([data, MPI.BYTE], source, [byte_displacement, byte_count, MPI.BYTE])
         if flush: self.win.Flush(source)
         if unlock: self.win.Unlock(source)
-        return data.view(self.dtype).copy()
+        return data.view(self.dtype)
 
 class Interpolator:
     """Class that interpolates data from a SEM mesh into a series of points"""
@@ -783,12 +830,12 @@ class Interpolator:
             # Set the necesary arrays for identification of point
             number_of_points = self.probes.shape[0]
             self.probes_rst = np.zeros((number_of_points, 3), dtype=np.double)
-            self.el_owner = np.zeros((number_of_points), dtype=np.int64)
-            self.glb_el_owner = np.zeros((number_of_points), dtype=np.int64)
-            # self.rank_owner = np.zeros((number_of_points), dtype = np.int64)
-            self.rank_owner = np.ones((number_of_points), dtype=np.int64) * -1000
+            self.el_owner = np.zeros((number_of_points), dtype=np.int32)
+            self.glb_el_owner = np.zeros((number_of_points), dtype=np.int32)
+            # self.rank_owner = np.zeros((number_of_points), dtype = np.int32)
+            self.rank_owner = np.ones((number_of_points), dtype=np.int32) * -1000
             self.err_code = np.zeros(
-                (number_of_points), dtype=np.int64
+                (number_of_points), dtype=np.int32
             )  # 0 not found, 1 is found
             self.test_pattern = np.ones(
                 (number_of_points), dtype=np.double
@@ -816,16 +863,16 @@ class Interpolator:
         self.probe_rst_partition = tmp.reshape((int(tmp.size / 3), 3))
         ## Int
         self.el_owner_partition = self.rt.scatter_from_root(
-            self.el_owner, probe_partition_sendcount, io_rank, np.int64
+            self.el_owner, probe_partition_sendcount, io_rank, np.int32
         )
         self.glb_el_owner_partition = self.rt.scatter_from_root(
-            self.glb_el_owner, probe_partition_sendcount, io_rank, np.int64
+            self.glb_el_owner, probe_partition_sendcount, io_rank, np.int32
         )
         self.rank_owner_partition = self.rt.scatter_from_root(
-            self.rank_owner, probe_partition_sendcount, io_rank, np.int64
+            self.rank_owner, probe_partition_sendcount, io_rank, np.int32
         )
         self.err_code_partition = self.rt.scatter_from_root(
-            self.err_code, probe_partition_sendcount, io_rank, np.int64
+            self.err_code, probe_partition_sendcount, io_rank, np.int32
         )
         ## Double
         self.test_pattern_partition = self.rt.scatter_from_root(
@@ -846,18 +893,18 @@ class Interpolator:
         # Set the necesary arrays for identification of point
         number_of_points = self.probes.shape[0]
         self.probes_rst = np.zeros((number_of_points, 3), dtype=np.double)
-        self.el_owner = np.zeros((number_of_points), dtype=np.int64)
-        self.glb_el_owner = np.zeros((number_of_points), dtype=np.int64)
-        # self.rank_owner = np.zeros((number_of_points), dtype = np.int64)
-        self.rank_owner = np.ones((number_of_points), dtype=np.int64) * -1000
+        self.el_owner = np.zeros((number_of_points), dtype=np.int32)
+        self.glb_el_owner = np.zeros((number_of_points), dtype=np.int32)
+        # self.rank_owner = np.zeros((number_of_points), dtype = np.int32)
+        self.rank_owner = np.ones((number_of_points), dtype=np.int32) * -1000
         self.err_code = np.zeros(
-            (number_of_points), dtype=np.int64
+            (number_of_points), dtype=np.int32
         )  # 0 not found, 1 is found
         self.test_pattern = np.ones(
             (number_of_points), dtype=np.double
         )  # test interpolation holder
 
-        self.probe_partition = self.probes
+        self.probe_partition = self.probes.view()
         self.probe_rst_partition = self.probes_rst
         self.el_owner_partition = self.el_owner
         self.glb_el_owner_partition = self.glb_el_owner
@@ -886,19 +933,19 @@ class Interpolator:
         if not isinstance(recvbuf, NoneType):
             self.probes_rst[:, :] = recvbuf.reshape((int(recvbuf.size / 3), 3))[:, :]
         sendbuf = self.el_owner_partition
-        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int64)
+        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int32)
         if not isinstance(recvbuf, NoneType):
             self.el_owner[:] = recvbuf[:]
         sendbuf = self.glb_el_owner_partition
-        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int64)
+        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int32)
         if not isinstance(recvbuf, NoneType):
             self.glb_el_owner[:] = recvbuf[:]
         sendbuf = self.rank_owner_partition
-        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int64)
+        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int32)
         if not isinstance(recvbuf, NoneType):
             self.rank_owner[:] = recvbuf[:]
         sendbuf = self.err_code_partition
-        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int64)
+        recvbuf, _ = self.rt.gather_in_root(sendbuf, root, np.int32)
         if not isinstance(recvbuf, NoneType):
             self.err_code[:] = recvbuf[:]
         sendbuf = self.test_pattern_partition
@@ -1059,11 +1106,11 @@ class Interpolator:
                 test_pattern_not_found = self.test_pattern_partition[not_found]
 
                 # Tell every rank in the broadcaster of the local communicator their actual rank
-                broadcaster_global_rank = np.ones((1), dtype=np.int64) * rank
+                broadcaster_global_rank = np.ones((1), dtype=np.int32) * rank
                 search_comm.Bcast(broadcaster_global_rank, root=broadcaster)
 
                 # Tell every rank how much they need to allocate for the broadcaster bounding boxes
-                nelv_in_broadcaster = np.ones((1), dtype=np.int64) * nelv
+                nelv_in_broadcaster = np.ones((1), dtype=np.int32) * nelv
                 search_comm.Bcast(nelv_in_broadcaster, root=broadcaster)
 
                 # Allocate the recieve buffer for bounding boxes
@@ -1212,16 +1259,16 @@ class Interpolator:
                     el_owner_broadcaster_has,
                     el_owner_sendcount_broadcaster_is_candidate,
                 ) = search_rt.gather_in_root(
-                    el_owner_broadcaster_is_candidate, root, np.int64
+                    el_owner_broadcaster_is_candidate, root, np.int32
                 )
                 glb_el_owner_broadcaster_has, _ = search_rt.gather_in_root(
-                    glb_el_owner_broadcaster_is_candidate, root, np.int64
+                    glb_el_owner_broadcaster_is_candidate, root, np.int32
                 )
                 rank_owner_broadcaster_has, _ = search_rt.gather_in_root(
-                    rank_owner_broadcaster_is_candidate, root, np.int64
+                    rank_owner_broadcaster_is_candidate, root, np.int32
                 )
                 err_code_broadcaster_has, _ = search_rt.gather_in_root(
-                    err_code_broadcaster_is_candidate, root, np.int64
+                    err_code_broadcaster_is_candidate, root, np.int32
                 )
                 test_pattern_broadcaster_has, _ = search_rt.gather_in_root(
                     test_pattern_broadcaster_is_candidate, root, np.double
@@ -1318,7 +1365,7 @@ class Interpolator:
                     sendbuf,
                     el_owner_sendcount_broadcaster_is_candidate,
                     root,
-                    np.int64,
+                    np.int32,
                 )
                 el_owner_broadcaster_is_candidate[:] = recvbuf[:]
                 if search_rank == root:
@@ -1330,7 +1377,7 @@ class Interpolator:
                     sendbuf,
                     el_owner_sendcount_broadcaster_is_candidate,
                     root,
-                    np.int64,
+                    np.int32,
                 )
                 glb_el_owner_broadcaster_is_candidate[:] = recvbuf[:]
                 if search_rank == root:
@@ -1341,7 +1388,7 @@ class Interpolator:
                     sendbuf,
                     el_owner_sendcount_broadcaster_is_candidate,
                     root,
-                    np.int64,
+                    np.int32,
                 )
                 rank_owner_broadcaster_is_candidate[:] = recvbuf[:]
                 if search_rank == root:
@@ -1352,7 +1399,7 @@ class Interpolator:
                     sendbuf,
                     el_owner_sendcount_broadcaster_is_candidate,
                     root,
-                    np.int64,
+                    np.int32,
                 )
                 err_code_broadcaster_is_candidate[:] = recvbuf[:]
                 if search_rank == root:
@@ -1503,7 +1550,7 @@ class Interpolator:
             destination=my_dest, data=p_probes, dtype=np.double, tag=1
         )
         _, buff_p_info = self.rt.transfer_data(comm_pattern,
-            destination=my_dest, data=p_info, dtype=np.int64, tag=2
+            destination=my_dest, data=p_info, dtype=np.int32, tag=2
         )
         _, buff_test_pattern = self.rt.transfer_data(comm_pattern,
             destination=my_dest, data=test_pattern_not_found, dtype=np.double, tag=3
@@ -1581,7 +1628,7 @@ class Interpolator:
             destination=my_source, data=p_buff_probes, dtype=np.double, tag=11
         )
         _, obuff_p_info = self.rt.transfer_data( comm_pattern,
-            destination=my_source, data=p_buff_info, dtype=np.int64, tag=12
+            destination=my_source, data=p_buff_info, dtype=np.int32, tag=12
         )
         _, obuff_test_pattern = self.rt.transfer_data( comm_pattern,
             destination=my_source, data=buff_test_pattern, dtype=np.double, tag=13
@@ -1716,7 +1763,7 @@ class Interpolator:
         my_dest, candidate_ranks_list = get_candidate_ranks(self, comm)
         
         self.log.write("info", "Determining maximun number of candidates")
-        max_candidates = np.ones((1), dtype=np.int64) * len(my_dest)
+        max_candidates = np.ones((1), dtype=np.int32) * len(my_dest)
         max_candidates = comm.allreduce(max_candidates, op=MPI.MAX)
         if batch_size > max_candidates[0]: batch_size = max_candidates[0]
          
@@ -1786,7 +1833,7 @@ class Interpolator:
                 destination=my_it_dest, data=p_probes, dtype=np.double, tag=1
             )
             _, buff_p_info = self.rt.transfer_data(comm_pattern,
-                destination=my_it_dest, data=p_info, dtype=np.int64, tag=2
+                destination=my_it_dest, data=p_info, dtype=np.int32, tag=2
             )
             _, buff_test_pattern = self.rt.transfer_data(comm_pattern,
                 destination=my_it_dest, data=test_pattern_not_found, dtype=np.double, tag=3
@@ -1864,7 +1911,7 @@ class Interpolator:
                 destination=my_source, data=p_buff_probes, dtype=np.double, tag=11
             )
             _, obuff_p_info = self.rt.transfer_data( comm_pattern,
-                destination=my_source, data=p_buff_info, dtype=np.int64, tag=12
+                destination=my_source, data=p_buff_info, dtype=np.int32, tag=12
             )
             _, obuff_test_pattern = self.rt.transfer_data( comm_pattern,
                 destination=my_source, data=buff_test_pattern, dtype=np.double, tag=13
@@ -2014,13 +2061,15 @@ class Interpolator:
         # These are the destination ranks
         self.log.write("info", "Obtaining candidate ranks and sources")
         my_dest, candidate_ranks_list = get_candidate_ranks(self, comm)
-        #my_dest_ = [comm.Get_rank()] + my_dest
-        #my_dest = []
-        #for _, d in enumerate(my_dest_):
-        #    if d not in my_dest:
-        #        my_dest.append(d)
+        # Put my own rank first if it is in the list
+        if comm.Get_rank() in my_dest:
+            my_dest_ = [comm.Get_rank()] + my_dest
+            my_dest = []
+            for _, d in enumerate(my_dest_):
+                if d not in my_dest:
+                    my_dest.append(d)
 
-        max_candidates = np.ones((1), dtype=np.int64) * len(my_dest)
+        max_candidates = np.ones((1), dtype=np.int32) * len(my_dest)
         max_candidates = comm.allreduce(max_candidates, op=MPI.MAX)
         if batch_size > max_candidates[0]: batch_size = max_candidates[0]
         self.log.write("info", f"Max candidates in a rank was: {max_candidates}")
@@ -2036,31 +2085,35 @@ class Interpolator:
         # Initialize windows
         ## Find sizes    
         mask = (self.err_code_partition != 1)
-        combined_mask = mask
-        total_not_found = np.flatnonzero(combined_mask)        
+        total_not_found = np.flatnonzero(mask)     
         total_n_not_found = total_not_found.size
-        local_pack_info = np.array([total_n_not_found*2*3, total_n_not_found*4, total_n_not_found], dtype=np.int64)
-        recvbuff, scounts = self.rt.all_gather(data=local_pack_info, dtype=np.int64)
-        probe_packs = recvbuff[::3]
-        info_packs = recvbuff[1::3]
-        test_pattern_packs = recvbuff[2::3]
-        max_info_pack = np.max(info_packs)
-        max_probe_pack = np.max(probe_packs)
-        max_test_pattern_pack = np.max(test_pattern_packs)
-
+        ## Check how many points need to be send to the most popular rank
+        max_points_to_send = 0
+        for dest in my_dest:    
+            candidate_mask = np.any(candidates_per_point == dest, axis=1)
+            combined_mask = mask & candidate_mask
+            not_found_at_this_candidate = np.flatnonzero(combined_mask)    
+            n_not_found_at_this_candidate = not_found_at_this_candidate.size
+            if max_points_to_send < n_not_found_at_this_candidate:
+                max_points_to_send = n_not_found_at_this_candidate
+        ## see how much memory should be allocated per window (in number of items of a data type to be defined later)
+        max_points_to_allocate = self.rt.comm.allreduce(max_points_to_send, op=MPI.MAX)
+        max_probe_pack = max_points_to_allocate*2*3
+        max_info_pack = max_points_to_allocate*4 
+        max_test_pattern_pack = max_points_to_allocate
         ## Create windows    
         rma_inputs = { "search_done": {"window_size": comm.Get_size(), "dtype": np.int32, "fill_value": 0},
                         "find_busy": {"window_size": 1, "dtype": np.int32, "fill_value": -1},
                         "find_done": {"window_size": 1, "dtype": np.int32, "fill_value": -1},
                         "find_n_not_found": {"window_size": 1, "dtype": np.int64, "fill_value": 0},
                         "find_p_probes": {"window_size": max_probe_pack, "dtype": np.double, "fill_value": None},
-                        "find_p_info": {"window_size": max_info_pack, "dtype": np.int64, "fill_value": None},
+                        "find_p_info": {"window_size": max_info_pack, "dtype": np.int32, "fill_value": None},
                         "find_test_pattern": {"window_size": max_test_pattern_pack, "dtype": np.double, "fill_value": None},
                         "verify_busy": {"window_size": 1, "dtype": np.int32, "fill_value": -1},
                         "verify_done": {"window_size": 1, "dtype": np.int32, "fill_value": -1},
                         "verify_n_not_found": {"window_size": 1, "dtype": np.int64, "fill_value": 0},
                         "verify_p_probes": {"window_size": max_probe_pack, "dtype": np.double, "fill_value": None},
-                        "verify_p_info": {"window_size": max_info_pack, "dtype": np.int64, "fill_value": None},
+                        "verify_p_info": {"window_size": max_info_pack, "dtype": np.int32, "fill_value": None},
                         "verify_test_pattern": {"window_size": max_test_pattern_pack, "dtype": np.double, "fill_value": None}
                       }
         rma = RMAWindow(self.rt.comm, rma_inputs)
@@ -2069,12 +2122,16 @@ class Interpolator:
         search_iteration = -1
         search_flag = True  
         # Check if all ranks are done
-        keep_searching = np.zeros((1), dtype=np.int64)
+        keep_searching = np.zeros((1), dtype=np.int32)
         am_i_done = False
         i_sent_data = False
-        search_time = 0.0
         last_log = 0
         log_entry = 1
+        self.data_in_transit = {"dummy": False}
+        self.points_sent = {}
+        checked_data = False
+        returned_data = False
+        comm.Barrier()
         while search_flag:
             search_iteration += 1
 
@@ -2105,9 +2162,9 @@ class Interpolator:
                 am_i_done = True
  
             # Send points if you need to
-            if total_n_not_found > 0 and (len(my_dest) != len(self.ranks_ive_checked)) and (not i_sent_data):
+            if total_n_not_found > 0 and (len(my_dest) != len(self.ranks_ive_checked)):
                 for dest in my_dest:
-                    if dest not in self.ranks_ive_checked:
+                    if dest not in self.ranks_ive_checked and dest not in self.ranks_ive_sent_to:
                         # Check if the destination rank is busy
                         busy_buff = rma.find_busy.compare_and_swap(value_to_check=-1, value_to_put=self.rt.comm.Get_rank(), dest=dest)
 
@@ -2125,106 +2182,95 @@ class Interpolator:
                         #    rma.find_busy.put(dest=dest, data=-1, dtype=np.int32)
                         #    self.ranks_ive_checked.append(dest)
                         #    continue
-
-                        # Get only the relevant data
-                        probe_not_found = self.probe_partition[not_found_at_this_candidate]
-                        probe_rst_not_found = self.probe_rst_partition[not_found_at_this_candidate]
-                        el_owner_not_found = self.el_owner_partition[not_found_at_this_candidate]
-                        glb_el_owner_not_found = self.glb_el_owner_partition[not_found_at_this_candidate]
-                        rank_owner_not_found = self.rank_owner_partition[not_found_at_this_candidate]
-                        err_code_not_found = self.err_code_partition[not_found_at_this_candidate]
-                        test_pattern_not_found = self.test_pattern_partition[not_found_at_this_candidate]
-    
-                        # Pack and send/recv the probe data
-                        p_probes = pack_data(array_list=[probe_not_found, probe_rst_not_found])
-                        p_info = pack_data(array_list=[el_owner_not_found, glb_el_owner_not_found, rank_owner_not_found, err_code_not_found])
-
+ 
                         # Send the data - Lock communication in first instance and flush/unlock in the last one
                         rma.find_n_not_found.put(dest=dest, data = n_not_found_at_this_candidate, dtype=np.int64, lock=True, flush=False, unlock=False)
-                        rma.find_p_probes.put(dest=dest, data = p_probes, lock=False, flush=False, unlock=False)
-                        rma.find_p_info.put(dest=dest, data = p_info, lock=False, flush=False, unlock=False)
-                        rma.find_test_pattern.put(dest=dest, data = test_pattern_not_found, lock=False, flush=False, unlock=False)
+                        rma.find_p_probes.put_sequence(dest, data = [self.probe_partition, self.probe_rst_partition], lock=False, flush=False, unlock=False, mask=combined_mask)
+                        rma.find_p_info.put_sequence(dest, data = [self.el_owner_partition, self.glb_el_owner_partition, self.rank_owner_partition, self.err_code_partition], lock=False, flush=False, unlock=False, mask=combined_mask)
+                        rma.find_test_pattern.put(dest=dest, data = self.test_pattern_partition, lock=False, flush=False, unlock=False, mask = combined_mask)
                         rma.find_done.put(dest=dest, data = 1, dtype=np.int32, lock=False, flush=True, unlock=True)
 
                         # Store variables for later
-                        i_sent_data = True
-                        i_sent_data_to = dest
-                        self.ranks_ive_sent_to.append(dest)
-                        
-                        # Break the loop so only send to one rank
-                        break
+                        self.ranks_ive_sent_to.append(dest) 
+                        self.data_in_transit[int(dest)] = True
+                        self.points_sent[int(dest)] = not_found_at_this_candidate
+
+                        # If it is the first iteration, and I have to check in my rank, then do not send to anyone else yet.
+                        # This is to avoid sending excesive data to others in mesh to mesh interpolation
+                        if search_iteration == 0 and dest == self.rt.comm.Get_rank():
+                            break # Get out of the send loop
 
             # Now find points from other ranks if anyone has sent me data
             if rma.find_busy.buff[0] != -1 and rma.find_done.buff[0] == 1:
-                my_source = [rma.find_busy.buff[0].copy()]
-                # Give it the correct format.
-                buff_probes, buff_probes_rst = unpack_source_data(packed_source_data=[rma.find_p_probes.buff[:rma.find_n_not_found.buff[0]*2*3].copy()], number_of_arrays=2, equal_length=True, final_shape=(-1, 3))
-                buff_el_owner, buff_glb_el_owner, buff_rank_owner, buff_err_code = unpack_source_data(packed_source_data=[rma.find_p_info.buff[:rma.find_n_not_found.buff[0]*4]].copy(), number_of_arrays=4, equal_length=True)
-                buff_test_pattern = [rma.find_test_pattern.buff[:rma.find_n_not_found.buff[0]].copy()]
+                if not checked_data:
+                    my_source = [rma.find_busy.buff[0].copy()]
+                    # Give it the correct format.
+                    buff_probes, buff_probes_rst = unpack_source_data(packed_source_data=[rma.find_p_probes.buff[:rma.find_n_not_found.buff[0]*2*3].view()], number_of_arrays=2, equal_length=True, final_shape=(-1, 3))
+                    buff_el_owner, buff_glb_el_owner, buff_rank_owner, buff_err_code = unpack_source_data(packed_source_data=[rma.find_p_info.buff[:rma.find_n_not_found.buff[0]*4].view()], number_of_arrays=4, equal_length=True)
+                    buff_test_pattern = [rma.find_test_pattern.buff[:rma.find_n_not_found.buff[0]].view()]
 
-                # Set the information for the coordinate search in this rank
-                mesh_info = {}
-                mesh_info["x"] = self.x
-                mesh_info["y"] = self.y
-                mesh_info["z"] = self.z
-                mesh_info["bbox"] = self.my_bbox
-                if hasattr(self, "my_tree"):
-                    mesh_info["kd_tree"] = self.my_tree
-                if hasattr(self, "my_bbox_maxdist"):
-                    mesh_info["bbox_max_dist"] = self.my_bbox_maxdist
-                if hasattr(self, "local_data_structure"):
-                    mesh_info["local_data_structure"] = self.local_data_structure
+                    # Set the information for the coordinate search in this rank
+                    mesh_info = {}
+                    mesh_info["x"] = self.x
+                    mesh_info["y"] = self.y
+                    mesh_info["z"] = self.z
+                    mesh_info["bbox"] = self.my_bbox
+                    if hasattr(self, "my_tree"):
+                        mesh_info["kd_tree"] = self.my_tree
+                    if hasattr(self, "my_bbox_maxdist"):
+                        mesh_info["bbox_max_dist"] = self.my_bbox_maxdist
+                    if hasattr(self, "local_data_structure"):
+                        mesh_info["local_data_structure"] = self.local_data_structure
 
-                settings = {}
-                settings["not_found_code"] = -10
-                settings["use_test_pattern"] = True
-                settings["elem_percent_expansion"] = elem_percent_expansion
-                settings["progress_bar"] = self.progress_bar
-                settings["find_pts_tol"] = tol
-                settings["find_pts_max_iterations"] = max_iter
+                    settings = {}
+                    settings["not_found_code"] = -10
+                    settings["use_test_pattern"] = True
+                    settings["elem_percent_expansion"] = elem_percent_expansion
+                    settings["progress_bar"] = self.progress_bar
+                    settings["find_pts_tol"] = tol
+                    settings["find_pts_max_iterations"] = max_iter
 
-                buffers = {}
-                buffers["r"] = self.r
-                buffers["s"] = self.s
-                buffers["t"] = self.t
-                buffers["test_interp"] = self.test_interp
+                    buffers = {}
+                    buffers["r"] = self.r
+                    buffers["s"] = self.s
+                    buffers["t"] = self.t
+                    buffers["test_interp"] = self.test_interp
 
-                # Now find the rst coordinates for the points stored in each of the buffers
-                for source_index in range(0, len(my_source)):
+                    # Now find the rst coordinates for the points stored in each of the buffers
+                    for source_index in range(0, len(my_source)):
 
-                    self.log.write(
-                        "debug", f"Processing batch: {source_index} out of {len(my_source)}"
-                    )
+                        self.log.write(
+                            "debug", f"Processing batch: {source_index} out of {len(my_source)}"
+                        )
 
-                    if rma.find_n_not_found.buff[0] != 0:
+                        if rma.find_n_not_found.buff[0] != 0:
 
-                        probes_info = {}
-                        probes_info["probes"] = buff_probes[source_index]
-                        probes_info["probes_rst"] = buff_probes_rst[source_index]
-                        probes_info["el_owner"] = buff_el_owner[source_index]
-                        probes_info["glb_el_owner"] = buff_glb_el_owner[source_index]
-                        probes_info["rank_owner"] = buff_rank_owner[source_index]
-                        probes_info["err_code"] = buff_err_code[source_index]
-                        probes_info["test_pattern"] = buff_test_pattern[source_index]
-                        probes_info["rank"] = rank
-                        probes_info["offset_el"] = self.offset_el
-                        [
-                            buff_probes[source_index],
-                            buff_probes_rst[source_index],
-                            buff_el_owner[source_index],
-                            buff_glb_el_owner[source_index],
-                            buff_rank_owner[source_index],
-                            buff_err_code[source_index],
-                            buff_test_pattern[source_index],
-                        ] = self.ei.find_rst(probes_info, mesh_info, settings, buffers=buffers)
-                
-                # Pack and send/recv the probe data
-                p_buff_probes = pack_destination_data(destination_data=[buff_probes, buff_probes_rst])
-                p_buff_info = pack_destination_data(destination_data=[buff_el_owner, buff_glb_el_owner, buff_rank_owner, buff_err_code])
+                            probes_info = {}
+                            probes_info["probes"] = buff_probes[source_index]
+                            probes_info["probes_rst"] = buff_probes_rst[source_index]
+                            probes_info["el_owner"] = buff_el_owner[source_index]
+                            probes_info["glb_el_owner"] = buff_glb_el_owner[source_index]
+                            probes_info["rank_owner"] = buff_rank_owner[source_index]
+                            probes_info["err_code"] = buff_err_code[source_index]
+                            probes_info["test_pattern"] = buff_test_pattern[source_index]
+                            probes_info["rank"] = rank
+                            probes_info["offset_el"] = self.offset_el
+                            [
+                                buff_probes[source_index],
+                                buff_probes_rst[source_index],
+                                buff_el_owner[source_index],
+                                buff_glb_el_owner[source_index],
+                                buff_rank_owner[source_index],
+                                buff_err_code[source_index],
+                                buff_test_pattern[source_index],
+                            ] = self.ei.find_rst(probes_info, mesh_info, settings, buffers=buffers)
+                    
+                    # Reset the flag
+                    checked_data = True
+                    returned_data = False
 
                 # Send the data back to the source rank - Follow the same handshake as before, but this time, do not try to get a new rank if this one is busy. Simply wait until it can recieve data
-                returned_data = False
-                while not returned_data:
+                if not returned_data:
 
                     # Check if the destination rank is busy
                     busy_buff = rma.verify_busy.compare_and_swap(value_to_check=-1, value_to_put=self.rt.comm.Get_rank(), dest=my_source[0])
@@ -2235,32 +2281,38 @@ class Interpolator:
 
                         # Put the data back - Lock communication in first instance and flush/unlock in the last one
                         n_checked = rma.find_n_not_found.buff[0]
+                        # Mask to send all the data
+                        mask = np.ones((n_checked,), dtype=bool)
+
                         rma.verify_n_not_found.put(dest=my_source[0], data = n_checked, dtype=np.int64, lock=True, flush=False, unlock=False)
-                        rma.verify_p_probes.put(dest=my_source[0], data = p_buff_probes[0], lock=False, flush=False, unlock=False)
-                        rma.verify_p_info.put(dest=my_source[0], data = p_buff_info[0], lock=False, flush=False, unlock=False)
-                        rma.verify_test_pattern.put(dest=my_source[0], data = buff_test_pattern[0], lock=False, flush=False, unlock=False)
+                        rma.verify_p_probes.put_sequence(dest=my_source[0], data = [buff_probes[0], buff_probes_rst[0]], lock=False, flush=False, unlock=False, mask=mask)
+                        rma.verify_p_info.put_sequence(dest=my_source[0], data = [buff_el_owner[0], buff_glb_el_owner[0], buff_rank_owner[0], buff_err_code[0]], lock=False, flush=False, unlock=False, mask=mask)
+                        rma.verify_test_pattern.put(dest=my_source[0], data = buff_test_pattern[0], lock=False, flush=False, unlock=False) 
                         rma.verify_done.put(dest=my_source[0], data = 1, dtype=np.int32, lock=False, flush=True, unlock=True)
 
                         # Signal that my buffer is now ready to be used to find points
                         rma.find_busy.put(dest=self.rt.comm.Get_rank(), data=-1, dtype=np.int32, lock=True, flush=False, unlock=False)
                         rma.find_done.put(dest=self.rt.comm.Get_rank(), data=-1, dtype=np.int32, lock=False, flush=False, unlock=False)
                         rma.find_n_not_found.put(dest=self.rt.comm.Get_rank(), data= 0, dtype=np.int64, lock=False, flush=True, unlock=True)
+                        
+                        # Reset flags
+                        checked_data = False
                         returned_data = True
 
-
-            if i_sent_data and rma.verify_busy.buff[0] == i_sent_data_to and rma.verify_done.buff[0] == 1:
+            i_sent_data = np.any([self.data_in_transit[dest_] for dest_ in self.ranks_ive_sent_to])
+            if i_sent_data and rma.verify_busy.buff[0] != -1 and rma.verify_done.buff[0] == 1:
                 # The previous loop will wait until there is data here. So we can continue
                 # Give it the correct format.
-                obuff_probes, obuff_probes_rst = unpack_source_data(packed_source_data=[rma.verify_p_probes.buff[:rma.verify_n_not_found.buff[0]*2*3].copy()], number_of_arrays=2, equal_length=True, final_shape=(-1, 3))
-                obuff_el_owner, obuff_glb_el_owner, obuff_rank_owner, obuff_err_code = unpack_source_data(packed_source_data=[rma.verify_p_info.buff[:rma.verify_n_not_found.buff[0]*4]].copy(), number_of_arrays=4, equal_length=True)
-                obuff_test_pattern = [rma.verify_test_pattern.buff[:rma.verify_n_not_found.buff[0]].copy()]
+                obuff_probes, obuff_probes_rst = unpack_source_data(packed_source_data=[rma.verify_p_probes.buff[:rma.verify_n_not_found.buff[0]*2*3].view()], number_of_arrays=2, equal_length=True, final_shape=(-1, 3))
+                obuff_el_owner, obuff_glb_el_owner, obuff_rank_owner, obuff_err_code = unpack_source_data(packed_source_data=[rma.verify_p_info.buff[:rma.verify_n_not_found.buff[0]*4].view()], number_of_arrays=4, equal_length=True)
+                obuff_test_pattern = [rma.verify_test_pattern.buff[:rma.verify_n_not_found.buff[0]].view()]
 
                 # Signal that my buffer is now ready to be used to find points
-                self.ranks_ive_checked.append(rma.verify_busy.buff[0])
+                self.ranks_ive_checked.append(int(rma.verify_busy.buff[0]))
 
                 # Now loop through all the points in the buffers that
                 # have been sent back and determine which point was found
-                for relative_point, absolute_point  in enumerate(not_found_at_this_candidate):
+                for relative_point, absolute_point  in enumerate(self.points_sent[int(rma.verify_busy.buff[0])]):
 
                     # These are the error code and test patterns for
                     # this point from all the ranks that sent back
@@ -2295,7 +2347,7 @@ class Interpolator:
                         min_test_pattern = np.array([])
                     if min_test_pattern.size > 0:
                         index = min_test_pattern[0]
-                        if obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]:
+                        if (obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]) and (self.err_code_partition[absolute_point] != 1):
                             self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                             self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
                             self.el_owner_partition[absolute_point] = obuff_el_owner[index][relative_point]
@@ -2310,8 +2362,7 @@ class Interpolator:
                 rma.verify_n_not_found.put(dest = self.rt.comm.Get_rank(), data = 0, dtype=np.int64, lock=False, flush=True, unlock=True)
 
                 # Reset some of the flags
-                i_sent_data = False
-                i_sent_data_to = -1
+                self.data_in_transit[int(rma.verify_busy.buff[0])] = False
 
                 if len(self.ranks_ive_checked) == len(my_dest) and not am_i_done:
                     # Say that this rank is done
@@ -2412,7 +2463,7 @@ class Interpolator:
             sendbuf = sorted_err_code.reshape((sorted_err_code.size))
         else:
             sendbuf = None
-        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int64)
+        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int32)
         my_err_code = recvbuf
 
         # Redistribute el_owner
@@ -2422,7 +2473,7 @@ class Interpolator:
             # print(sendbuf)
         else:
             sendbuf = None
-        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int64)
+        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int32)
         # print(recvbuf)
         my_el_owner = recvbuf
 
@@ -2432,7 +2483,7 @@ class Interpolator:
             sendbuf = sorted_rank_owner.reshape((sorted_rank_owner.size))
         else:
             sendbuf = None
-        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int64)
+        recvbuf = self.rt.scatter_from_root(sendbuf, sendcounts, root, np.int32)
         my_rank_owner = recvbuf
 
         self.log.write("info", "Assigning my data")
@@ -2495,22 +2546,23 @@ class Interpolator:
                 err_code_data.append(err_code[probes_to_send_to_this_rank])
 
         # Send the data to the destinations
-        sources, source_probes = self.rt.all_to_all(
-            destination=destinations, data=probe_data, dtype=probe_data[0].dtype
+        sources, source_probes = self.rt.send_recv(
+            destination=destinations, data=probe_data, dtype=probe_data[0].dtype, tag=1
         )
-        _, source_probes_rst = self.rt.all_to_all(
-            destination=destinations, data=probe_rst_data, dtype=probe_rst_data[0].dtype
+        _, source_probes_rst = self.rt.send_recv(
+            destination=destinations, data=probe_rst_data, dtype=probe_rst_data[0].dtype, tag=2
         )
-        _, source_el_owner = self.rt.all_to_all(
-            destination=destinations, data=el_owner_data, dtype=el_owner_data[0].dtype
+        _, source_el_owner = self.rt.send_recv(
+            destination=destinations, data=el_owner_data, dtype=el_owner_data[0].dtype, tag=3
         )
-        _, source_rank_owner = self.rt.all_to_all(
+        _, source_rank_owner = self.rt.send_recv(
             destination=destinations,
             data=rank_owner_data,
             dtype=rank_owner_data[0].dtype,
+            tag=4,
         )
-        _, source_err_code = self.rt.all_to_all(
-            destination=destinations, data=err_code_data, dtype=err_code_data[0].dtype
+        _, source_err_code = self.rt.send_recv(
+            destination=destinations, data=err_code_data, dtype=err_code_data[0].dtype, tag=5
         )
 
         # Then reshape the data form the probes
@@ -3062,9 +3114,10 @@ def unpack_data(packed_data: np.ndarray = None, number_of_arrays: int = None, eq
         for i in range(number_of_arrays):
             start_index = i * array_size
             end_index = (i + 1) * array_size
-            upacked = packed_data[start_index:end_index]
+            upacked = packed_data[start_index:end_index].view()
             if final_shape is not None:
-                unpacked_data.append(upacked.reshape(final_shape))
+                upacked.shape = final_shape
+                unpacked_data.append(upacked)
             else:   
                 unpacked_data.append(upacked)
     else:
@@ -3389,146 +3442,150 @@ class dstructure_hashtable(dstructure):
 
         return element_candidates
 
-def refine_candidates(probes, candidate_elements, bboxes, rel_tol = 0.01):
+def refine_candidates(probes, candidate_elements, bboxes, rel_tol = 0.01, max_batch_size = 256):
     """
     Refine candidate elements for each probe by keeping only those where the probe 
     lies within the corresponding expanded bounding box.
     
     """
-    # Flatten the candidate_elements lists, creating arrays that record for each candidate
-    # the corresponding probe index and candidate bbox index.
-    probe_indices = []
-    candidate_indices = []
-    
-    for i, cands in enumerate(candidate_elements):
-        if cands:  # if this probe has candidate bbox indices
-            probe_indices.extend([i] * len(cands))
-            candidate_indices.extend(cands)
-            
-    probe_indices = np.array(probe_indices)  # shape: (total_num_candidates,)
-    candidate_indices = np.array(candidate_indices)  # shape: (total_num_candidates,)
-    
-    # If no candidates exist overall, return a list of empty lists.
-    if probe_indices.size == 0:
-        return [[] for _ in range(probes.shape[0])]
-    
-    # Get the corresponding probes and bounding boxes for all candidate pairs.
-    pts = probes[probe_indices]           # shape: (total_num_candidates, 3)
-    candidate_bboxes = bboxes[candidate_indices]  # shape: (total_num_candidates, 6)
-    
-    # Compute the expanded boundaries for each candidate bbox.
-    if rel_tol > 1e-6:
-        # For x dimension:
-        dx = candidate_bboxes[:, 1] - candidate_bboxes[:, 0]
-        tol_x = dx * rel_tol / 2.0
-        lower_x = candidate_bboxes[:, 0] - tol_x
-        upper_x = candidate_bboxes[:, 1] + tol_x
-
-        # For y dimension:
-        dy = candidate_bboxes[:, 3] - candidate_bboxes[:, 2]
-        tol_y = dy * rel_tol / 2.0
-        lower_y = candidate_bboxes[:, 2] - tol_y
-        upper_y = candidate_bboxes[:, 3] + tol_y
-
-        # For z dimension:
-        dz = candidate_bboxes[:, 5] - candidate_bboxes[:, 4]
-        tol_z = dz * rel_tol / 2.0
-        lower_z = candidate_bboxes[:, 4] - tol_z
-        upper_z = candidate_bboxes[:, 5] + tol_z
-    else:
-        # No expansion needed, use original boundaries
-        lower_x = candidate_bboxes[:, 0]
-        upper_x = candidate_bboxes[:, 1]
-        lower_y = candidate_bboxes[:, 2]
-        upper_y = candidate_bboxes[:, 3]
-        lower_z = candidate_bboxes[:, 4]
-        upper_z = candidate_bboxes[:, 5]
-    
-    # Vectorized check: create a boolean mask indicating which candidate pair passes
-    valid_mask = ((pts[:, 0] >= lower_x) & (pts[:, 0] <= upper_x) &
-                  (pts[:, 1] >= lower_y) & (pts[:, 1] <= upper_y) &
-                  (pts[:, 2] >= lower_z) & (pts[:, 2] <= upper_z))
-    
-    # Filter the probe and candidate indices according to the valid mask.
-    valid_probe_indices = probe_indices[valid_mask]
-    valid_candidate_indices = candidate_indices[valid_mask]
-    
     # Initialize the output list with empty lists for each probe.
     refined_candidates = [[] for _ in range(probes.shape[0])]
-    
-    # Sort the valid candidate pairs by the probe index to group them together.
-    order = np.argsort(valid_probe_indices)
-    valid_probe_sorted = valid_probe_indices[order]
-    valid_candidate_sorted = valid_candidate_indices[order]
-    
-    # Use np.unique to get the boundaries for each probe in the sorted array.
-    unique_probes, start_idx, counts = np.unique(valid_probe_sorted, 
-                                                 return_index=True, 
-                                                 return_counts=True)
-    
-    # Fill the refined_candidates for each probe.
-    for probe, idx, count in zip(unique_probes, start_idx, counts):
-        refined_candidates[probe] = valid_candidate_sorted[idx: idx + count].tolist()
-    
+    start = 0
+    end = probes.shape[0]
+
+    while start < end:
+        probe_indices = []
+        candidate_indices = []
+        it_entries = 0    
+        for i in range(start, end):
+            cands = candidate_elements[i]
+            if cands:  # if this probe has candidate bbox indices
+                probe_indices.extend([i] * len(cands))
+                candidate_indices.extend(cands)
+                it_entries += len(cands)
+
+            if it_entries > max_batch_size:
+                break
+
+        start = i + 1
+        probe_indices = np.array(probe_indices)  # shape: (total_num_candidates,)
+        candidate_indices = np.array(candidate_indices)  # shape: (total_num_candidates,)
+        
+        # If no candidates exist overall, return a list of empty lists.
+        if probe_indices.size == 0:
+            return refined_candidates
+        
+        # Get the corresponding probes and bounding boxes for all candidate pairs.
+        pts = probes[probe_indices]           # shape: (total_num_candidates, 3)
+        candidate_bboxes = bboxes[candidate_indices]  # shape: (total_num_candidates, 6)
+        
+        # Compute the expanded boundaries for each candidate bbox.
+        if rel_tol > 1e-6:
+            # For x dimension:
+            dx = candidate_bboxes[:, 1] - candidate_bboxes[:, 0]
+            tol_x = dx * rel_tol / 2.0
+            lower_x = candidate_bboxes[:, 0] - tol_x
+            upper_x = candidate_bboxes[:, 1] + tol_x
+
+            # For y dimension:
+            dy = candidate_bboxes[:, 3] - candidate_bboxes[:, 2]
+            tol_y = dy * rel_tol / 2.0
+            lower_y = candidate_bboxes[:, 2] - tol_y
+            upper_y = candidate_bboxes[:, 3] + tol_y
+
+            # For z dimension:
+            dz = candidate_bboxes[:, 5] - candidate_bboxes[:, 4]
+            tol_z = dz * rel_tol / 2.0
+            lower_z = candidate_bboxes[:, 4] - tol_z
+            upper_z = candidate_bboxes[:, 5] + tol_z
+        else:
+            # No expansion needed, use original boundaries
+            lower_x = candidate_bboxes[:, 0]
+            upper_x = candidate_bboxes[:, 1]
+            lower_y = candidate_bboxes[:, 2]
+            upper_y = candidate_bboxes[:, 3]
+            lower_z = candidate_bboxes[:, 4]
+            upper_z = candidate_bboxes[:, 5]
+        
+        # Vectorized check: create a boolean mask indicating which candidate pair passes
+        valid_mask = ((pts[:, 0] >= lower_x) & (pts[:, 0] <= upper_x) &
+                    (pts[:, 1] >= lower_y) & (pts[:, 1] <= upper_y) &
+                    (pts[:, 2] >= lower_z) & (pts[:, 2] <= upper_z))
+        
+        # Filter the probe and candidate indices according to the valid mask.
+        valid_probe_indices = probe_indices[valid_mask]
+        valid_candidate_indices = candidate_indices[valid_mask]
+        
+        # Sort the valid candidate pairs by the probe index to group them together.
+        order = np.argsort(valid_probe_indices)
+        valid_probe_sorted = valid_probe_indices[order]
+        valid_candidate_sorted = valid_candidate_indices[order]
+        
+        # Use np.unique to get the boundaries for each probe in the sorted array.
+        unique_probes, start_idx, counts = np.unique(valid_probe_sorted, 
+                                                    return_index=True, 
+                                                    return_counts=True)
+        
+        # Fill the refined_candidates for each probe.
+        for probe, idx, count in zip(unique_probes, start_idx, counts):
+            refined_candidates[probe].extend(valid_candidate_sorted[idx: idx + count].tolist())
+
     return refined_candidates
 
-def refine_candidates_obb(probes, candidate_elements, obb_c, obb_jinv):
+def refine_candidates_obb(probes, candidate_elements, obb_c, obb_jinv, max_batch_size=256):
     """
     Refine candidate elements for each probe by keeping only those where the probe 
     lies within the corresponding expanded bounding box.
     
     """
-    # Flatten the candidate_elements lists, creating arrays that record for each candidate
-    # the corresponding probe index and candidate bbox index.
-    probe_indices = []
-    candidate_indices = []
-    
-    for i, cands in enumerate(candidate_elements):
-        if cands:  # if this probe has candidate bbox indices
-            probe_indices.extend([i] * len(cands))
-            candidate_indices.extend(cands)
-            
-    probe_indices = np.array(probe_indices)  # shape: (total_num_candidates,)
-    candidate_indices = np.array(candidate_indices)  # shape: (total_num_candidates,)
-    
-    # If no candidates exist overall, return a list of empty lists.
-    if probe_indices.size == 0:
-        return [[] for _ in range(probes.shape[0])]
-    
-    # Get the corresponding probes and bounding boxes for all candidate pairs.
-    pts = probes[probe_indices]           # shape: (total_num_candidates, 3)
-    candidate_bboxes_c = obb_c[candidate_indices]  # shape: (total_num_candidates, 6)
-    candidate_bboxes_jinv = obb_jinv[candidate_indices]  # shape: (total_num_candidates, 6)
-
-    # Check with the obb as in Mittal et al.
-    check = np.matmul(candidate_bboxes_jinv, (pts - candidate_bboxes_c).reshape(-1,3,1)).reshape(-1,3)
-    check = np.abs(check)
-    tst = np.ones((check.shape[0])) * (1 + 1e-6)
-    
-    # Vectorized check: create a boolean mask indicating which candidate pair passes
-    valid_mask = ((check[:, 0] <= tst) & (check[:, 1] <= tst) & (check[:, 1] <= tst))
-    
-    # Filter the probe and candidate indices according to the valid mask.
-    valid_probe_indices = probe_indices[valid_mask]
-    valid_candidate_indices = candidate_indices[valid_mask]
-    
-    # Initialize the output list with empty lists for each probe.
     refined_candidates = [[] for _ in range(probes.shape[0])]
-    
-    # Sort the valid candidate pairs by the probe index to group them together.
-    order = np.argsort(valid_probe_indices)
-    valid_probe_sorted = valid_probe_indices[order]
-    valid_candidate_sorted = valid_candidate_indices[order]
-    
-    # Use np.unique to get the boundaries for each probe in the sorted array.
-    unique_probes, start_idx, counts = np.unique(valid_probe_sorted, 
-                                                 return_index=True, 
-                                                 return_counts=True)
-    
-    # Fill the refined_candidates for each probe.
-    for probe, idx, count in zip(unique_probes, start_idx, counts):
-        refined_candidates[probe] = valid_candidate_sorted[idx: idx + count].tolist()
-    
+    start = 0
+    end = probes.shape[0]
+
+    while start < end:
+        probe_indices = []
+        candidate_indices = []
+        it_entries = 0    
+        for i in range(start, end):
+            cands = candidate_elements[i]
+            if cands:
+                probe_indices.extend([i] * len(cands))
+                candidate_indices.extend(cands)
+                it_entries += len(cands)
+            if it_entries > max_batch_size:
+                break
+
+        start = i + 1
+        probe_indices = np.array(probe_indices)
+        candidate_indices = np.array(candidate_indices)
+        
+        if probe_indices.size == 0:
+            return refined_candidates
+        
+        pts = probes[probe_indices]
+        candidate_bboxes_c = obb_c[candidate_indices]
+        candidate_bboxes_jinv = obb_jinv[candidate_indices]
+
+        check = np.matmul(candidate_bboxes_jinv, (pts - candidate_bboxes_c).reshape(-1,3,1)).reshape(-1,3)
+        check = np.abs(check)
+        tst = np.ones((check.shape[0])) * (1 + 1e-6)
+        
+        valid_mask = ((check[:, 0] <= tst) & (check[:, 1] <= tst) & (check[:, 2] <= tst))
+        
+        valid_probe_indices = probe_indices[valid_mask]
+        valid_candidate_indices = candidate_indices[valid_mask]
+        
+        order = np.argsort(valid_probe_indices)
+        valid_probe_sorted = valid_probe_indices[order]
+        valid_candidate_sorted = valid_candidate_indices[order]
+        
+        unique_probes, start_idx, counts = np.unique(valid_probe_sorted, 
+                                                     return_index=True, 
+                                                     return_counts=True)
+        
+        for probe, idx, count in zip(unique_probes, start_idx, counts):
+            refined_candidates[probe].extend(valid_candidate_sorted[idx: idx + count].tolist())
+
     return refined_candidates
 
 def expand_elements(arrays: list = None, rel_tol = 0.01):

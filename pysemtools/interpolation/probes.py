@@ -426,10 +426,11 @@ class Probes:
             self.log.sync_tic(id=1)
 
             # Send the data back to the ranks that sent me the probes
-            sources, interpolated_data = self.itp.rt.all_to_all(
+            sources, interpolated_data = self.itp.rt.send_recv(
                 destination=self.itp.my_sources,
                 data=my_interpolated_fields,
                 dtype=np.double,
+                tag = 1,
             )
             # reshape the data
             for i in range(0, len(sources)):
