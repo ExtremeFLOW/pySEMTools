@@ -2868,6 +2868,21 @@ def domain_binning_map_bin_to_rank(mesh_to_bin, nx, ny, nz, comm):
 
     return bin_to_rank_map
 
+def deep_size(obj, _seen=None):
+    if _seen is None:
+        _seen = set()
+    oid = id(obj)
+    if oid in _seen:
+        return 0
+    _seen.add(oid)
+
+    size = sys.getsizeof(obj)
+
+    if isinstance(obj, dict):
+        size += sum(deep_size(k, _seen) + deep_size(v, _seen) for k, v in obj.items())
+    elif isinstance(obj, (list, tuple, set, frozenset)):
+        size += sum(deep_size(x, _seen) for x in obj)
+    return size
 
 def get_candidate_ranks(self, comm):
     """
@@ -2878,7 +2893,24 @@ def get_candidate_ranks(self, comm):
         # Obtain the candidates of each point
         ## Do it in a batched way to avoid memory issues
 
-        chunk_size = self.max_pts
+        # Find a reasonable chunk size, making the maximun size around 10MB
+        rand_id = np.random.randint(0, self.probe_partition.shape[0], size=10)
+        bytes_per_probe = []
+        for i in rand_id:
+            cand_ = self.global_tree.query_ball_point(
+                x=self.probe_partition[i],
+                r=self.search_radious * (1 + 1e-6),
+                p=2.0,
+                eps=1e-8,
+                workers=1,
+                return_sorted=False,
+                return_length=False,
+            )
+
+            size_bytes = deep_size(cand_)
+            bytes_per_probe.append(size_bytes)
+ 
+        chunk_size = max(1, int(10*1024*1024 // np.mean(bytes_per_probe))) #Gives the number of probes to respect a 10MB limit
         n_chunks = int(np.ceil(self.probe_partition.shape[0] / chunk_size))
 
         # Attempting to optimize. Currently using the old version (the one in else.)
@@ -3224,7 +3256,23 @@ class dstructure_kdtree(dstructure):
 
     def search(self, probes: np.ndarray, progress_bar = False, **kwargs):
 
-        chunk_size = self.max_pts*10
+        # Find a reasonable chunk size, making the maximum size around 10MB
+        rand_id = np.random.randint(0, probes.shape[0], size=10)
+        bytes_per_probe = []
+        for i in rand_id:
+            cand_ = self.my_tree.query_ball_point(
+                x=probes[i],
+                r=self.my_bbox_maxdist * (1 + 1e-6),
+                p=2.0,
+                eps=self.elem_percent_expansion,
+                workers=1,
+                return_sorted=False,
+                return_length=False,
+            )
+
+            size_bytes = deep_size(cand_)
+            bytes_per_probe.append(size_bytes)
+        chunk_size = max(1, int(10*1024*1024 // np.mean(bytes_per_probe))) #Gives the number of probes to respect a 10MB limit
         n_chunks = int(np.ceil(probes.shape[0] / chunk_size))
         element_candidates = []
 
