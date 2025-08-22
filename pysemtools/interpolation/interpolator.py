@@ -520,36 +520,108 @@ class Interpolator:
         self.bin_size_1d = bin_size_1d
         self.bins_per_rank = bins_per_rank
 
-        # Check in which bins the points are and check wich are the rank owners of those bins
-        bins_of_points = self.binning_hash(self.x, self.y, self.z)
-        bin_owner = np.floor(bins_of_points / bins_per_rank).astype(np.int32)
+        comm_size = comm.Get_size()
+        rank_id   = comm.Get_rank()
 
-        # Let the rank owner of the bins know that I have data in those bins
-        unique_ranks = np.unique(bin_owner)
-        destinations = unique_ranks.tolist()
-        bins_in_owner = [np.unique(bins_of_points[bin_owner == i]).astype(np.int32) for i in unique_ranks]
-        
-        sources, data_from_others = self.rt.send_recv(destination = destinations, data = bins_in_owner, dtype = np.int32, tag=0)
-        
-        # Create a hash table that contains the ranks that have data in the bins I own
-        my_bins_range = [np.floor(self.rt.comm.Get_rank() * bins_per_rank).astype(np.int32), np.floor((self.rt.comm.Get_rank() + 1) * bins_per_rank).astype(np.int32)]
-        bin_to_rank_map = {i : [] for i in range(my_bins_range[0], my_bins_range[1])}
+        n = self.bin_size_1d
+        n2 = n * n
+        bin_size = n ** 3
+        dx = (self.domain_max_x - self.domain_min_x) / n if n > 0 else 0.0
+        dy = (self.domain_max_y - self.domain_min_y) / n if n > 0 else 0.0
+        dz = (self.domain_max_z - self.domain_min_z) / n if n > 0 else 0.0
 
-        # Fill the has table with data
-        ## Use sets to try to make it fast
-        my_set = set(bin_to_rank_map.keys())
-        # Iterate over the souces
-        for rankk, binss in zip(sources, data_from_others):
-            # Create a set with the bins in this rank
-            binss_set = set(binss)
-            # Check which are the bins that are in the intersection of the two sets
-            intersection = my_set.intersection(binss_set)
-            # If there are bins in the intersection, add the rank to the hash table
-            if len(intersection) > 0:
-                for i in intersection:
-                    bin_to_rank_map[i].append(rankk.astype(np.int32))
+        def _axis_bin_range(vmin, vmax, v0, dv, n):
+            """
+            Inclusive bin-index range for [vmin, vmax] against an n-bin grid on [v0, v0 + n*dv].
+            This returns all the bins that are spanned in the bounding box of the element
+            """
+            if dv <= 0 or n <= 0:
+                return 0, n - 1
+            
+            i0 = int(np.floor((vmin - v0) / dv))
+            i1 = int(np.ceil ((vmax - v0) / dv) - 1)
+            if i0 < 0: i0 = 0
+            if i1 >= n: i1 = n - 1
+            if i1 < i0: i1 = i0
+            return i0, i1
 
-        # Store the data
+        # Accumulate bins per destination rank as sets
+        dest_to_bins = {}
+
+        nelv = self.x.shape[0]
+        BATCH = INTERPOLATION_MAX_CANDIDATE_IN_ITERATION
+
+        # relative expansion
+        pct = (1 + 1e-6)
+
+        for start in range(0, nelv, BATCH):
+            stop = min(start + BATCH, nelv)
+            for el in range(start, stop):
+                xe = np.ravel(self.x[el])
+                ye = np.ravel(self.y[el])
+                ze = np.ravel(self.z[el])
+
+                xmin, xmax = float(xe.min()), float(xe.max())
+                ymin, ymax = float(ye.min()), float(ye.max())
+                zmin, zmax = float(ze.min()), float(ze.max())
+
+                # symmetric percent expansion
+                if pct > 0.0:
+                    ex = 0.5 * pct * (xmax - xmin)
+                    ey = 0.5 * pct * (ymax - ymin)
+                    ez = 0.5 * pct * (zmax - zmin)
+                    xmin -= ex; xmax += ex
+                    ymin -= ey; ymax += ey
+                    zmin -= ez; zmax += ez
+
+                ix0, ix1 = _axis_bin_range(xmin, xmax, self.domain_min_x, dx, n)
+                iy0, iy1 = _axis_bin_range(ymin, ymax, self.domain_min_y, dy, n)
+                iz0, iz1 = _axis_bin_range(zmin, zmax, self.domain_min_z, dz, n)
+
+                # Walk the overlapped bins (no big temporaries)
+                for iz in range(iz0, iz1 + 1):
+                    base_z = iz * n2
+                    for iy in range(iy0, iy1 + 1):
+                        base_y = base_z + iy * n
+                        for ix in range(ix0, ix1 + 1):
+                            b = base_y + ix  # linear bin index in [0, bin_size)
+                            owner = b // bins_per_rank  # 0..comm_size-1 with ceil partitioning
+                            if owner >= comm_size:  # guard (ceil can overshoot at the tail)
+                                owner = comm_size - 1
+                            s = dest_to_bins.get(owner)
+                            if s is None:
+                                s = set()
+                                dest_to_bins[owner] = s
+                            s.add(int(b))  # ints are fine; convert to int32 on send
+
+        # Prepare one message per destination
+        if dest_to_bins:
+            unique_ranks = np.array(sorted(dest_to_bins.keys()), dtype=np.int32)
+            destinations = unique_ranks.tolist()
+            bins_in_owner = [np.array(sorted(dest_to_bins[r]), dtype=np.int32) for r in destinations]
+        else:
+            unique_ranks = np.empty((0,), dtype=np.int32)
+            destinations = []
+            bins_in_owner = []
+
+        # Send my discovered bins to their owners
+        sources, data_from_others = self.rt.send_recv(
+            destination=destinations, data=bins_in_owner, dtype=np.int32, tag=0
+        )
+
+        # --- Build my owner-side bin->rank map (only for bins I own) ---
+
+        my_bin_start = int(rank_id * bins_per_rank)
+        my_bin_end   = int(min((rank_id + 1) * bins_per_rank, bin_size))
+        bin_to_rank_map = {i: [] for i in range(my_bin_start, my_bin_end)}
+
+        for src_rank, bins_arr in zip(sources, data_from_others):
+            # bins_arr is already targeted to me; still clamp to be safe
+            for b in bins_arr:
+                b = int(b)
+                if my_bin_start <= b < my_bin_end:
+                    bin_to_rank_map[b].append(np.int32(src_rank))
+
         self.bin_to_rank_map = bin_to_rank_map
 
     def scatter_probes_from_io_rank(self, io_rank, comm):
