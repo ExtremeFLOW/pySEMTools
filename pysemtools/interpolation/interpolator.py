@@ -288,10 +288,13 @@ class Interpolator:
         self.x = x
         self.y = y
         self.z = z
-        if probes.dtype == INTERPOLATION_DTYPE:
-            self.probes = probes
+        if probes is not None:
+            if probes.dtype == INTERPOLATION_DTYPE:
+                self.probes = probes
+            else:
+                self.probes = probes.astype(INTERPOLATION_DTYPE)
         else:
-            self.probes = probes.astype(INTERPOLATION_DTYPE)
+            self.probes = None
 
         self.point_interpolator_type = point_interpolator_type
         self.max_pts = max_pts
