@@ -1,3 +1,47 @@
+##################################################################################################################################################
+##################################################################################################################################################
+"""
+    FUNCTIONS SUMMARY
+
+    Notation used: A group of cross-sections, when repeated, forms a pattern cross-section. The first pattern cross-section 
+    is designated as the reference pattern cross-section, which serves as the basis for comparisons.
+    
+    This script contains the following functions:
+    
+        1. validate_rank_size(total_elements, size, num_elements_per_section):
+            - Validates if the total number of elements and sections can be evenly distributed across MPI ranks based on the two criteria's.
+
+        2. valid_sizes(total_elements, num_elements_per_section, min_size=100, max_size=2000)
+            - If the mentioned ranks size is not valid, searches for alternative MPI sizes (size values) that meet both criteria above within a given range.
+            - Useful for finding configurations that avoid uneven data distribution.
+        
+        3. truncate_reduce(data, decimals):
+            - Applies controlled truncation of numerical precision to selected axes of data arrays.
+            - Helps mitigate floating-point precision errors when comparing distributed datasets.
+
+        4. extracted_fields(fld_3d_r):
+            - Dynamically extracts and maps key fields from the input FieldRegistry object.
+            - Handles standard fields like velocity (u, v, w), pressure, temperature, as well as additional scalar fields.
+
+        5. get_rank_for(z_max_elem_index):
+            - Determines the MPI rank responsible for a given global element index.
+            - Handles boundary conditions cases to ensure proper rank identification.
+
+        6. element_grouping():
+            Main computation pipeline 
+            - Reads input files and constructs required data structures.
+            - Computes face differences, averages, normals, and face mappings and applies data reordering and axis sign corrections.
+            - Identifies the reference pattern cross-section and groups elements with matching geometry across repeated patterns.
+            - Redistributes reference pattern cross-section data across MPI ranks for group elements together.
+            - Dynamically extracts relevant fields (e.g., velocity, pressure, temperature) based on user input.
+            - Exchanges only necessary grouped element data between ranks to minimize communication overhead.
+            - Performs group-wise field averaging.
+            - Builds a partitioned mesh for subdomain-level outputs and updates the field registry.
+            - Writes final processed fields to output files.
+"""
+##################################################################################################################################################
+##################################################################################################################################################
+
 #!/usr/bin/env python
 
 import os
@@ -40,14 +84,15 @@ num_pattern_cross_sections = comm.bcast(num_pattern_cross_sections, root=0)
 field_name = comm.bcast(field_name, root=0)
 
 import numpy as np
-from pysemtools.io.reorder_data import (
+from pysemtools.io.mesh_orientation import (
     generate_data, calculate_face_differences, calculate_face_averages, calculate_face_normals,
-    face_mappings, compare_mappings, compare_methods, reduce_face_normals, directions_face_normals,
+    face_mappings, compare_mappings, compare_methods, reduce_face_normals, face_normals_mappings,
     reorder_assigned_data, correct_axis_signs
 )
 from pysemtools.io.ppymech.neksuite import pynekwrite
 from pysemtools.datatypes.field import FieldRegistry
 from pysemtools.datatypes.msh_partitioning import MeshPartitioner
+from pysemtools.datatypes.msh import Mesh
 
 elem_pattern_cross_sections = num_elements_per_section * pattern_factor; # No. of elements in each pattern cross-section
 total_elements = elem_pattern_cross_sections * num_pattern_cross_sections # Total elements in the file.
@@ -61,6 +106,8 @@ leftover_section = elem_pattern_cross_sections % size  # Elements that don’t f
 def validate_rank_size(total_elements: int, size: int, num_elements_per_section: int) -> bool:
     """
         Validates whether the total number of elements and sections can be evenly distributed among ranks.
+            - Criterion 1: Total number of elements must be evenly divisible across all ranks.
+            - Criterion 2: Each cross-section must be assigned an integer number of ranks.
         
         Args:
             total_elements (int): The total number of elements in the dataset.
@@ -70,13 +117,13 @@ def validate_rank_size(total_elements: int, size: int, num_elements_per_section:
         Returns:
             bool: True if the distribution is valid, False otherwise.
         """
-    # Criterion 1: elements_per_rank should be exactly divisible
+    # Criterion 1:  Total number of elements must be evenly divisible across all ranks.
     elements_per_rank = total_elements // size
     if total_elements % size != 0:
         print(f"Error: Criteria 1 Failed,  {total_elements} % {size} != 0 (elements_per_rank = {elements_per_rank})") if rank == 0 else None
         return False
-    
-    # Criterion 2: ranks_per_section should be exactly divisible
+
+    # Criterion 2: Each cross-section must be assigned an integer number of ranks.
     ranks_per_section = num_elements_per_section // elements_per_rank
     if num_elements_per_section % elements_per_rank != 0:
         print(f"Error: Criteria 2 Failed, {num_elements_per_section} % {elements_per_rank} != 0 (ranks_per_section = {ranks_per_section})") if rank == 0 else None
@@ -169,9 +216,9 @@ def get_rank_for(z_max_elem_index):
     Identifies the rank responsible for storing a specific global element index.
 
     This function:
-    - Determines which rank holds the last element in `elem_pattern_cross_sections`.
-    - Computes the rank ID based on how elements are distributed across ranks.
-    - Ensures boundary conditions are handled correctly.
+        - Determines which rank holds the last element in `elem_pattern_cross_sections`.
+        - Computes the rank ID based on how elements are distributed across ranks.
+        - Ensures boundary conditions are handled correctly.
 
     Args:
         z_max_elem_index (int): The global index of the element to locate.
@@ -179,10 +226,15 @@ def get_rank_for(z_max_elem_index):
     Returns:
         int: The rank ID that owns the specified element.
     """
+    # Case where index is negative — assign to rank 0
     if z_max_elem_index < 0:
         return 0
+    
+    # Case where index exceeds total elements — assign to last rank
     elif z_max_elem_index >= total_elements:
         return size - 1
+    
+    # Compute rank based on uniform distribution of elements
     else:
         return (z_max_elem_index // elements_per_rank)-1
 
@@ -190,33 +242,33 @@ def element_grouping() -> None:
     """
     Groups elements, processes field data, and manages distributed computation across MPI ranks.
 
-    Notation: A group of cross-sections, when repeated, forms a pattern cross-section. The first pattern cross-section 
-    is designated as the reference pattern cross-section, which serves as the basis for comparisons.
+    Notation: A group of cross-sections, when repeated, forms a pattern cross-section. The first pattern cross-section is designated as the reference pattern 
+    cross-section, which serves as the basis for comparisons.
 
-    1. Data Loading & Processing:
-        - Reads input files and computes face differences, averages, and normal vectors.
-        - Applies reordering and axis corrections.
+    - Data Loading & Processing:
+        a. Reads input files and computes face differences, averages, and normal vectors.
+        b. Applies reordering and axis corrections.
 
-    2. Element Grouping:
-        - Determines a reference pattern cross-section and identifies repeating structures.
-        - Groups elements based on shape consistency, ensuring alignment across computational ranks.
+    - Element Grouping:
+        a. Elements with similar geometry are grouped together.
+        b. The reference pattern cross-section (i.e., the baseline structural unit) is identified, along with its repeating structures.
+        c. Since each pattern cross-section is split across an integer number of ranks (e.g., if the reference pattern cross-section spans ranks 0-5 and the next pattern 
+        cross-section spans 6-11, and the following spans 12-17), the elements in the next pattern cross-sections (e.g., elements in ranks 6, 12, 18, and so on) will 
+        generally have the same geometry as those in the reference pattern cross-section (e.g., elements in rank 0).
+        d. Ensures efficient redistribution of reference pattern cross-section to all ranks for grouping of elements together and further averaging.
 
-    3. Coordinate Collection & Redistribution:
-        - Retrieves coordinate data from the reference pattern cross-section that is distributed across multiple ranks.
-        - Ensures efficient redistribution of coordinates to all ranks for consistent processing and averaging.
+    - Field Extraction & Inter-Rank Data Exchange:
+        a. Extracts relevant fields dynamically for structured storage and processing.
+        b. Facilitates communication between ranks, sending and receiving required element data based on groups.
+        c. Ensures that each MPI rank obtains the exact data needed to perform localized computations and field averaging.
 
-    4. Field Extraction & Inter-Rank Data Exchange:
-        - Extracts relevant fields dynamically for structured storage and processing.
-        - Facilitates communication between ranks, sending and receiving required element data based on groups.
-        - Ensures each rank has access to necessary computational fields.
+    - Group Averaging of fields & Field Registry Management:
+        a. Computes field averages across the elements that fall under the same group.
+        b. Constructs a subdomain mesh for processed data from the elements that satisfy certain conditions.
+        c. Adds averaged fields to the registry.
 
-    5. Group Averaging & Field Registry Management:
-        - Computes field averages across pattern cross-sections.
-        - Adds averaged fields to the registry.
-
-    6. Final Data Writing:
-        - Constructs a subdomain mesh for processed data.
-        - Writes computed fields to output files for continued analysis.
+    - Final Data Writing:
+        Writes computed fields to output files for continued analysis.
 
     Args:
         None
@@ -225,11 +277,9 @@ def element_grouping() -> None:
         None (Processes, distributes, and saves field data)
     """
     fname_3d = "../../field0.f00024"
-
-    fname_out = "../../field_out_0.f00024"    
     
     # Load data
-    assigned_data, fld_3d_r, msh_3d = generate_data(fname_3d, fname_out)
+    assigned_data, fld_3d_r, msh_3d = generate_data(fname_3d)
 
     # Methods for cal. the difference and normal vectors
     assigned_r_diff, assigned_s_diff, assigned_t_diff = calculate_face_differences(assigned_data)
@@ -249,7 +299,7 @@ def element_grouping() -> None:
     compare_mappings(mappings_fd, ref_mapping_fd, "mappings_fd_before_reorder")
     compare_methods(mappings_fd, mappings_fa)
 
-    # Apply reordering of assigned data
+    # Apply reordering of "assigned data"
     assigned_data_new = reorder_assigned_data(assigned_data, mappings_fd, ref_mapping_fd)
     r_diff_new, s_diff_new, t_diff_new = calculate_face_differences(assigned_data_new)
     
@@ -274,7 +324,7 @@ def element_grouping() -> None:
     # Compute normal vectors and directions
     assigned_normals = calculate_face_normals(assigned_data_final)
     averaged_normals =  reduce_face_normals(assigned_normals)
-    final_mappings_fn, flow_directions = directions_face_normals(averaged_normals)
+    final_mappings_fn, flow_directions = face_normals_mappings(averaged_normals)
     flow_directions = np. array(flow_directions)
 
     # Compare mappings after reordering
@@ -398,27 +448,36 @@ def element_grouping() -> None:
     fields = extracted_fields(fld_3d_r)
     
     fields_mentioned = []
+    
     if field_name == 'vel':
-        fields_mentioned = ['u', 'v', 'w']
+        fields_mentioned = ['u', 'v', 'w'] # Velocity components
     elif field_name == 'pres':
-        fields_mentioned = ['pres']
+        fields_mentioned = ['pres'] # Pressure field
     elif field_name == 'temp':
-        fields_mentioned = ['temp']
+        fields_mentioned = ['temp'] # Temperature field
     elif field_name == 'default':
         fields_mentioned = []
+        
+        # Include all non-empty fields from the registry
         for key in fld_3d_r.fields.keys():
             if len(fld_3d_r.fields[key]) != 0:
                 fields_mentioned.append(key)
+                
+        # Expand 'vel' into its components if present
         if 'vel' in fields_mentioned:
             fields_mentioned.remove('vel')
             fields_mentioned = ['u', 'v', 'w'] + fields_mentioned 
+        
+        # Expand 'scal' into individual scalar field names (s1, s2, ...)
         if 'scal' in fields_mentioned:
             fields_mentioned.remove('scal')
             length_scal = len(fld_3d_r.fields['scal'])
             scal_fields = [f's{i+1}' for i in range(length_scal)] 
             fields_mentioned = fields_mentioned + scal_fields
+            
         print(f"Rank {rank} has default field_mentioned:", fields_mentioned) if rank == 0 else None
-    
+
+    # Below we are performing the averaging of fields based on user input which are belonging to same group 
     # Determine which groups, each rank is responsible for
     if rank == 0:
         owned_groups_split = []
@@ -428,9 +487,10 @@ def element_grouping() -> None:
     else:
         owned_groups_split = None
 
+    # Scatter the group ownership to all ranks
     owned_groups = comm.scatter(owned_groups_split, root=0)
 
-    # Determine which elements belonging to which rank
+    # Determine which elements belonging to which rank (Map each global element ID to its owning rank)
     if rank == 0:
         element_rank_mapping = [(gid, gid // elements_per_rank) for gid in range(total_elements)]
     else:
@@ -530,11 +590,19 @@ def element_grouping() -> None:
     conidtion2 = msh_3d.z > 0.0
     cond = condition1 & conidtion2
     
+    # update the mesh coordinates based on the assigned data_final
+    x_new = assigned_data_final[..., 0].astype(np.float64)
+    y_new = assigned_data_final[..., 1].astype(np.float64)
+    z_new = assigned_data_final[..., 2].astype(np.float64)
+
+    msh_3d_final = Mesh(comm, create_connectivity=False)
+    msh_3d_final.init_from_coords(comm, x=x_new, y=y_new, z=z_new)
+    
     # Initialize the mesh partitioner with the given condition
-    mp = MeshPartitioner(comm, msh=msh_3d, conditions=[cond])
+    mp = MeshPartitioner(comm, msh=msh_3d_final, conditions=[cond])
     
     # Create the properly partitioned sub mesh and field
-    partitioned_mesh = mp.create_partitioned_mesh(msh_3d, partitioning_algorithm="load_balanced_linear", create_conectivity=False)
+    partitioned_mesh = mp.create_partitioned_mesh(msh_3d_final, partitioning_algorithm="load_balanced_linear", create_conectivity=False)
     partitioned_field = mp.create_partitioned_field(fld, partitioning_algorithm="load_balanced_linear")
 
     print(f"fld.fields are", partitioned_field.fields.keys()) if rank == 0 else None
