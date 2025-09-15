@@ -209,7 +209,7 @@ class PMapper:
             )
 
         # Create the msh object
-        new_msh = Mesh(comm, x=x, y=y, z=z, create_connectivity=msh.create_connectivity_bool)
+        new_msh = Mesh(comm, x=x, y=y, z=z, create_connectivity=msh.create_connectivity_bool, elmap = msh.elmap)
 
         return new_msh
     
