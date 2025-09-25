@@ -11,4 +11,3 @@ dist
 *.npy
 build/
 docs/
-pysemtools-env/
