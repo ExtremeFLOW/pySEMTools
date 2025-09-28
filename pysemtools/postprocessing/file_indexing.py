@@ -11,6 +11,7 @@ import numpy as np
 from ..datatypes.field import FieldRegistry
 from ..io.ppymech.neksuite import pynekread
 from mpi4py import MPI
+from os.path import join
 
 def index_files_from_log(comm, logpath="", logname="", progress_reports=50):
     """
@@ -230,6 +231,7 @@ def index_files_from_folder(
     file_type="",
     include_time_interval: bool = True,
     include_file_contents: bool = False,
+    overwrite = None,
 ):
     """
     Index files based on a folder.
@@ -254,6 +256,12 @@ def index_files_from_folder(
     file_type: list
         A list with type of file that should be indexed. If empty, all files are indexed.
         An example is: ["field.fld", "stats.fld"]
+    include_time_interval: bool
+        Whether to include computed time intervals covered by each file in the JSON output.
+    include_file_contents: bool
+        Whether to include field metatdata inside each file in the JSON output.
+    overwrite : bool, optional
+        Whether to overwrite existing files. If not provided, the user is prompted in case of  file name collision.
 
     Returns
     -------
@@ -309,7 +317,7 @@ def index_files_from_folder(
     for ftype in added_files:
         index_fname = folder_path + os.path.basename(ftype).split('.')[0] + "_index.json"
         file_exists = os.path.exists(index_fname)
-        if file_exists:
+        if file_exists and overwrite is None:
             logger.write("warning", f"File {index_fname} exists. Overwrite?")
             overwrite = input("input: [yes/no] ")
             if overwrite == "no":
@@ -349,7 +357,7 @@ def index_files_from_folder(
         files[ftype][files_index[ftype]] = dict()
         files[ftype][files_index[ftype]]["fname"] = file_in_folder
         files[ftype][files_index[ftype]]["path"] = os.path.abspath(
-            folder_path + file_in_folder
+            join(folder_path, file_in_folder)
         )
 
         # Determine the time from the header
@@ -405,7 +413,7 @@ def index_files_from_folder(
         logger.write("info", f"Writing {file} file index")
         logger.tic()
         if comm.Get_rank() == 0:
-            with open(output_folder + os.path.basename(file).split(".")[0] + "_index.json", "w") as outfile:
+            with open(join(output_folder, os.path.basename(file).split(".")[0] + "_index.json"), "w") as outfile:
                 outfile.write(json.dumps(files[file], indent=4))
         comm.Barrier()
         logger.toc()
@@ -608,5 +616,5 @@ def inspect_field_files(
     logger.write("info", f"Writing field index: {output_path_}/{output_name_}")
     
     if comm.Get_rank() == 0:
-        with open(f"{output_path_}/{output_name_}", "w") as outfile:
+        with open(join(output_path_, output_name), "w") as outfile:
             outfile.write(json.dumps(index, indent=4))
