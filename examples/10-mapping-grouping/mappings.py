@@ -1,3 +1,58 @@
+##################################################################################################################################################
+##################################################################################################################################################
+""" 
+    FUNCTIONS SUMMARY
+
+    Notation used: A group of cross-sections, when repeated, forms a pattern cross-section. The first pattern cross-section 
+    is designated as the reference pattern cross-section, which serves as the basis for comparisons.
+    
+    This script contains the following functions:
+
+        1. validate_rank_size(total_elements, size, num_elements_per_section):
+            - Validates if the total number of elements and sections can be evenly distributed across MPI ranks based on the two criteria's.
+
+        2. valid_sizes(total_elements, num_elements_per_section, min_size=100, max_size=2000)
+            - If the mentioned ranks size is not valid, searches for alternative MPI sizes (size values) that meet both criteria above within a given range.
+            - Useful for finding configurations that avoid uneven data distribution.
+
+        3. compute_element_centers(data)
+            - Flattens the element's node coordinates and computes the geometric center of each element by averaging all its node coordinates.
+
+        4. compute_cross_section_centers(data, num_elements_per_section, prev_overlap=None)
+            - Computes the center point of each individual cross-section by averaging element centers.
+            - Handles leftover/overlap elements between ranks for continuity.
+
+        5. assign_section(rank, ranks_per_section, final_cross_section_centers)
+            - Maps an MPI rank to its section based on ranks_per_section and retrieves the center of that section.
+
+        6. calculate_vectors(cross_section_center_chosen, element_centers_local, flow_directions)
+            - Calculates cylindrical-coordinate basis vectors for each element;
+            - Radial: from section center to element center (normalized). Theta: perpendicular to radial and z-axis (via cross product). Z: aligned with the flow direction.
+
+        7. vector_mapping(A)
+            - Determines how each local element vector maps to the reference directions (radial, theta, z) by matching the largest absolute
+            dot product in a (3x3) matrix of comparisons.
+            - Rows: local vectors (r_diff, s_diff, t_diff).
+            - Columns: reference vectors (radial, theta, z).
+
+        8. compare_vector_mappings(mappings_cy, ref_vector_mapping, idx_ranges)
+            - Compares computed cylindrical vector mappings against a reference mapping (ex: taking mappings from element 0) and 
+            prints match percentage for the current rank's data range.
+
+        9. mappings()
+            Main computation pipeline:
+            - Reads the files and generates the necessary data structures.
+            - Calculates face differences, averages, normals, and face mappings.
+            - Applies data re-ordering and sign corrections of axes.
+            - Recomputes final mappings and flow directions.
+            - Computes element centers and cross-section centers across ranks (with overlap handling).
+            - Assigns each rank a section center.
+            - Computes radial, theta, and z vectors.
+            - Builds transformation matrix A and computes final vector mappings between local and reference vectors.
+            - Compares mappings against a reference and prints statistics.
+"""
+##################################################################################################################################################
+##################################################################################################################################################
 #!/usr/bin/env python
 
 import os
@@ -43,16 +98,18 @@ ranks_per_pattern_section = ranks_per_section * pattern_factor # No. of ranks pe
 leftover = total_elements % size  # Elements that don’t fit evenly in the rank (if any)
 
 import numpy as np
-from pysemtools.io.reorder_data import (
+from pysemtools.io.mesh_orientation import (
     generate_data, calculate_face_differences, calculate_face_averages, calculate_face_normals,
-    face_mappings, compare_mappings, compare_methods, reduce_face_normals, directions_face_normals,
+    face_mappings, compare_mappings, compare_methods, reduce_face_normals, face_normals_mappings,
     reorder_assigned_data, correct_axis_signs
 )
 
 def validate_rank_size(total_elements: int, size: int, num_elements_per_section: int) -> bool:
     """
         Validates whether the total number of elements and sections can be evenly distributed among ranks.
-        
+            - Criterion 1: Total number of elements must be evenly divisible across all ranks.
+            - Criterion 2: Each cross-section must be assigned an integer number of ranks.
+            
         Args:
             total_elements (int): The total number of elements in the dataset.
             size (int): The number of ranks available for computation.
@@ -61,13 +118,13 @@ def validate_rank_size(total_elements: int, size: int, num_elements_per_section:
         Returns:
             bool: True if the distribution is valid, False otherwise.
         """
-    # Criterion 1: elements_per_rank should be exactly divisible
+    # Criterion 1: Total number of elements must be evenly divisible across all ranks.
     elements_per_rank = total_elements // size
     if total_elements % size != 0:
         print(f"Error: Criteria 1 Failed,  {total_elements} % {size} != 0 (elements_per_rank = {elements_per_rank})") if rank == 0 else None
         return False
-    
-    # Criterion 2: ranks_per_section should be exactly divisible
+
+    # Criterion 2: Each cross-section must be assigned an integer number of ranks.
     ranks_per_section = num_elements_per_section // elements_per_rank
     if num_elements_per_section % elements_per_rank != 0:
         print(f"Error: Criteria 2 Failed, {num_elements_per_section} % {elements_per_rank} != 0 (ranks_per_section = {ranks_per_section})") if rank == 0 else None
@@ -78,7 +135,7 @@ def validate_rank_size(total_elements: int, size: int, num_elements_per_section:
 
 def valid_sizes(total_elements: int, num_elements_per_section: int, min_size: int=100, max_size: int=2000):
     """
-    Finds valid rank sizes for distributing elements evenly across computational processes.
+    If the user input is invalid, then this function finds valid rank sizes for distributing elements evenly across computational processes.
 
     Args:
         total_elements (int): Total number of elements.
@@ -123,8 +180,8 @@ def compute_element_centers(data):
         numpy.ndarray: Array containing computed element centers.
     """
     num_elements = data.shape[0]
-    flattened = data.reshape(num_elements, -1, 3)  # (num_elements, 512, 3)
-    element_centers = np.mean(flattened, axis=1)       # (num_elements, 3)
+    flattened = data.reshape(num_elements, -1, 3)
+    element_centers = np.mean(flattened, axis=1) # Shape: (num_elements, 3) 
     return element_centers
 
 def compute_cross_section_centers(data, num_elements_per_section, prev_overlap=None):    
@@ -142,6 +199,7 @@ def compute_cross_section_centers(data, num_elements_per_section, prev_overlap=N
     """
     cross_section_centers = []
     all_data = []
+    
     # Combine previous leftover and new data
     if prev_overlap is not None and len(prev_overlap) > 0:
         prev_overlap = np.array(prev_overlap)
@@ -150,11 +208,12 @@ def compute_cross_section_centers(data, num_elements_per_section, prev_overlap=N
         all_data = np.vstack((prev_overlap, data))
     else:
         all_data = data
-            
+    
     num_total_elements = all_data.shape[0]
     full_sections = num_total_elements // num_elements_per_section
     leftover_elements = num_total_elements % num_elements_per_section
-
+    
+    # For each full section, compute the center by taking mean position of its elements and appends that center to the cross_section_centers list
     for i in range(full_sections):
         start_idx = i * num_elements_per_section
         end_idx = start_idx + num_elements_per_section
@@ -190,6 +249,9 @@ def assign_section(rank, ranks_per_section, final_cross_section_centers):
 def calculate_vectors(cross_section_center_choosen, element_centers_local, flow_directions):
     """
     Computes the radial, theta, and z unit vectors for each element relative to its cross-section center.
+        - Radial: from section center to element center (normalized)
+        - Theta: perpendicular to radial and z-axis (via cross product) 
+        - Z: aligned with the flow direction
 
     Args:
         cross_section_center_chosen (numpy.ndarray): Selected cross-section center.
@@ -223,31 +285,53 @@ def calculate_vectors(cross_section_center_choosen, element_centers_local, flow_
 
 def vector_mapping(A):
     """
-    Maps computed vectors to reference directions by finding the best fit per element.
+    Determines how each of the three local element vectors (rows of A) should be labeled as 'radial', 'theta', or 'z', based on the strongest directional match 
+    with the three reference vectors (columns of A).
+
+    The input A is a (num_elements, 3, 3) transformation matrix:
+        - local vector index  →  r_diff, s_diff, t_diff
+        - reference vector index  →  radial, theta, z
+        - Each value of A is a dot product between a local vector and a reference vector.
+
+    Algorithm for each element:
+        - Take the absolute value of the dot products for matching strength.
+        - Repeatedly select the largest remaining dot product in the matrix.
+        - Assign the corresponding local vector (row) to the matching 
+          reference vector (column).
+        - Mark that row and column as "used" by setting them to -inf, ensuring 
+          each local vector and each reference vector is assigned exactly once.
+        - Continue until all three local vectors are assigned a unique reference label.
 
     Args:
-        A (numpy.ndarray): Transformation matrix containing dot product values between computed vectors.
+        A (numpy.ndarray): dot products between local and reference vectors for each element.
 
     Returns:
-        list: A list of tuples representing mapped vector assignments (radial, theta, z).
+        list[tuple]: One tuple per element ('radial', 'theta', 'z'),
+                     indicating how each local vector maps to reference directions.
     """
     num_elements = A.shape[0]
     mappings = []
     for elem in range(num_elements):
+        # Take absolute values to measure directional alignment strength
         A_copy = np.abs(A[elem])
         mapping = [""] * 3
         reference_vectors = ['radial', 'theta', 'z']
         assigned_rows = set()
         assigned_cols = set()
+        
+        # Match strongest remaining dot product
         for _ in range(3):
             max_index = np.unravel_index(np.argmax(A_copy, axis=None), A_copy.shape)
             row, col = max_index
             mapping[row] = reference_vectors[col]
+            
+            # Mark row and column as used to avoid duplicate assignments
             assigned_rows.add(row)
             assigned_cols.add(col)
             A_copy[row, :] = -np.inf
             A_copy[:, col] = -np.inf
-
+            
+        # Ensure all vectors were uniquely assigned
         if len(assigned_rows) < 3 or len(assigned_cols) < 3:
             print(f"Warning: Not all vectors were assigned properly at element {elem}.")
         mappings.append(tuple(mapping))
@@ -282,13 +366,13 @@ def mappings() -> None:
     Notation: A group of cross-sections, when repeated, forms a pattern cross-section. The first pattern cross-section 
     is designated as the reference pattern cross-section, which serves as the basis for comparisons.
 
-    Does the following:
-    - Reads input files and computes face differences, averages, and normal vectors.
-    - Applies reordering and axis corrections.
-    - Computes final mappings in cartesian coordinates after corrections.
-    - Computes element centres and each cross-section center.
-    - Calculates radial, theta, and z vectors for each element relative to the cross-section center.
-    - Computes vector mappings in cylindrical coordinates using transformation matrices.
+    This function:
+        - Reads input files and computes face differences, averages, and normal vectors.
+        - Applies re-ordering and sign corrections of axes.
+        - Computes final mappings in cartesian coordinates after corrections.
+        - Computes element centres and each cross-section center.
+        - Calculates radial, theta, and z vectors for each element relative to the cross-section center.
+        - Computes vector mappings in cylindrical coordinates using transformation matrices.
 
     Returns:
         None
@@ -296,9 +380,7 @@ def mappings() -> None:
 
     fname_3d: str = "../../field0.f00000"
 
-    fname_out: str = "../../fieldout0.f00000"
-
-    assigned_data, fld_3d_r, msh_3d = generate_data(fname_3d, fname_out)
+    assigned_data, fld_3d_r, msh_3d = generate_data(fname_3d)
 
     # Methods for cal. the difference and normal vectors
     assigned_r_diff, assigned_s_diff, assigned_t_diff = calculate_face_differences(assigned_data)
@@ -348,7 +430,7 @@ def mappings() -> None:
     # Compute normal vectors and directions
     assigned_normals = calculate_face_normals(assigned_data_final)
     averaged_normals =  reduce_face_normals(assigned_normals)
-    final_mappings_fn, flow_directions = directions_face_normals(averaged_normals)
+    final_mappings_fn, flow_directions = face_normals_mappings(averaged_normals)
     flow_directions = np. array(flow_directions)
 
     # Compare mappings after reordering
@@ -443,7 +525,7 @@ def mappings() -> None:
         ] for i in range(num_elements)
     ])
 
-    # Calculate vector mappings using the transformation matrix A
+    # Calculate cylindrical vector mappings using the transformation matrix A
     mappings_cy = vector_mapping(A)
 
     ref_vector_mapping = mappings_cy[0] if rank == 0 else None        
