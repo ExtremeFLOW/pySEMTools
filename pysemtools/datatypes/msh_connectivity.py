@@ -19,6 +19,8 @@ from .element_slicing import (
     facet_to_vertex_map,
 )
 import sys
+from typing import Tuple, cast
+import math
 
 __all__ = ['MeshConnectivity']
 
@@ -367,8 +369,485 @@ class MeshConnectivity:
                         local_appearances + global_appearances
                     )
 
+    def validate_rank_size(self, total_elements: int, size: int, num_elements: int):
+        """
+            Validates whether the total number of elements and sections can be evenly distributed among ranks.
+                - Criterion 1: Total number of elements must be evenly divisible across all ranks.
+                - Criterion 2: Each cross-section must be assigned an integer number of ranks.
+            
+            Args:
+                total_elements (int): The total number of elements in the dataset.
+                size (int): The number of ranks available for computation.
+                num_elements (int): The number of elements in each section.
+
+            Returns:
+                bool: True if the distribution is valid, False otherwise.
+            """
+        # Criterion 1:  Total number of elements must be evenly divisible across all ranks.
+        elements_per_rank = total_elements // size
+        if total_elements % size != 0:
+            print(f"Error: Criteria 1 Failed,  {total_elements} % {size} != 0 (elements_per_rank = {elements_per_rank})") if self.rt.comm.rank == 0 else None
+            return False
+
+        # Criterion 2: Each cross-section must be assigned an integer number of ranks.
+        ranks_per_section = num_elements // elements_per_rank
+        if num_elements % elements_per_rank != 0:
+            print(f"Error: Criteria 2 Failed, {num_elements} % {elements_per_rank} != 0 (ranks_per_section = {ranks_per_section})") if self.rt.comm.rank == 0 else None
+            return False
+
+        print(f"Both Criteria Passed: elements_per_rank = {elements_per_rank}, ranks_per_section = {ranks_per_section}") if self.rt.comm.rank == 0 else None
+        return True
+
+    def find_valid_sizes(self, total_elements: int, num_elements: int, min_size=150, max_size=2000):
+        """
+        Finds valid rank sizes for distributing elements evenly across computational processes.
+
+        Args:
+            total_elements (int): Total number of elements.
+            num_elements (int): Number of elements per section.
+            min_size (int, optional): Minimum size of ranks to consider. Defaults to 150.
+            max_size (int, optional): Maximum size of ranks to consider. Defaults to 2000.
+
+        Returns:
+            list: A list of valid sizes for distributing elements.
+        """
+        valid_sizes = []
+
+        for size in range(min_size, max_size + 1):
+            if total_elements % size == 0:
+                elements_per_rank = total_elements // size
+                if num_elements % elements_per_rank == 0:
+                    valid_sizes.append(size)
+
+        if not valid_sizes:
+            print("No valid sizes found. Consider adjusting your min/max limits.")    
+        print("Valid size options:", valid_sizes)
+            
+        return valid_sizes
+
+    def get_periodicity_map(self, msh: Mesh = None, offset_vector: Tuple[int, int, int] = (0, 0, 0), num_elements: int = None, pattern_factor: int = 1):    
+        """
+            Notes: One pattern cross-section is formed by repeating a specific group of cross-sections.
+            The number of cross-sections required to complete one full pattern is referred to as the "pattern_factor".
+
+            Generate a periodicity mapping for the given mesh. Ensures that entities like faces, edges, and vertices on the first cross-section of the mesh are matched
+            and mapped to their corresponding periodic partners on the last cross-section, across MPI ranks. It builds/updates shared maps for rank, element, facet, edge, and vertex.
+
+            Parameters:
+                msh (Mesh): The mesh object containing element and vertex data.
+                offset_vector (Tuple[int, int, int]): The offset to apply to the coordinates for periodicity.
+                num_elements (int): The number of elements in each section.
+                pattern_factor (int): The number of cross-sections that form one complete pattern.
+            
+            Function steps:                
+                1. Validates the rank size to ensure even distribution of elements.
+                2. Segregates ranks into first and last sections based on the number of elements and pattern factor.
+                3. Based on mesh dimensions, computes local vertices, face centers and edge centers.
+                4. Applies the specified offset to these vertices and centers.
+                5. Exchanges relevant data between matching ranks.
+                6. Updates shared maps for rank, elements, facets, edges, and vertices.
+
+            Returns:
+                None 
+                    This function updates the mesh object with periodicity mappings.
+        """
+
+        self.total_elements = num_elements * pattern_factor                 # Total elements in the file (e.g., 2688)
+        self.elements_per_rank = self.total_elements // self.rt.comm.size   # No. of elements in each rank (e.g., 2688/192 = 14)
+        self.ranks_per_section = num_elements // self.elements_per_rank     # No. of ranks per each cross-section (e.g., 1344/14 = 96)
+
+        if self.rt.comm.rank == 0:
+                valid_size = self.validate_rank_size(self.total_elements, self.rt.comm.size, num_elements)
+                valid_pattern = pattern_factor >= 2
+                if not valid_pattern:
+                    print("Invalid pattern factor: must be greater than or equal to 2.")
+                if not valid_size and valid_pattern:
+                    self.find_valid_sizes(self.total_elements, num_elements)
+                self.check = valid_size and valid_pattern
+        else:
+            self.check = None
+            
+        self.check = self.rt.comm.bcast(self.check, root=0)
+        
+        if not self.check:
+            return
+                 
+        # Identify ranks that belong to the first and last cross-sections
+        first_section_ranks = list(range(self.ranks_per_section))            
+        last_section_start_rank = self.ranks_per_section*(int(cast(str, pattern_factor))-1)            
+        last_section_ranks = list(range(last_section_start_rank, self.rt.comm.size))
+            
+        # Utility: update mapping dictionary (append values safely)
+        def update_map(target_map, key, value):
+            if key in target_map:
+                target_map[key] = np.append(target_map[key], value)
+            else:
+                target_map[key] = np.array([value], dtype=int)
+
+        # Utility: Checks if two centres are equal within tolerance
+        def are_coords_close(c1, c2, rtol=1e-5):
+            return all(math.isclose(a, b, rel_tol=0, abs_tol=rtol) for a, b in zip(c1, c2))
+            
+        if msh.gdim >= 1:
+            # ----------------------
+            # Step 1: Compute local vertices
+            # ----------------------
+            local_vertices = {
+                                (elem, vertex): tuple(msh.vertices[elem, vertex])
+                                for elem, vertex in zip(self.incomplete_evp_elem, self.incomplete_evp_vertex)
+                            }
+                
+            # ----------------------
+            # Step 2: Apply periodic offset to vertices
+            # ----------------------
+            scaled_vertex =  {
+                                (elem, vertex): (x + offset_vector[0], y + offset_vector[1], z + offset_vector[2])
+                                for (elem, vertex), (x, y, z) in local_vertices.items()
+                            }            
+                
+            # ----------------------
+            # Step 3: Exchange bundles (first-section with last-section partner)
+            # ----------------------
+            bundle = {
+                "scaled_vertex": scaled_vertex,
+                # Global/local shared maps (vertices)
+                "global_shared_evp_to_rank_map": self.global_shared_evp_to_rank_map,
+                "global_shared_evp_to_elem_map": self.global_shared_evp_to_elem_map,
+                "global_shared_evp_to_vertex_map": self.global_shared_evp_to_vertex_map,
+            }
+            
+            # First section sends data to its periodic partner
+            if self.rt.comm.rank in first_section_ranks:
+                target_rank = self.rt.comm.rank + self.ranks_per_section
+                comm_size = self.rt.comm.Get_size()
+                if not (0 <= target_rank < comm_size):
+                    raise ValueError(f"Invalid target_rank={target_rank}. Must be between 0 and {comm_size - 1} with ranks_per_section {self.ranks_per_section}, current rank = {self.rt.comm.rank}.")
+                self.rt.comm.send(bundle, dest=target_rank, tag=99)
+                    
+            # Last section receives bundle from its periodic partner
+            elif self.rt.comm.rank in last_section_ranks:
+                source_rank = self.rt.comm.rank - self.ranks_per_section
+                received_bundle = self.rt.comm.recv(source=source_rank, tag=99)
+                    
+                # Extract received maps/vertex data
+                received_scaled_vertex = received_bundle["scaled_vertex"]
+                received_global_shared_evp_to_rank_map = received_bundle["global_shared_evp_to_rank_map"]
+                received_global_shared_evp_to_elem_map = received_bundle["global_shared_evp_to_elem_map"]
+                received_global_shared_evp_to_vertex_map = received_bundle["global_shared_evp_to_vertex_map"]
+                   
+                # Make copies of the original global maps (before update for safe merging)
+                original_global_shared_evp_to_rank_map = self.global_shared_evp_to_rank_map.copy()
+                original_global_shared_evp_to_elem_map = self.global_shared_evp_to_elem_map.copy()
+                original_global_shared_evp_to_vertex_map = self.global_shared_evp_to_vertex_map.copy()
+                original_recv_global_shared_evp_to_rank_map = received_global_shared_evp_to_rank_map.copy()
+                original_recv_global_shared_evp_to_elem_map = received_global_shared_evp_to_elem_map.copy()
+                original_recv_global_shared_evp_to_vertex_map = received_global_shared_evp_to_vertex_map.copy()
+                    
+                # ----------------------
+                # Step 4: Match vertices (received with local)
+                    # ----------------------
+                for (elem1, vertex1), scaled_coord in received_scaled_vertex.items(): # received data
+                    for (elem2, vertex2), original_coord in local_vertices.items(): # local data
+                        if are_coords_close(scaled_coord, original_coord):
+
+                            key1 = (elem1, vertex1) # received data key
+                            key2 = (elem2, vertex2) # local data key
+                                    
+                            # --- Update maps for rank ownership ---
+                            # key1 (received vertex) --> current rank
+                            # key2 (local vertex)    --> source rank
+                            for key, other_rank in [(key1, self.rt.comm.rank), (key2, source_rank)]:
+                                target_map = self.global_shared_evp_to_rank_map if key == key2 else received_global_shared_evp_to_rank_map
+                                update_map(target_map, key, other_rank)
+
+                            # --- Update element connectivity ---
+                            # key1 (received vertex) --> elem2 (local element)
+                            # key2 (local vertex)    --> elem1 (received element)
+                            for key, other_elem in [(key1, elem2), (key2, elem1)]:
+                                target_map = self.global_shared_evp_to_elem_map if key == key2 else received_global_shared_evp_to_elem_map
+                                update_map(target_map, key, other_elem)
+
+                            # --- Update vertex-to-vertex connectivity ---
+                            # key1 (received vertex) --> vertex2 (local vertex index)
+                            # key2 (local vertex)    --> vertex1 (received vertex index)
+                            for key, other_vertex in [(key1, vertex2), (key2, vertex1)]:
+                                target_map = self.global_shared_evp_to_vertex_map if key == key2 else received_global_shared_evp_to_vertex_map
+                                update_map(target_map, key, other_vertex)
+                                    
+                            #--- Merge rank mappings from original maps ---
+                            if key1[0] == key2[0]: # Merge only the element having same index number from local and received, to avoid double merging
+                                for val in original_global_shared_evp_to_rank_map.get(key2, []):
+                                    update_map(received_global_shared_evp_to_rank_map, key1, val)
+                                                
+                                for val in original_recv_global_shared_evp_to_rank_map.get(key1, []):
+                                    update_map(self.global_shared_evp_to_rank_map, key2, val)
+
+                                # --- Merge element mappings from original maps ---
+                                for val in original_global_shared_evp_to_elem_map.get(key2, []):
+                                    update_map(received_global_shared_evp_to_elem_map, key1, val)
+
+                                for val in original_recv_global_shared_evp_to_elem_map.get(key1, []):
+                                    update_map(self.global_shared_evp_to_elem_map, key2, val)
+
+                                # --- Merge vertex mappings from original maps ---
+                                for val in original_global_shared_evp_to_vertex_map.get(key2, []):
+                                    update_map(received_global_shared_evp_to_vertex_map, key1, val)
+
+                                for val in original_recv_global_shared_evp_to_vertex_map.get(key1, []):
+                                    update_map(self.global_shared_evp_to_vertex_map, key2, val)
+                    
+                # ----------------------
+                # Step 5: First-section ranks receive back merged/updated maps
+                # ----------------------                    
+                updated_bundle = {
+                    "received_global_shared_evp_to_rank_map": received_global_shared_evp_to_rank_map,
+                    "received_global_shared_evp_to_elem_map": received_global_shared_evp_to_elem_map,
+                    "received_global_shared_evp_to_vertex_map": received_global_shared_evp_to_vertex_map,
+                }                                            
+                    
+                self.rt.comm.send(updated_bundle, dest=source_rank, tag=98)
+                    
+            if self.rt.comm.rank in first_section_ranks:
+                new_target_rank = self.rt.comm.rank + self.ranks_per_section
+                received_updated_bundle = self.rt.comm.recv(source=new_target_rank, tag=98)
+                    
+                # Replace local maps with merged versions
+                self.global_shared_evp_to_rank_map = received_updated_bundle["received_global_shared_evp_to_rank_map"]
+                self.global_shared_evp_to_elem_map = received_updated_bundle["received_global_shared_evp_to_elem_map"]
+                self.global_shared_evp_to_vertex_map = received_updated_bundle["received_global_shared_evp_to_vertex_map"]
+                
+            self.rt.comm.Barrier()    
+                
+        if msh.gdim >= 2:
+            # ----------------------
+            # Step 1: Compute local edge centres
+            # ----------------------
+            local_edge_centers = {
+                                    (elem, edge): tuple(msh.edge_centers[elem, edge])
+                                    for elem, edge in zip(self.incomplete_eep_elem, self.incomplete_eep_edge)
+                                }       
+                
+            # ----------------------
+            # Step 2: Apply periodic offset to edge centers
+            # ---------------------- 
+            scaled_edge_centers = {
+                                    (elem, edge): (x + offset_vector[0], y + offset_vector[1], z + offset_vector[2])
+                                    for (elem, edge), (x, y, z) in local_edge_centers.items()
+                                }     
+                
+            # ----------------------
+            # Step 3: Exchange bundles (first-section with last-section partner)
+            # ----------------------                                   
+            bundle = {
+                "scaled_edge_centers": scaled_edge_centers,
+                # Global/local shared maps (edges)
+                "global_shared_eep_to_rank_map": self.global_shared_eep_to_rank_map,
+                "global_shared_eep_to_elem_map": self.global_shared_eep_to_elem_map,
+                "global_shared_eep_to_edge_map": self.global_shared_eep_to_edge_map,
+            }    
+                
+            # First section sends data to its periodic partner
+            if self.rt.comm.rank in first_section_ranks:
+                target_rank = self.rt.comm.rank + self.ranks_per_section
+                comm_size = self.rt.comm.Get_size()
+                if not (0 <= target_rank < comm_size):
+                    raise ValueError(f"Invalid target_rank={target_rank}. Must be between 0 and {comm_size - 1} with ranks_per_section {self.ranks_per_section}, current rank = {self.rt.comm.rank}.")
+                self.rt.comm.send(bundle, dest=target_rank, tag=97)
+                    
+            # Last section receives bundle from its periodic partner
+            elif self.rt.comm.rank in last_section_ranks:
+                source_rank = self.rt.comm.rank - self.ranks_per_section
+                received_bundle = self.rt.comm.recv(source=source_rank, tag=97)
+                    
+                # Extract received maps/centers data
+                received_scaled_edge_centers = received_bundle["scaled_edge_centers"]
+                received_global_shared_eep_to_rank_map = received_bundle["global_shared_eep_to_rank_map"]
+                received_global_shared_eep_to_elem_map = received_bundle["global_shared_eep_to_elem_map"]
+                received_global_shared_eep_to_edge_map = received_bundle["global_shared_eep_to_edge_map"]
+
+                # Make copies of the original global maps (before update for safe merging)
+                original_global_shared_eep_to_rank_map = self.global_shared_eep_to_rank_map.copy()
+                original_global_shared_eep_to_elem_map = self.global_shared_eep_to_elem_map.copy()
+                original_global_shared_eep_to_edge_map = self.global_shared_eep_to_edge_map.copy()
+                original_recv_global_shared_eep_to_rank_map = received_global_shared_eep_to_rank_map.copy()
+                original_recv_global_shared_eep_to_elem_map = received_global_shared_eep_to_elem_map.copy()
+                original_recv_global_shared_eep_to_edge_map = received_global_shared_eep_to_edge_map.copy()
+                    
+                # ----------------------
+                # Step 4: Match edge centers (received with local)
+                # ----------------------
+                for (elem1, edge1), scaled_center in received_scaled_edge_centers.items(): # received data
+                    for (elem2, edge2), original_center in local_edge_centers.items(): # local data
+                        if are_coords_close(scaled_center, original_center):
+
+                            key1 = (elem1, edge1) # received data key
+                            key2 = (elem2, edge2) # local data key
+
+                            # --- Update maps for rank ownership ---
+                            # key1 (received edge) --> current rank
+                            # key2 (local edge)    --> source rank
+                            for key, other_rank in [(key1, self.rt.comm.rank), (key2, source_rank)]:
+                                target_map = self.global_shared_eep_to_rank_map if key == key2 else received_global_shared_eep_to_rank_map
+                                update_map(target_map, key, other_rank)
+
+                            # --- Update element connectivity ---
+                            # key1 (received edge) --> elem2 (local element)
+                            # key2 (local edge)    --> elem1 (received element)
+                            for key, other_elem in [(key1, elem2), (key2, elem1)]:
+                                target_map = self.global_shared_eep_to_elem_map if key == key2 else received_global_shared_eep_to_elem_map
+                                update_map(target_map, key, other_elem)
+
+                            # --- Update edge-to-edge connectivity ---
+                            # key1 (received edge) --> edge2 (local edge index)
+                            # key2 (local edge)    --> edge1 (received edge index)
+                            for key, other_edge in [(key1, edge2), (key2, edge1)]:
+                                target_map = self.global_shared_eep_to_edge_map if key == key2 else received_global_shared_eep_to_edge_map
+                                update_map(target_map, key, other_edge)
+                                
+                            # --- Merge rank mappings from original maps ---
+                            if key1[0] == key2[0]: # Merge only the element having same index number from local and received, to avoid double merging
+                                for val in original_global_shared_eep_to_rank_map.get(key2, []):
+                                    update_map(received_global_shared_eep_to_rank_map, key1, val)
+                                for val in original_recv_global_shared_eep_to_rank_map.get(key1, []):
+                                    update_map(self.global_shared_eep_to_rank_map, key2, val)
+                                        
+                                # --- Merge element mappings from original maps ---
+                                for val in original_global_shared_eep_to_elem_map.get(key2, []):
+                                    update_map(received_global_shared_eep_to_elem_map, key1, val)
+                                for val in original_recv_global_shared_eep_to_elem_map.get(key1, []):
+                                    update_map(self.global_shared_eep_to_elem_map, key2, val)
+                                        
+                                # --- Merge edge mappings from original maps ---
+                                for val in original_global_shared_eep_to_edge_map.get(key2, []):
+                                    update_map(received_global_shared_eep_to_edge_map, key1, val)
+                                for val in original_recv_global_shared_eep_to_edge_map.get(key1, []):
+                                    update_map(self.global_shared_eep_to_edge_map, key2, val)
+                    
+                # ----------------------
+                # Step 5: First-section ranks receive back merged/updated maps
+                # ----------------------  
+                updated_bundle = {
+                    "received_global_shared_eep_to_rank_map": received_global_shared_eep_to_rank_map,
+                    "received_global_shared_eep_to_elem_map": received_global_shared_eep_to_elem_map,
+                    "received_global_shared_eep_to_edge_map": received_global_shared_eep_to_edge_map,
+                }
+
+                self.rt.comm.send(updated_bundle, dest=source_rank, tag=96)
+
+            if self.rt.comm.rank in first_section_ranks:
+                new_target_rank = self.rt.comm.rank + self.ranks_per_section
+                received_updated_bundle = self.rt.comm.recv(source=new_target_rank, tag=96)
+                    
+                # Replace local maps with merged versions
+                self.global_shared_eep_to_rank_map = received_updated_bundle["received_global_shared_eep_to_rank_map"]
+                self.global_shared_eep_to_elem_map = received_updated_bundle["received_global_shared_eep_to_elem_map"]
+                self.global_shared_eep_to_edge_map = received_updated_bundle["received_global_shared_eep_to_edge_map"]
+                    
+            self.rt.comm.Barrier() 
+            
+        if msh.gdim >= 3:
+            # ----------------------
+            # Step 1: Compute local facet centres
+            # ----------------------                       
+            local_facet_centers = {
+                                    (elem, facet): tuple(msh.facet_centers[elem, facet])
+                                    for elem, facet in zip(self.unique_efp_elem, self.unique_efp_facet)
+                                }
+            # ----------------------
+            # Step 2: Apply periodic offset to facet centers
+            # ----------------------
+            scaled_facet_centers = {
+                                    (elem, facet): (x + offset_vector[0], y + offset_vector[1], z + offset_vector[2])
+                                    for (elem, facet), (x, y, z) in local_facet_centers.items()
+                                }
+                
+            # ----------------------
+            # Step 3: Exchange bundles (first-section with last-section partner)
+            # ----------------------
+            bundle = {
+                "scaled_facet_centers": scaled_facet_centers,
+                # Global/local shared maps (facets)
+                "global_shared_efp_to_rank_map": self.global_shared_efp_to_rank_map,
+                "global_shared_efp_to_elem_map": self.global_shared_efp_to_elem_map,
+                "global_shared_efp_to_facet_map": self.global_shared_efp_to_facet_map,
+            }
+            
+            # First section sends data to its periodic partner
+            if self.rt.comm.rank in first_section_ranks:
+                target_rank = self.rt.comm.rank + self.ranks_per_section
+                comm_size = self.rt.comm.Get_size()
+                if not (0 <= target_rank < comm_size):
+                    raise ValueError(f"Invalid target_rank={target_rank}. Must be between 0 and {comm_size - 1} with ranks_per_section {self.ranks_per_section}, current rank = {self.rt.comm.rank}.")
+                self.rt.comm.send(bundle, dest=target_rank, tag=95)
+                    
+            # Last section receives bundle from its periodic partner
+            elif self.rt.comm.rank in last_section_ranks:
+                source_rank = self.rt.comm.rank - self.ranks_per_section
+                received_bundle = self.rt.comm.recv(source=source_rank, tag=95)
+                    
+                # Extract received maps/centers data
+                received_scaled_facet_centers = received_bundle["scaled_facet_centers"]
+                received_global_shared_efp_to_rank_map = received_bundle["global_shared_efp_to_rank_map"]
+                received_global_shared_efp_to_elem_map = received_bundle["global_shared_efp_to_elem_map"]
+                received_global_shared_efp_to_facet_map = received_bundle["global_shared_efp_to_facet_map"]
+                    
+                # ----------------------
+                # Step 4: Match facet centers (received with local)
+                # ----------------------
+                for (elem1, facet1), scaled_center in received_scaled_facet_centers.items(): # received data
+                    for (elem2, facet2), original_center in local_facet_centers.items(): # local data
+                            
+                        if are_coords_close(scaled_center, original_center):
+
+                            key1 = (elem1, facet1) # received data key
+                            key2 = (elem2, facet2) # local data key
+
+                            # --- Update global maps for rank ownership ---
+                            # key1 (received facet) --> current rank
+                            # key2 (local facet)    --> source rank
+                            for key, other_rank in [(key1, self.rt.comm.rank), (key2, source_rank)]:
+                                target_map = self.global_shared_efp_to_rank_map if key == key2 else received_global_shared_efp_to_rank_map
+                                update_map(target_map, key, other_rank)
+
+                            # --- Update element connectivity ---
+                            # key1 (received facet) --> elem2 (local element)
+                            # key2 (local facet)    --> elem1 (received element)
+                            for key, other_elem in [(key1, elem2), (key2, elem1)]:
+                                target_map = self.global_shared_efp_to_elem_map if key == key2 else received_global_shared_efp_to_elem_map
+                                update_map(target_map, key, other_elem)
+
+                            # --- Update facet-to-facet connectivity ---
+                            # key1 (received facet) --> facet2 (local facet index)
+                            # key2 (local facet)    --> facet1 (received facet index)
+                            for key, other_facet in [(key1, facet2), (key2, facet1)]:
+                                target_map = self.global_shared_efp_to_facet_map if key == key2 else received_global_shared_efp_to_facet_map
+                                update_map(target_map, key, other_facet)
+                                
+                # ----------------------
+                # Step 5: First-section ranks receive back merged maps
+                # ----------------------
+                updated_bundle = {
+                    "received_global_shared_efp_to_rank_map": received_global_shared_efp_to_rank_map,
+                    "received_global_shared_efp_to_elem_map": received_global_shared_efp_to_elem_map,
+                    "received_global_shared_efp_to_facet_map": received_global_shared_efp_to_facet_map,
+                }
+
+                self.rt.comm.send(updated_bundle, dest=source_rank, tag=94)
+
+            if self.rt.comm.rank in first_section_ranks:
+                new_target_rank = self.rt.comm.rank + self.ranks_per_section
+                received_updated_bundle = self.rt.comm.recv(source=new_target_rank, tag=94)
+                    
+                # Replace local maps with merged versions
+                self.global_shared_efp_to_rank_map = received_updated_bundle["received_global_shared_efp_to_rank_map"]
+                self.global_shared_efp_to_elem_map = received_updated_bundle["received_global_shared_efp_to_elem_map"]
+                self.global_shared_efp_to_facet_map = received_updated_bundle["received_global_shared_efp_to_facet_map"]
+                
+            self.rt.comm.Barrier()
+    
     def dssum(
-        self, field: np.ndarray = None, msh: Mesh = None, average: str = "multiplicity"
+        self, field: np.ndarray = None, msh: Mesh = None, average: str = "multiplicity", periodicity: bool = False, offset_vector: Tuple[int, int, int] = (0, 0, 0), 
+        num_elements: int = None, pattern_factor: int = 1
     ):
         """
         Computes the dssum of the field
@@ -395,6 +874,13 @@ class MeshConnectivity:
         if self.rt.comm.Get_size() > 1:
             iferror = False
             try:
+                if periodicity:
+                    periodicity_map = self.get_periodicity_map(
+                        msh=msh,
+                        offset_vector=offset_vector,
+                        num_elements=num_elements,
+                        pattern_factor=pattern_factor
+                    )
                 dssum_field = self.dssum_global(
                     local_dssum_field=dssum_field, field=field, msh=msh
                 )
