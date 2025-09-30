@@ -436,12 +436,12 @@ class MeshConnectivity:
             Parameters:
                 msh (Mesh): The mesh object containing element and vertex data.
                 offset_vector (Tuple[int, int, int]): The offset to apply to the coordinates for periodicity.
-                num_elements (int): The number of elements in each section.
-                pattern_factor (int): The number of cross-sections that form one complete pattern.
+                num_elements (int): The number of elements in each cross-section.
+                pattern_factor (int): The number of cross-sections that form one complete periodic pattern.
             
             Function steps:                
                 1. Validates the rank size to ensure even distribution of elements.
-                2. Segregates ranks into first and last sections based on the number of elements and pattern factor.
+                2. Identify ranks that belong to the first and last cross-sections based on the number of elements and pattern factor.
                 3. Based on mesh dimensions, computes local vertices, face centers and edge centers.
                 4. Applies the specified offset to these vertices and centers.
                 5. Exchanges relevant data between matching ranks.
@@ -860,6 +860,14 @@ class MeshConnectivity:
             The mesh object
         average : str
             The averaging weights to use. Can be "multiplicity"
+        periodicity : bool, optional
+            If True, applies periodic connectivity mapping before summation.
+        offset_vector : Tuple[int, int, int], optional
+            The offset to apply when matching periodic entities.
+        num_elements : int, optional
+            Number of elements per cross-section, used for periodic mapping
+        pattern_factor : int, optional
+            Number of cross-sections that form one complete periodic pattern.
 
         Returns
         -------
