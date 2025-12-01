@@ -25,8 +25,7 @@ However the package has more functionalities. the full API documentation for all
 .. toctree::
    :maxdepth: 1
 
-   ./pages/full_api
-   ./pages/summary_api
+   ./pages/api
 
 -----------------------
 
