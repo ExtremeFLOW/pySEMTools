@@ -16,6 +16,7 @@ The presently included submodules are:
     pysemtools.io.adios2
     pysemtools.io.wrappers
     pysemtools.monitoring
+    pysemtools.rom
 
 The compression module inside the package is still considered to be experimental and is prone to change, therefore its documentation is not yet included here.
 
@@ -80,5 +81,11 @@ monitoring
 ~~~~~~~~~~
 
 .. automodule :: pysemtools.monitoring
+    :members:
+
+rom
+~~~
+
+.. automodule :: pysemtools.rom
     :members:
 
