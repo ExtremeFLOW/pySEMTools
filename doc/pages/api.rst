@@ -12,6 +12,9 @@ The presently included submodules are:
     pysemtools.comm
     pysemtools.datatypes
     pysemtools.interpolation
+    pysemtools.io.ppymech
+    pysemtools.io.adios2
+    pysemtools.io.wrappers
 
 The compression module inside the package is still considered to be experimental and is prone to change, therefore its documentation is not yet included here.
 
@@ -41,4 +44,30 @@ interpolation
 ~~~~~~~~~~~~~
 
 .. automodule :: pysemtools.interpolation
+    :members:
+
+io
+~~
+
+There are multiple interfaces to perform IO operations. The main one relates to NEk5000/Neko files. These are read by using the ppymech submodule. 
+It is also possible to use ADIOS2 to, for example, use the in-situ processing capabilities, like data streaming or compression. 
+Finally, a set of wrappers to read and write data in Nek or HDF5 format is also provided.
+
+
+ppymech
+^^^^^^^
+
+.. automodule :: pysemtools.io.ppymech
+    :members:
+
+ADIOS2
+^^^^^^
+
+.. automodule :: pysemtools.io.adios2
+    :members:
+
+wrappers
+^^^^^^^^
+
+.. automodule :: pysemtools.io.wrappers
     :members:
