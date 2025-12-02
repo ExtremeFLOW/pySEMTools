@@ -15,8 +15,12 @@ The presently included submodules are:
     pysemtools.io.ppymech
     pysemtools.io.adios2
     pysemtools.io.wrappers
+    pysemtools.monitoring
 
 The compression module inside the package is still considered to be experimental and is prone to change, therefore its documentation is not yet included here.
+
+The post-processing module is in a similar state. This module intends to use the tools to perform more specific post processing tasks. It is still under development and its API is prone to change, therefore 
+the documentation is reserved for a future release.
 
 The full API documentation for all the classes and functions is provided below.
 
@@ -71,3 +75,10 @@ wrappers
 
 .. automodule :: pysemtools.io.wrappers
     :members:
+
+monitoring
+~~~~~~~~~~
+
+.. automodule :: pysemtools.monitoring
+    :members:
+
