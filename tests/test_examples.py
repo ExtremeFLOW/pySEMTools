@@ -137,3 +137,30 @@ def test_reduced_order_modelling():
         passed.append(_passed)
 
     assert all(passed)
+
+def test_statistics():
+
+    examples_path = "examples/6-statistics/"
+    notebook_files = ["1-post_processing_mean_fields.ipynb"]
+
+    passed = []
+    for notebook in notebook_files:
+        notebook_path = os.path.join(examples_path, notebook)
+
+        print(f"Executing notebook: {notebook_path}")
+        _path=os.path.abspath(notebook_path)
+        _name=os.path.basename(notebook_path)
+        command = f"jupyter nbconvert --to notebook --execute {notebook_path} --output ./executed_{_name}"
+        process = subprocess.run(command, capture_output=True, shell=True)
+        if process.returncode != 0:
+            print("Error executing notebook:")
+            print(process.stdout.decode())
+            print(process.stderr.decode())
+            _passed = False
+        else:
+            print("Notebook executed successfully.")
+            _passed = True
+
+        passed.append(_passed)
+
+    assert all(passed)
