@@ -32,7 +32,7 @@ def main():
     comm = MPI.COMM_WORLD
 
     # Create the argument parser
-    parser = argparse.ArgumentParser(description="Index files from a folder.")
+    parser = argparse.ArgumentParser(description="Create a JSON file indexing files from a folder and their metadata.")
     
     # Define command-line arguments
     parser.add_argument("--folder_path", type=str, default="./", help="Path to the folder containing files to index.")

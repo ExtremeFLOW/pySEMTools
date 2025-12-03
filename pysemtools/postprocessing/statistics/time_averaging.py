@@ -1,6 +1,7 @@
 import json
 import numpy as np
 import os
+from os.path import join
 
 from ...monitoring.logger import Logger
 from ...datatypes.msh import Mesh
@@ -32,7 +33,7 @@ def average_field_files(
 
     field_index_name : str
         Index file that contains the information of the field files to be averaged.
-        Relative or absule path to the file should be provided.
+        Relative or absolute path to the file should be provided.
     output_folder : str
         Output folder where the averaged field files will be saved.
         By default, the same folder as the field_index_name will be used.
@@ -129,12 +130,12 @@ def average_field_files(
 
     logger.write(
         "info",
-        f"Writing {output_folder}batches_{os.path.basename(field_index_name)} batch index",
+        f"Writing {output_folder}/batches_{os.path.basename(field_index_name)} batch index",
     )
     logger.tic()
     if comm.Get_rank() == 0:
         with open(
-            output_folder + "batches_" + os.path.basename(field_index_name), "w"
+            join(output_folder, "batches_" + os.path.basename(field_index_name)), "w"
         ) as outfile:
             outfile.write(json.dumps(batches, indent=4))
     comm.Barrier()
@@ -258,7 +259,7 @@ def average_field_files(
         else:
             write_coords = write_mesh
         pynekwrite(
-            output_folder + out_fname,
+            join(output_folder, out_fname),
             comm,
             fld=batch_mean_field,
             msh=msh,
