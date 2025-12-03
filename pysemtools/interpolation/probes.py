@@ -63,7 +63,7 @@ class Probes:
         Second element is the maximum number of candidate ranks to send the data. This affects memory. Default is [False, 5000].
     find_points_comm_pattern : str
         Communication pattern for finding points. Default is point_to_point.
-        options are: point_to_point, collective.
+        options are: point_to_point, collective, rma
     elem_percent_expansion : float
         Percentage expansion of the element bounding box. Default is 0.01.
     global_tree_type : str
@@ -80,6 +80,14 @@ class Probes:
     find_points_max_iter : int
         The maximum number of iterations to use when finding points. Default is
         50.
+    local_data_structure : str
+        The local data structure to use when finding points. Default is kdtree.
+        options are: kdtree, obb_tree.
+    use_oriented_bbox : bool
+        If True, oriented bounding boxes are used when finding points. Default is False.
+    clean_search_traces : bool
+        If True, cleans all the data used for searching points after initialization.
+        This saves memory if only interpolation is needed afterwards. Default is False.
 
     Attributes
     ----------

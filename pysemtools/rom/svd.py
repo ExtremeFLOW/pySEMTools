@@ -13,7 +13,24 @@ NoneType = type(None)
 
 
 class SVD:
-    """Class used to obtain parallel and streaming SVD results"""
+    """Class used to obtain parallel and streaming SVD results
+    
+    This is the main class of the ROM module and POD wraps arounf it.
+
+    Parameters
+    ----------
+    logger : Logger
+        Logger object to be used for logging.
+    bckend : str, optional
+        Backend to be used for the math operations. The default is "numpy". "torch"
+        can be used if PyTorch is installed.
+    
+    Returns
+    -------
+    None
+    
+    
+    """
 
     def __init__(self, logger, bckend="numpy"):
 
@@ -37,10 +54,34 @@ class SVD:
 
     def lcl_to_gbl_svd(self, uii, dii, vtii, k_set, comm):
         """Perform rotations to obtain global modes from local modes.
-        The number of modes that want to be kept. This is different than k because
-        in local updates, each rank can have different k that will
-        provide with ALL global modes.
+
+        Parameters
+        ----------
+        uii : np.ndarray
+            Local left singular vectors.
+        dii : np.ndarray
+            Local singular values.
+        vtii : np.ndarray
+            Local right singular vectors.
+        k_set : int
+            Number of modes that want to be kept globally. This is different than k because
+            in local updates, each rank can have different k that will
+            provide with ALL global modes.
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+
+        ui_global : np.ndarray
+            Global left singular vectors.
+        dy : np.ndarray
+            Global singular values.
+        vty : np.ndarray
+            Global right singular vectors.
+
         """
+
         # Get information from the communicator
         rank = comm.Get_rank()
         size = comm.Get_size()
@@ -111,7 +152,30 @@ class SVD:
     def lcl_update(self, u_1t, d_1t, vt_1t, xi, k):
         """
         Method to update the local svds from a batch of data
-        xi: new data batch
+        
+        This method does not require communication.
+
+        Parameters
+        ----------
+        u_1t : np.ndarray
+            Left singular vectors from previous update.
+        d_1t : np.ndarray
+            Singular values from previous update.
+        vt_1t : np.ndarray
+            Right singular vectors from previous update.
+        xi : np.ndarray
+            New data to be used for the update.
+        k : int
+            Number of modes to be kept.
+        
+        Returns
+        -------
+        u_1t : np.ndarray
+            Updated left singular vectors.
+        d_1t : np.ndarray
+            Updated singular values.
+        vt_1t : np.ndarray
+            Updated right singular vectors.
 
         """
 
@@ -140,8 +204,26 @@ class SVD:
         return u_1t, d_1t, vt_1t
 
     def gbl_svd(self, xi, comm):
-        """perform a global svd that contains all necesary rotations
-        for global modes"""
+        """perform a global svd that contains all necesary rotations for global modes
+        
+        Parameters
+        ----------
+        xi : np.ndarray
+            Data to perform the svd on.
+        comm : MPI communicator
+            MPI communicator object.
+
+        Returns
+        -------
+        u_local : np.ndarray
+            Local left singular vectors after global rotation.
+            In this case local references that the modes are distributed across ranks. The modes are global.
+        dy : np.ndarray
+            Global singular values.
+        vty : np.ndarray
+            Global right singular vectors.
+
+        """
 
         if self.bckend == 'numpy':
             return self.gbl_svd_numpy(xi, comm)
@@ -149,9 +231,27 @@ class SVD:
             return self.gbl_svd_torch(xi, comm)
     
     def gbl_svd_numpy(self, xi, comm):
-        """perform a global svd that contains all necesary rotations
-        for global modes"""
+        """Perform a global SVD using numpy, including necessary rotations for global modes using numpy
+        
+        Parameters
+        ----------
+        xi : np.ndarray
+            Data to perform the svd on.
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+        u_local : np.ndarray
+            Local left singular vectors after global rotation.
+            In this case local references that the modes are distributed across ranks. The modes are global.
+        dy : np.ndarray
+            Global singular values.
+        vty : np.ndarray
+            Global right singular vectors.
 
+
+        """
         # Get information from the communicator
         rank = comm.Get_rank()
         size = comm.Get_size()
@@ -201,7 +301,27 @@ class SVD:
     
     def gbl_svd_torch(self, xi, comm):
 
-        """Perform a global SVD using PyTorch, including necessary rotations for global modes."""
+        """Perform a global SVD using PyTorch, including necessary rotations for global modes.
+        
+        Parameters
+        ----------
+        xi : np.ndarray or torch.Tensor
+            Data to perform the svd on.
+        comm : MPI communicator
+            MPI communicator object.
+
+        Returns
+        -------
+        u_local : torch.Tensor
+            Local left singular vectors after global rotation.
+            In this case local references that the modes are distributed across ranks. The modes are global.
+        dy : torch.Tensor
+            Global singular values.
+        vty : torch.Tensor
+            Global right singular vectors.
+
+
+        """
         
         # Ensure xi is a torch tensor on self.device with proper dtype
         if not torch.is_tensor(xi):
@@ -275,7 +395,35 @@ class SVD:
     def gbl_update(self, u_1t, d_1t, vt_1t, xi, k, comm):
         """
         Method to update the global svds from a batch of data
+
+        Parameters
+        ----------
+        u_1t : np.ndarray
+            Left singular vectors from previous update.
+        d_1t : np.ndarray
+            Singular values from previous update.
+        vt_1t : np.ndarray
+            Right singular vectors from previous update.
+        xi : np.ndarray
+            New data to be used for the update.
+        k : int
+            Number of modes to be kept.
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+        u_1t : np.ndarray
+            Updated left singular vectors.
+        d_1t : np.ndarray
+            Updated singular values.
+        vt_1t : np.ndarray
+            Updated right singular vectors.
+        
+        Notes
+        -----           
         No need to delete xi, as this comes from a buffer that is pre allocated
+        
         """
 
         if self.bckend == 'numpy':
@@ -285,8 +433,36 @@ class SVD:
 
     def gbl_update_numpy(self, u_1t, d_1t, vt_1t, xi, k, comm):
         """
-        Method to update the global svds from a batch of data
+        Method to update the global svds from a batch of data using numpy
+        
+        Parameters
+        ----------
+        u_1t : np.ndarray
+            Left singular vectors from previous update.
+        d_1t : np.ndarray
+            Singular values from previous update.
+        vt_1t : np.ndarray
+            Right singular vectors.
+        xi : np.ndarray
+            New data to be used for the update.
+        k : int
+            Number of modes to be kept.
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+        u_1t : np.ndarray
+            Updated left singular vectors.
+        d_1t : np.ndarray
+            Updated singular values.
+        vt_1t : np.ndarray
+            Updated right singular vectors.
+
+        Notes
+        -----
         No need to delete xi, as this comes from a buffer that is pre allocated
+
         """
 
         if isinstance(u_1t, NoneType):
@@ -320,6 +496,36 @@ class SVD:
 
     def gbl_update_torch(self, u_1t, d_1t, vt_1t, xi, k, comm):
         """
+        Method to update the global svds from a batch of data using PyTorch
+
+        Parameters
+        ----------
+        u_1t : torch.Tensor
+            Left singular vectors from previous update.
+        d_1t : torch.Tensor
+            Singular values from previous update.
+        vt_1t : torch.Tensor
+            Right singular vectors.
+        xi : np.ndarray or torch.Tensor
+            New data to be used for the update.
+        k : int
+            Number of modes to be kept.
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+        u_1t : torch.Tensor
+            Updated left singular vectors.
+        d_1t : torch.Tensor
+            Updated singular values.
+        vt_1t : torch.Tensor
+            Updated right singular vectors.
+
+        Notes
+        -----
+        No need to delete xi, as this comes from a buffer that is pre allocated
+
         """
         
         # Check if xi is a torch tensor. If not, cast it and set a flag.

@@ -10,8 +10,27 @@ NoneType = type(None)
 
 
 class IoHelp:
-    """Class used to help with IO operations.
-    It contains buffers to be used in the carrying out of the POD"""
+    """Class used to help with IO buffering
+
+    This class contains buffers to be used in the carrying out, for example, POD
+    
+    Parameters
+    ----------
+    comm : MPI communicator
+        MPI communicator object.
+    number_of_fields : int
+        Number of fields to be stored in the buffer.
+    batch_size : int
+        Size of the buffer.
+    field_size : int
+        Size of each field.
+    field_data_type : data-type, optional
+        Data type of the fields. The default is np.double.
+    mass_matrix_data_type : data-type, optional
+        Data type of the mass matrix. The default is np.double.
+    module_name : str, optional
+        Name of the module for logging purposes. The default is "io_helper".
+    """
 
     def __init__(
         self,
@@ -59,9 +78,21 @@ class IoHelp:
         self.log.write("info", "io_helper object initialized")
 
     def copy_fieldlist_to_xi(self, field_list=None):
-        """Copy a field list into the buffer xi position 0.
+        """Copy a field list into the buffer xi position 0
+
         This is used to make multi dimensional data into one big
-        column vector that works as a snapshot for the POD"""
+        column vector that works as a snapshot for the POD
+        
+        Parameters
+        ----------
+        field_list : list of np.ndarray
+            List of fields to be copied into xi.
+        
+        Returns
+        -------
+        None
+        
+        """
         if field_list is None:
             field_list = []
 
@@ -74,7 +105,21 @@ class IoHelp:
 
     def split_narray_to_1dfields(self, array):
         """Split a snapshot into a set of fields.
-        This is somewhat an inverse od copy_fieldlist_to_xi"""
+
+        This is somewhat an inverse of copy_fieldlist_to_xi, where from a big column
+        vector we split it into a list of fields.
+        
+        Parameters
+        ----------
+        array : np.ndarray
+            Array to be split into fields.
+
+        Returns
+        -------
+        field_list1d : list of np.ndarray
+            List of fields obtained from splitting the array.
+        
+        """
         field_size = self.field_size
         number_of_fields = array.shape[0] // field_size
         if number_of_fields != self.number_of_fields:
@@ -89,7 +134,24 @@ class IoHelp:
 
     def load_buffer(self, scale_snapshot=True):
         """Function to load snapshot into the allocated buffer.
-        It is this buffer that is given to SVD in the calculation of POD"""
+
+        This transfer the data from xi into the buffer at the current buffer index.
+        
+        If the buffer is full, it sets the flag to update from buffer to True.
+
+        This is the buffer that the POD class uses to compute.
+        
+        Parameters
+        ----------
+        scale_snapshot : bool, optional
+            If True, the snapshot is scaled with the mass matrix before being
+            loaded into the buffer. The default is True.
+        
+        Returns
+        -------
+        None
+
+        """
         if self.buffer_index > self.buffer_max_index:
             self.buffer_index = 0
 

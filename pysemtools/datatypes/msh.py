@@ -40,6 +40,8 @@ class Mesh:
         1D ndarray of global element ids. shape is (nelv,).
     create_connectivity : bool, optional
         If True, the connectivity of the domain will be created. (Memory intensive).
+    bckend : str, optional
+        Backend to use for the data. Options are 'numpy' and 'torch'. Default is 'numpy'.
 
     Attributes
     ----------
@@ -364,6 +366,15 @@ class Mesh:
 
 
     def create_connectivity(self):
+        '''
+        Create connectivity with the information from one processor
+
+        Notes
+        -----
+
+        This function creates a map that contains the connectivity of the domain. This is not the recomended way to perform connectivity in large domains.
+        For this, it is better to use the dedicated connecitivty object that performs the operations in parallel.
+        '''
 
         if self.create_connectivity_bool:
 
@@ -440,6 +451,19 @@ class Mesh:
 
     def to(self, comm=None, bckend = 'numpy'):
         """
+        Transfer the Mesh object to the desired backend.
+
+        Parameters
+        ----------
+        comm : Comm
+            MPI communicator object.
+        bckend : str
+            Backend to use for the data. Options are 'numpy' and 'torch'. Default is 'numpy'.
+        
+        Returns
+        -------
+        msh_cpu : Mesh
+            Mesh object in the desired backend.
         """
 
         if self.bckend == 'torch':
