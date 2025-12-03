@@ -20,11 +20,15 @@ def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):
     ----------
     comm : MPI.Comm
         The MPI communicator
-    data : Union[np.ndarray, str]
-        The data to partition, or the name of the file to read. If a string, it is assumed to be an hdf5 file.
-        If the data is a dictionary, it is assumed to be a dictionary with numpy arrays as values.
-
-
+    fname : str
+        The name of the file to read
+    distributed_axis : int, optional
+        The axis along which the data is distributed, by default 0. This is used to determine how many elements to read from the file in parallel.
+    
+    Returns
+    -------
+    list
+        A list of slices corresponding to the local data to be read by each process
     """
 
     #raise NotImplementedError("Parallel IO is not implemented for hdf5 files")

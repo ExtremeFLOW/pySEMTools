@@ -1,3 +1,4 @@
+""" Extract a subdomain from an existing file. """
 import pysemtools
 from mpi4py import MPI
 import numpy as np
@@ -9,16 +10,42 @@ import argparse
 
 
 def parse_comma_separated(value):
+    '''
+    Internal function for parsing text inputs
+    '''
     # Split the string by commas, strip spaces, and return a list
     return [item.strip() for item in value.split(",")]
 
 
 def parse_bounds(value):
+    '''
+    Internal function for parsing bounds input
+    '''
     # Split the string by commas, strip spaces from each part, and convert to float
     return [float(x.strip()) for x in value.split(",")]
 
 
 def main():
+    '''
+    Extract a subdomain from an existing file.
+
+    This script extracts a box-shaped subdomain from a given field file and saves it to a new file.
+
+    Parameters
+    ----------
+    - -input_file: Path to the input field file.
+    - -output_file: Path to the output field file where the extracted subdomain will be saved
+    - -bounds: Comma-separated list of 6 floats defining the subdomain bounds: xmin,xmax,ymin,ymax,zmin,zmax
+    - -fields: (Optional) Comma-separated list of field names to extract. If not provided, all fields will be extracted.
+
+    Examples
+    --------
+    To use this script, run it with MPI using the following command:
+    
+    >>> mpirun -n <num_processes> python pysemtools_extract_subdomain --input_file <input.fld> --output_file <output.fld> --bounds=<xmin,xmax,ymin,ymax,zmin,zmax> [--fields=<field1,field2,...>]
+    
+    Replacing the placeholders with actual values. Observe that you have to remove the angle brackets.
+    '''
     comm = MPI.COMM_WORLD
     parser = argparse.ArgumentParser(
         description="Extract a box-shaped subdomain from a field file",

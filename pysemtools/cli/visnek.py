@@ -1,11 +1,29 @@
 #!/usr/bin/env python3
+''' Create a nek5000 file template from existing files. Used to visualize nek5000 files in VisIt. '''
 
 import argparse
 import glob
 import sys
 
 def main():
-    
+    '''
+    Create a nek5000 file template from existing files. Used to visualize nek5000 files in VisIt.
+
+    This script generates a nek5000 file template based on existing files in the current directory. The generated file contains information about the file naming pattern, first timestep, and number of timesteps.
+
+    Parameters
+    ----------
+    filename_pattern: Pattern to match the nek5000 files.
+
+    Examples
+    --------
+    To use this script, run it with the following command:
+
+    >>> pysemtools_visnek <filename_pattern>
+
+    Replacing the placeholder with the actual filename pattern. Observe that you have to remove the angle brackets.
+    '''
+
     if len(sys.argv) == 1:
         print("No arguments provided. Exiting...")
         sys.exit(1)

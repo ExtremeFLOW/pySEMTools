@@ -8,8 +8,7 @@ PySEMTools
 
 PySEMTools is a Python package for post-processing Spectral Element Method data for fluid simulations.
 
-The following pages contain documentation for some of the most relevant classes and functions. However, some are missing.
-For a complete list of classes and functions, please refer to the source code. Particularly for POD calculations.
+The following pages contain documentation for some of the most relevant classes and functions.
 
 .. toctree::
    :maxdepth: 1
@@ -18,6 +17,15 @@ For a complete list of classes and functions, please refer to the source code. P
    ./pages/datatypes
    ./pages/interpolation
    ./pages/io
+
+
+The previous functions are the ones that, according to our experience, are more likely to be used by a general user. 
+However the package has more functionalities. the full API documentation for all the classes and functions is provided below.
+
+.. toctree::
+   :maxdepth: 1
+
+   ./pages/api
 
 -----------------------
 

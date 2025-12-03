@@ -3,9 +3,6 @@
 import sys
 from mpi4py import MPI
 import numpy as np
-from pymech.neksuite.field import read_header
-from pymech.core import HexaData
-from pymech.neksuite.field import Header
 from .parallel_io import (
     fld_file_read_vector_field,
     fld_file_read_field,
@@ -17,7 +14,153 @@ from .parallel_io import (
 from ...monitoring.logger import Logger
 
 # from memory_profiler import profile
+class NekHeader:
+    """
+    Class containing the header information for a nek file
+    This is HEAVILY inspired by pymech subroutines: https://github.com/eX-Mech/pymech
+    The only reason it is reproduced here is to avoid importing too many modules that take a lot of memory, specially with mpi4py
+    """
 
+    def __init__(self,
+                 wdsz = None,
+                 orders = None,
+                 nb_elems = None,
+                 nb_elems_file = None,
+                 time = None,
+                 istep = None,
+                 fid = None,
+                 nb_files = None,
+                 nb_vars = None,
+                 header_string = None):
+        
+        if header_string is not None:
+            self.init_from_string(header_string)
+        else:
+            self.init_from_attributes(
+                wdsz=wdsz,
+                orders=orders,
+                nb_elems=nb_elems,
+                nb_elems_file=nb_elems_file,
+                time=time,
+                istep=istep,
+                fid=fid,
+                nb_files=nb_files,
+                nb_vars=nb_vars,
+            )
+
+    def init_from_attributes(self,
+                            wdsz: int,
+                            orders: tuple[int, ...],
+                            nb_elems: int,
+                            nb_elems_file: int,
+                            time: float,
+                            istep: int,
+                            fid: int,
+                            nb_files: int, 
+                            nb_vars: tuple[int, ...]):
+        self.wdsz = wdsz
+        self.orders = orders
+        self.nb_elems = nb_elems
+        self.nb_elems_file = nb_elems_file
+        self.time = time
+        self.istep = istep
+        self.fid = fid
+        self.nb_files = nb_files
+        self.nb_vars = nb_vars
+
+        self.variables = ''
+        if self.nb_vars[0] > 0:
+            self.variables += f"X"
+        if self.nb_vars[1] > 0:
+            self.variables += f"U"
+        if self.nb_vars[2] > 0:
+            self.variables += f"P"
+        if self.nb_vars[3] > 0:
+            self.variables += f"T"
+        if self.nb_vars[4] > 0:
+            self.variables += f"S{self.nb_vars[4]:02d}"
+
+        if self.wdsz == 4:
+            self.realtype = "f"
+        elif self.wdsz == 8:
+            self.realtype = "d"
+
+        if self.orders[2] > 1:
+            self.nb_dims = 3
+        else:
+            self.nb_dims = 2
+
+    def init_from_string(self, header_string):
+        """
+        """
+
+        self.wdsz = int(header_string[1])
+        self.orders = tuple(int(header_string[i]) for i in range(2, 5))
+        self.nb_elems = int(header_string[5])
+        self.nb_elems_file = int(header_string[6])
+        self.time = float(header_string[7])
+        self.istep = int(header_string[8])
+        self.fid = int(header_string[9])
+        self.nb_files = int(header_string[10])
+        self.variables = header_string[11].decode("utf-8") 
+        
+        if self.wdsz == 4:
+            self.realtype = "f"
+        elif self.wdsz == 8:
+            self.realtype = "d"
+
+        if self.orders[2] > 1:
+            self.nb_dims = 3
+        else:
+            self.nb_dims = 2
+
+        if "S" in self.variables:
+            num_scal = int(self.variables[self.variables.index("S") + 1 :])
+
+        self.nb_vars = (
+            self.nb_dims if "X" in self.variables else 0,
+            self.nb_dims if "U" in self.variables else 0,
+            1 if "P" in self.variables else 0,
+            1 if "T" in self.variables else 0,
+            num_scal if "S" in self.variables else 0,
+        )
+
+    def as_bytestring(self) -> bytes:
+        header = "#std %1i %2i %2i %2i %10i %10i %20.13E %9i %6i %6i %s" % (
+            self.wdsz,
+            self.orders[0],
+            self.orders[1],
+            self.orders[2],
+            self.nb_elems,
+            self.nb_elems_file,
+            self.time,
+            self.istep,
+            self.fid,
+            self.nb_files,
+            self.variables,
+        )
+        return header.ljust(132).encode("utf-8")
+    
+def read_nekheader(path, return_string = False):
+    """
+    Read the header of a nek type file.
+    This is HEAVILY inspired by pymech subroutines: https://github.com/eX-Mech/pymech
+    The only reason it is reproduced here is to avoid importing too many modules that take a lot of memory, specially with mpi4py
+    """
+    if isinstance(path, str):
+        with open(path, "rb") as fp:
+            header = fp.read(132).split()
+    else:
+        raise ValueError("Should be a path")
+
+    if len(header) < 12:
+        raise IOError("Header of the file was too short.")
+
+    # Relying on attrs converter to type-cast. Mypy will complain
+    if return_string:
+        return header
+    else:
+        return NekHeader(header_string=header)
 
 class IoHelper:
     """
@@ -218,6 +361,9 @@ def preadnek(filename, comm, data_dtype=np.double):
     >>> comm = MPI.COMM_WORLD
     >>> data = preadnek('field00001.fld', comm)
     """
+    from pymech.core import HexaData
+    from pymech.neksuite.field import read_header
+
     log = Logger(comm=comm, module_name="preadnek")
     log.tic()
     log.write("info", "Reading file: {}".format(filename))
@@ -411,7 +557,7 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None, overwrit
     mpi_character_size = MPI.CHARACTER.Get_size()
 
     # Read the header
-    header = read_header(filename)
+    header = read_nekheader(filename)
 
     # Initialize the io helper
     ioh = IoHelper(header, pynek_dtype=data_dtype)
@@ -446,7 +592,6 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None, overwrit
     idx = np.zeros(ioh.nelv, dtype=np.int32)
     byte_offset = mpi_offset + ioh.offset_el * mpi_int_size
     fh.Read_at_all(byte_offset, idx, status=None)
-    # data.elmap = idx
     mpi_offset += ioh.glb_nelv * mpi_int_size
 
     # Read the coordinates
@@ -462,7 +607,7 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None, overwrit
             z = np.zeros(ioh.nelv * ioh.lxyz, dtype=ioh.pynek_dtype)
             fld_file_read_vector_field(fh, byte_offset, ioh, x=x, y=y, z=z)
 
-            msh.init_from_coords(comm, x, y, z)
+            msh.init_from_coords(comm, x, y, z, elmap=idx)
 
             mpi_offset += ioh.glb_nelv * ioh.gdim * ioh.lxyz * ioh.fld_data_size
         else:
@@ -559,7 +704,7 @@ def get_file_time(filename):
     Get the time from the file header. This is useful for calls to the individual field reader.
     '''
 
-    header = read_header(filename)
+    header = read_nekheader(filename)
 
     return header.time
 
@@ -607,7 +752,7 @@ def pynekread_field(filename, comm, data_dtype=np.double, key=""):
     mpi_character_size = MPI.CHARACTER.Get_size()
 
     # Read the header
-    header = read_header(filename)
+    header = read_nekheader(filename)
 
     # Initialize the io helper
     ioh = IoHelper(header, pynek_dtype=data_dtype)
@@ -642,7 +787,6 @@ def pynekread_field(filename, comm, data_dtype=np.double, key=""):
     idx = np.zeros(ioh.nelv, dtype=np.int32)
     byte_offset = mpi_offset + ioh.offset_el * mpi_int_size
     fh.Read_at_all(byte_offset, idx, status=None)
-    # data.elmap = idx
     mpi_offset += ioh.glb_nelv * mpi_int_size
 
     # Read the coordinates
@@ -775,6 +919,7 @@ def pwritenek(filename, data, comm):
     >>> from pysemtools.io.ppymech.neksuite import pwritenek
     >>> pwritenek('field00001.fld', data, comm)
     """
+    from pymech.neksuite.field import Header
 
     mpi_int_size = MPI.INT.Get_size()
     mpi_real_size = MPI.REAL.Get_size()
@@ -1075,7 +1220,7 @@ def pynekwrite(filename, comm, msh=None, fld=None, wdsz=4, istep=0, write_mesh=T
     nelv = msh.nelv
 
     # instance a dummy header
-    dh = Header(
+    dh = NekHeader(
         wdsz,
         (lx, ly, lz),
         nelv,
@@ -1100,7 +1245,7 @@ def pynekwrite(filename, comm, msh=None, fld=None, wdsz=4, istep=0, write_mesh=T
     ioh.allocate_temporal_arrays()
 
     # instance actual header
-    h = Header(
+    h = NekHeader(
         wdsz,
         (lx, ly, lz),
         ioh.glb_nelv,
@@ -1129,8 +1274,11 @@ def pynekwrite(filename, comm, msh=None, fld=None, wdsz=4, istep=0, write_mesh=T
 
     # write element mapping
     idx = np.zeros(ioh.nelv, dtype=np.int32)
-    for i in range(0, ioh.nelv):
-        idx[i] = i + ioh.offset_el
+    if (msh is not None) and (msh.elmap is not None):
+        idx[:] = msh.elmap[:]
+    else:
+        for i in range(0, ioh.nelv):
+            idx[i] = i + ioh.offset_el
     byte_offset = mpi_offset + ioh.offset_el * mpi_int_size
     fh.Write_at_all(byte_offset, idx, status=None)
     mpi_offset += ioh.glb_nelv * mpi_int_size
