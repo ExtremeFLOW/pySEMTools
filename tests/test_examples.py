@@ -11,7 +11,7 @@ def sem_data_path():
 
     if not os.path.exists(sem_data_path):
         print("Sem data not found, cloning repository...")
-        os.system(f"git clone https://github.com/adperezm/sem_data.git {sem_data_path}")
+        os.system(f"git clone https://github.com/adperezm/sem_data_testing.git {sem_data_path}")
     else:
         print("Sem data found.")
     
@@ -138,7 +138,7 @@ def test_reduced_order_modelling():
 
     assert all(passed)
 
-def test_statistics():
+def test_statistics(sem_data_path):
 
     examples_path = "examples/6-statistics/"
     notebook_files = ["1-post_processing_mean_fields.ipynb"]
