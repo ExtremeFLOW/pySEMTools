@@ -64,6 +64,14 @@ jobs:
           pip install memory_profiler
           pip install h5py
           pip install rtree
+
+          echo "Installing test-specific modules, required for notebooks to run"
+          pip install jupyter
+          pip install matplotlib
+          pip install pyevtk
+          pip install pyvista
+
+          echo "Installing PySEMTools"
           pip install .
           
       - name: Run unit tests
