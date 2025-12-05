@@ -75,7 +75,7 @@ jobs:
           
       - name: Run unit tests
         run: |
-          pytest --json-report -s -v tests/test_examples.py | tee unit_tests.txt
+          pytest --json-report -v tests/ | tee unit_tests.txt
       
       - name: Check results
         run: |
