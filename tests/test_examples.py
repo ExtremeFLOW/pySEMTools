@@ -142,7 +142,9 @@ def test_statistics(sem_data_path):
 
     examples_path = "examples/6-statistics/"
     notebook_files = ["1-post_processing_mean_fields.ipynb", 
-                      "4-Budgets.ipynb"]
+                      "4-Budgets.ipynb",
+                      "5-homogeneous_direction_averaging.ipynb",
+                      "6-Stats_from_fld.ipynb"]
 
     passed = []
     for notebook in notebook_files:
