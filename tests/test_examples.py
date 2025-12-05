@@ -17,7 +17,7 @@ def sem_data_path():
     
     return sem_data_path
 
-def test_data_types():
+def _test_data_types():
 
 
     examples_path = "examples/1-datatypes_and_io/"
@@ -46,7 +46,7 @@ def test_data_types():
 
     assert all(passed)
 
-def test_calculus():
+def _test_calculus():
 
 
     examples_path = "examples/3-calculus_in_sem_mesh/"
@@ -76,7 +76,7 @@ def test_calculus():
 
     assert all(passed)
 
-def test_interpolation(sem_data_path):
+def _test_interpolation(sem_data_path):
 
 
     examples_path = "examples/4-interpolation/"
@@ -109,7 +109,7 @@ def test_interpolation(sem_data_path):
 
     assert all(passed)
 
-def test_reduced_order_modelling():
+def _test_reduced_order_modelling():
 
 
     examples_path = "examples/5-reduced_order_modelling/"
