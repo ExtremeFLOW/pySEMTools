@@ -766,6 +766,8 @@ def write_3dfield_to_file(
             if (extension == "vtk") or (extension == "vts"):
                 outname = f"{path}/{prefix}_{sufix}"
                 print(f"Writing {outname}")
+                for field in reconstruction_dict[snapshot].keys():
+                    reconstruction_dict[snapshot][field] = np.ascontiguousarray(reconstruction_dict[snapshot][field])
                 gridToVTK(outname, x, y, z, pointData=reconstruction_dict[snapshot])
 
     # Write modes to vtk
@@ -802,7 +804,9 @@ def write_3dfield_to_file(
 
                 if (extension == "vtk") or (extension == "vts"):
                     outname = f"{path}/{prefix}_{sufix}.vtk"
-                    print(f"Writing {outname}")
+                    print(f"Writing {outname}") 
+                    for field in mode_dict[kappa][mode].keys():
+                        mode_dict[kappa][mode][field] = np.ascontiguousarray(mode_dict[kappa][mode][field])
                     gridToVTK(outname, x, y, z, pointData=mode_dict[kappa][mode])
                 elif extension == "hdf5":
                     outname = f"{path}/{prefix}_{sufix}.hdf5"
