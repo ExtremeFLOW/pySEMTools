@@ -144,34 +144,40 @@ def read_interpolated_stat_hdf5_fields(
     print('Finished reading all fields.')
     print(f'Done in {time.time() - start_time:.2f} seconds.')
 
+    # Save the variables in a directory
+    vars = {}
+    for name in list(locals().keys()):
+        if name.endswith('_vec') and isinstance(locals()[name], np.ndarray):
+            vars[name] = locals()[name]
+
     #%% Convert arrays to single precision if required
     if If_convert_to_single:
         print('Converting arrays into single precision...')
         start_time = time.time()
-        for name in list(locals().keys()):
-            if name.endswith('_vec') and isinstance(locals()[name], np.ndarray):
+        for name in list(vars.keys()):
+            if name.endswith('_vec') and isinstance(vars[name], np.ndarray):
                 # print(np.shape(locals()[name]))
-                locals()[name] = locals()[name].astype(np.float32)
+                vars[name] = vars[name].astype(np.float32)
         print('Conversion complete.')
         print(f'Done in {time.time() - start_time:.2f} seconds.')
 
     #%% Reshape arrays based on Nstruct
     print('Reshaping into arrays...')
     start_time = time.time()
-    for name in list(locals().keys()):
-        if name.endswith('_vec') and isinstance(locals()[name], np.ndarray):
+    for name in list(vars.keys()):
+        if name.endswith('_vec') and isinstance(vars[name], np.ndarray):
             reshaped_name = name[:-4] + '_struct'
-            locals()[reshaped_name] = locals()[name].reshape((Nstruct[1], Nstruct[0], Nstruct[2], locals()[name].shape[1]),order="F")
-            del locals()[name]
+            vars[reshaped_name] = vars[name].reshape((Nstruct[1], Nstruct[0], Nstruct[2], vars[name].shape[1]),order="F")
+            del vars[name]
     print('Reshaping complete.')
     print(f'Done in {time.time() - start_time:.2f} seconds.')
 
     #%% Permute arrays to original shape
     print('Permuting arrays into the original shape...')
     start_time = time.time()
-    for name in list(locals().keys()):
-        if name.endswith('_struct') and isinstance(locals()[name], np.ndarray):
-            locals()[name] = np.transpose(locals()[name], (1, 0, 2, 3))
+    for name in list(vars.keys()):
+        if name.endswith('_struct') and isinstance(vars[name], np.ndarray):
+            vars[name] = np.transpose(vars[name], (1, 0, 2, 3))
     print('Permutation complete.')
     print(f'Done in {time.time() - start_time:.2f} seconds.')
 
@@ -179,20 +185,21 @@ def read_interpolated_stat_hdf5_fields(
     if If_average:
         print('Taking the user-specified average using function av_func...')
         start_time = time.time()
-        for name in list(locals().keys()):
-            if name.endswith('_struct') and isinstance(locals()[name], np.ndarray):
-                locals()[name] = av_func(locals()[name])
+        for name in list(vars.keys()):
+            if name.endswith('_struct') and isinstance(vars[name], np.ndarray):
+                vars[name] = av_func(vars[name])
         print('Averaging complete.')
         print(f'Done in {time.time() - start_time:.2f} seconds.')
 
     #%% Reynolds number needed to calculate viscous related terms later
     Rer_here    = Reynolds_number
+    vars['Rer_here'] = Rer_here
 
     #%% Save the data in HDF5 format
     print('Saving the data in HDF5 format...')
     start_time = time.time()
     with h5py.File(path_to_files+'/'+output_fname, 'w') as hf:
-        global_vars = dict(locals())  # Create a copy to avoid modification issues
+        global_vars = dict(vars)  # Create a copy to avoid modification issues
         for name, data in global_vars.items():
             if (name.endswith('_struct') or name.endswith('_here')) and isinstance(data, (np.ndarray, int, float)):
                 hf.create_dataset(name, data=data)
