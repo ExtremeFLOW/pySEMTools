@@ -432,7 +432,7 @@ class MeshConnectivity:
             The local dssum of the field
         """
 
-        self.log.write("info", "Computing local dssum")
+        self.log.write("debug", "Computing local dssum")
         self.log.tic()
 
         local_dssum_field = np.copy(field)
@@ -838,8 +838,8 @@ class MeshConnectivity:
                             my_facet_data[slice_copy, slice_copy]
                         )
 
-        self.log.write("info", "Local dssum computed")
-        self.log.toc()
+        self.log.write("debug", "Local dssum computed")
+        self.log.toc(level="debug")
 
         return local_dssum_field
 
@@ -867,7 +867,7 @@ class MeshConnectivity:
             The global dssum of the field
         """
 
-        self.log.write("info", "Computing global dssum")
+        self.log.write("debug", "Computing global dssum")
         self.log.tic()
 
         global_dssum_field = np.copy(local_dssum_field)
@@ -1389,8 +1389,8 @@ class MeshConnectivity:
 
                             shared_facet_index += 1
 
-        self.log.write("info", "Global dssum computed")
-        self.log.toc()
+        self.log.write("debug", "Global dssum computed")
+        self.log.toc(level="debug")
 
         return global_dssum_field
 

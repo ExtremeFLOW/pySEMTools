@@ -154,15 +154,15 @@ class Logger:
         self.comm.Barrier()
         self.sync_time[id] = time()
 
-    def toc(self):
+    def toc(self, level="info"):
         """
         Write elapsed time since the last call to tic.
 
         """
 
-        self.write("info", f"Elapsed time: {time() - self.time}s")
+        self.write(level, f"Elapsed time: {time() - self.time}s")
     
-    def sync_toc(self, id = 0, message=None, time_message="Elapsed time: "):
+    def sync_toc(self, id = 0, message=None, time_message="Elapsed time: ", level="info"):
         """
         Write elapsed time since the last call to tic for the given id in the sync_time attribute.
 
@@ -170,9 +170,9 @@ class Logger:
 
         self.comm.Barrier()
         if message is None:
-            self.write("info", f"{time_message}{time() - self.sync_time[id]}s")
+            self.write(level, f"{time_message}{time() - self.sync_time[id]}s")
         else:
-            self.write("info", f"{message} - {time_message}{time() - self.sync_time[id]}s")
+            self.write(level, f"{message} - {time_message}{time() - self.sync_time[id]}s")
 
     def write(self, level, message):
         """Writes messages in the log
