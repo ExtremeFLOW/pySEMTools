@@ -456,6 +456,109 @@ class Coef:
                     )
                 else:
                     raise ValueError("Invalid direction. Should be 'r', 's', or 't'")
+    
+    def dudrst_transposed(self, field, direction="r"):
+        """
+        Perform derivative with respect to reference coordinate r/s/t.
+
+        Used to perform the derivative in the reference coordinates
+
+        Parameters
+        ----------
+        field : ndarray
+            Field to take derivative of. Shape should be (nelv, lz, ly, lx).
+
+        direction : str
+            Direction to take the derivative. Can be 'r', 's', or 't'. (Default value = 'r').
+
+        Returns
+        -------
+        ndarray
+            Derivative of the field with respect to r/s/t. Shape is the same as the input field.
+        """
+        lx = field.shape[3]  # This is not a mistake. This is how the data is read
+        ly = field.shape[2]
+        lz = field.shape[1]
+
+        if not self.apply_1d_operators:
+            if direction == "r":
+                return self.dudrst_3d_operator(field, self.dr.T)
+            elif direction == "s":
+                return self.dudrst_3d_operator(field, self.ds.T)
+            elif direction == "t":
+                return self.dudrst_3d_operator(field, self.dt.T)
+            else:
+                raise ValueError("Invalid direction. Should be 'r', 's', or 't'") 
+        elif self.apply_1d_operators:
+            if self.bckend == 'numpy':
+                if direction == "r":
+                    if self.gdim == 2:
+                        return self.dudrst_1d_operator(
+                            field, self.dr.T, np.eye(ly, dtype=self.dtype)
+                        )
+                    elif self.gdim == 3:
+                        return self.dudrst_1d_operator(
+                            field,
+                            self.dr.T,
+                            np.eye(ly, dtype=self.dtype),
+                            np.eye(lz, dtype=self.dtype),
+                        )
+                elif direction == "s":
+                    if self.gdim == 2:
+                        return self.dudrst_1d_operator(
+                            field, np.eye(lx, dtype=self.dtype), self.ds.T
+                        )
+                    elif self.gdim == 3:
+                        return self.dudrst_1d_operator(
+                            field,
+                            np.eye(lx, dtype=self.dtype),
+                            self.ds.T,
+                            np.eye(lz, dtype=self.dtype),
+                        )
+                elif direction == "t":
+                    return self.dudrst_1d_operator(
+                        field,
+                        np.eye(lx, dtype=self.dtype),
+                        np.eye(ly, dtype=self.dtype),
+                        self.dt.T,
+                    )
+                else:
+                    raise ValueError("Invalid direction. Should be 'r', 's', or 't'")
+            elif self.bckend == 'torch':
+                if direction == "r":
+                    if self.gdim == 2:
+                        return self.dudrst_1d_operator_torch(
+                            field, self.dr.T, torch.eye(ly, dtype=self.dtype_d, device=self.device)
+                        )
+                    elif self.gdim == 3:
+                        return self.dudrst_1d_operator_torch(
+                            field,
+                            self.dr.T,
+                            torch.eye(ly, dtype=self.dtype_d, device=self.device),
+                            torch.eye(lz, dtype=self.dtype_d, device=self.device),
+                        )
+                elif direction == "s":
+                    if self.gdim == 2:
+                        return self.dudrst_1d_operator_torch(
+                            field, torch.eye(lx, dtype=self.dtype_d, device=self.device), self.ds
+                        )
+                    elif self.gdim == 3:
+                        return self.dudrst_1d_operator_torch(
+                            field,
+                            torch.eye(lx, dtype=self.dtype_d, device=self.device),
+                            self.ds.T,
+                            torch.eye(lz, dtype=self.dtype_d, device=self.device),
+                        )
+                elif direction == "t":
+                    return self.dudrst_1d_operator_torch(
+                        field,
+                        torch.eye(lx, dtype=self.dtype_d, device=self.device),
+                        torch.eye(ly, dtype=self.dtype_d, device=self.device),
+                        self.dt.T,
+                    )
+                else:
+                    raise ValueError("Invalid direction. Should be 'r', 's', or 't'")
+
 
 
     def dudrst_3d_operator(self, field, dr):
@@ -683,7 +786,7 @@ class Coef:
         """
 
         self.log.write(
-            "info", "Calculating the derivative with respect to physical coordinates"
+            "debug", "Calculating the derivative with respect to physical coordinates"
         )
         self.log.tic()
 
@@ -740,8 +843,8 @@ class Coef:
         else:
             dudxyz = dfdr * drdx + dfds * dsdx
 
-        self.log.write("info", "done")
-        self.log.toc()
+        self.log.write("debug", "done")
+        self.log.toc(level="debug")
 
         return dudxyz
 

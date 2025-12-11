@@ -15,4 +15,9 @@ We also provide some examples on a typical post-processing task when studying tu
 The examples related to this are in folder: 
 6. Statistics
 
+Since pysemtools provides many functionalities, we show how you could build a solver for NS in:
+7. Solving_NS
+
+It is more precise to say: integrating_NS, though :)
+
 The examples in folders 1 to 6 are run as part of the intergration tests and should remain usable as the versions progress.
