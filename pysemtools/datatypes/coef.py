@@ -786,7 +786,7 @@ class Coef:
         """
 
         self.log.write(
-            "info", "Calculating the derivative with respect to physical coordinates"
+            "debug", "Calculating the derivative with respect to physical coordinates"
         )
         self.log.tic()
 
@@ -843,8 +843,8 @@ class Coef:
         else:
             dudxyz = dfdr * drdx + dfds * dsdx
 
-        self.log.write("info", "done")
-        self.log.toc()
+        self.log.write("debug", "done")
+        self.log.toc(level="debug")
 
         return dudxyz
 

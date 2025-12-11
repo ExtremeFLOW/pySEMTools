@@ -410,7 +410,7 @@ class MeshConnectivity:
                 sys.exit(1)
 
         if average == "multiplicity":
-            self.log.write("info", "Averaging using the multiplicity")
+            self.log.write("debug", "Averaging using the multiplicity")
             dssum_field = dssum_field / self.multiplicity
 
         return dssum_field

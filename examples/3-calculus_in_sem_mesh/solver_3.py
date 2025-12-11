@@ -9,6 +9,24 @@ comm = MPI.COMM_WORLD
 from pysemtools.io.ppymech import pynekwrite, pynekread
 from pysemtools.datatypes import Mesh, Coef, FieldRegistry, MeshConnectivity
 from pysemtools.solver.operators import AdvectionOperator, StiffnessOperator
+from pysemtools.monitoring import Logger
+
+# -------------------------------------------------------------
+# Simulation parameters
+# -------------------------------------------------------------
+rho = 1.0
+Re = 3000
+nu  = 1/Re   # viscosity
+t_end = 300
+dt  = 0.25e-2    # as you already choose it
+nsteps = int(t_end / dt)
+
+tol_v = 1e-7
+tol_p = 1e-4
+max_iter_v = 100
+max_iter_p = 100
+
+output_interval_t = 1
 
 # -------------------------------------------------------------
 # Helper functions
@@ -45,21 +63,33 @@ def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200):
         rsnew = np.vdot(r, r).real
         rsnew = coef.glsum(rsnew, comm=comm)  # global sum
 
-        res_check = np.sqrt(rsnew)/coef.glsum(coef.B, comm=comm)
+        #res_check = np.sqrt(rsnew)/coef.glsum(coef.B, comm=comm)
+        res_check = np.sqrt(rsnew)/(msh.glb_nelv*msh.lxyz) # Normalized residual - feels a bit like cheating...
 
         if res_check < tol:
-            print(f"CG converged in {it} iterations, residual {res_check:.3e}")
+            #print(f"CG converged in {it} iterations, residual {res_check:.3e}")
             break
 
         p = r + (rsnew / rsold) * p
         rsold = rsnew
 
-    print(f"CG finished in {it} iterations, residual {res_check:.3e}")
-    return x
+    #print(f"CG finished in {it} iterations, residual {res_check:.3e}")
+    return x, res_check, it
 
 # -------------------------------------------------------------
 # Read mesh and set up connectivity
 # -------------------------------------------------------------
+log = Logger(comm=comm, module_name="LidDrivenCavitySolver")
+
+log.write("info", "---------------------------------------------")
+log.write("info", "Lid Driven Cavity Solver - SEM")
+log.write("info", "---------------------------------------------")
+
+
+log.write("info", "---------------------------------------------")
+log.write("info", "Reading mesh and setting up connectivity")
+log.write("info", "---------------------------------------------")
+
 msh = Mesh(comm, create_connectivity=False)
 fld = FieldRegistry(comm)
 pynekread('./lid_mesh0.f00000', comm, data_dtype=np.double, msh=msh, fld=fld)
@@ -69,14 +99,16 @@ conn = MeshConnectivity(comm, msh, use_hashtable=True)
 # -------------------------------------------------------------
 # Identifying the boundaries and setting up boundary conditions
 # -------------------------------------------------------------
+
+log.write("info", "---------------------------------------------")
+log.write("info", "Setting up boundary conditions")
+log.write("info", "---------------------------------------------")
+
 x = msh.x
 y = msh.y
 x_min, x_max = comm.allreduce(np.min(x), op=MPI.MIN), comm.allreduce(np.max(x), op=MPI.MAX)
 y_min, y_max = comm.allreduce(np.min(y), op=MPI.MIN), comm.allreduce(np.max(y), op=MPI.MAX)
 eps = 1e-8
-
-tol_v = 1e-5
-tol_p = 1e-4
 
 is_left   = np.abs(x - x_min) < eps
 is_right  = np.abs(x - x_max) < eps
@@ -90,8 +122,6 @@ boundary_ids[is_left]   = 1  # left wall
 boundary_ids[is_right]  = 2  # right wall
 boundary_ids[is_bottom] = 3  # bottom wall
 boundary_ids[is_top]    = 4  # top wall
-
-print(boundary_ids.shape)
 
 # Write out the boundaries to check
 fld_ = FieldRegistry(comm)
@@ -118,12 +148,9 @@ def enforce_velocity_bc(u, v):
 # -------------------------------------------------------------
 # Set up functions and variables to help in the solution
 # -------------------------------------------------------------
-rho = 1.0
-Re = 100
-nu  = 1/Re   # viscosity
-t_end = 10
-dt  = 0.01    # as you already choose it
-nsteps = int(t_end / dt)
+log.write("info", "---------------------------------------------")
+log.write("info", "Initializing operators")
+log.write("info", "---------------------------------------------")
 
 # velocity and pressure Initial conditions in the bulk
 u = np.zeros_like(fld.registry['u'])
@@ -143,10 +170,15 @@ stiffness_op  = StiffnessOperator(coef, conn)
 # -------------------------------------------------------------
 # Do the time integration
 # -------------------------------------------------------------
+log.write("info", "---------------------------------------------")
+log.write("info", "Initializing time stepping")
+log.write("info", "---------------------------------------------")
+
 file_counter = -1
+step_buff = 0
 for step in range(nsteps):
 
-    coef.log.write("info", f"Step {step}")
+    log.write("info", f"tstep: {step}, t={step*dt:.4f}")
 
     # -------------------------------------------------------------
     # Following deville's book "Numerical Methods for Fluid Dynamics"
@@ -217,8 +249,8 @@ for step in range(nsteps):
     rhs_p = conn.dssum(field=rhs_p_local, msh=msh, average="None")
 
     # Compatibility for Neumann Poisson: sum(rhs_p) = 0 - This to set up a pressure value
-    c = coef.glsum(rhs_p, comm=comm) / (msh.nelv*msh.lxyz)
-    #rhs_p -= c
+    c = coef.glsum(rhs_p, comm=comm) / (msh.glb_nelv*msh.lxyz)
+    rhs_p -= c
 
     # Poisson operator: K p # Verify that the signs of rhs and lhs are correct. I think they are
     def apply_poisson(p_field):
@@ -227,11 +259,11 @@ for step in range(nsteps):
         return K_global
 
     # Solve for p^{n+1}
-    p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=200)
+    p, res_p, it_p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=max_iter_p)
 
     # Pressure gauge: make mass-weighted mean(p) = 0
     p_mean = coef.glsum(p*coef.B, comm=comm) / coef.glsum(coef.B, comm=comm)
-    #p -= p_mean
+    p -= p_mean
 
     
     # -------------------------------------------------------------
@@ -264,23 +296,39 @@ for step in range(nsteps):
         A_global   = conn.dssum(field=A_local, msh=msh, average="None")
         return A_global
 
-    u = cg_solve(apply_helmholtz, rhs_helm_u, x0=u, tol=tol_v, maxiter=100)
-    v = cg_solve(apply_helmholtz, rhs_helm_v, x0=v, tol=tol_v, maxiter=100)
+    u, res_u, it_u = cg_solve(apply_helmholtz, rhs_helm_u, x0=u, tol=tol_v, maxiter=max_iter_v)
+    v, res_v, it_v = cg_solve(apply_helmholtz, rhs_helm_v, x0=v, tol=tol_v, maxiter=max_iter_v)
 
     # Final BC enforcement at t^{n+1}
     u, v = enforce_velocity_bc(u, v)
 
-    if step % 10 == 0:
+    step_buff += 1
+    if step_buff*dt >= output_interval_t:
         file_counter += 1
+        step_buff = 0
         fld_ = FieldRegistry(comm)
         fld_.add_field(comm, field_name="u", field = u, dtype=np.double)
         fld_.add_field(comm, field_name="v", field = v, dtype=np.double)
         fld_.add_field(comm, field_name="p", field = p, dtype=np.double)
 
+        vorticuty = coef.dudxyz(v, coef.drdx, coef.dsdx) - coef.dudxyz(u, coef.drdy, coef.dsdy)
+        vorticity = conn.dssum(field=vorticuty, msh=msh, average="multiplicity")
+        fld_.add_field(comm, field_name="vorticity", field = vorticuty, dtype=np.double)
+
         from pysemtools.io.ppymech import pynekwrite
         count = step // 10
         filename = f"field0.f{str(file_counter).zfill(5)}"
         pynekwrite(filename, comm, msh=msh, fld=fld_, istep=step)
+    
+    log.write("info", f"Pressure solve:")
+    log.write("info", f"  Residual: {res_p:.3e}, iterations: {it_p}")
+    log.write("info", f"Velocity solve u:")
+    log.write("info", f"  Residual: {res_u:.3e}, iterations: {it_u}")
+    log.write("info", f"Velocity solve v:")
+    log.write("info", f"  Residual: {res_v:.3e}, iterations: {it_v}")
+
+
+    log.write("info", "---------------------------------------------")
 
 
 
