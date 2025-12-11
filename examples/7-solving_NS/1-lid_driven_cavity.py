@@ -92,7 +92,7 @@ log.write("info", "---------------------------------------------")
 
 msh = Mesh(comm, create_connectivity=False)
 fld = FieldRegistry(comm)
-pynekread('./lid_mesh0.f00000', comm, data_dtype=np.double, msh=msh, fld=fld)
+pynekread('./../data/lid_mesh0.f00000', comm, data_dtype=np.double, msh=msh, fld=fld)
 coef = Coef(msh, comm, get_area=False)
 conn = MeshConnectivity(comm, msh, use_hashtable=True)
 
@@ -261,7 +261,7 @@ for step in range(nsteps):
     # Solve for p^{n+1}
     p, res_p, it_p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=max_iter_p)
 
-    # Pressure gauge: make mass-weighted mean(p) = 0
+    # Pressure gauge: make mass-weighted mean(p) = 0 -> this pairs with the compatibility condition 3 steps above
     p_mean = coef.glsum(p*coef.B, comm=comm) / coef.glsum(coef.B, comm=comm)
     p -= p_mean
 
@@ -307,13 +307,14 @@ for step in range(nsteps):
         file_counter += 1
         step_buff = 0
         fld_ = FieldRegistry(comm)
+        fld_.t = (step+1)*dt
         fld_.add_field(comm, field_name="u", field = u, dtype=np.double)
         fld_.add_field(comm, field_name="v", field = v, dtype=np.double)
         fld_.add_field(comm, field_name="p", field = p, dtype=np.double)
 
-        vorticuty = coef.dudxyz(v, coef.drdx, coef.dsdx) - coef.dudxyz(u, coef.drdy, coef.dsdy)
-        vorticity = conn.dssum(field=vorticuty, msh=msh, average="multiplicity")
-        fld_.add_field(comm, field_name="vorticity", field = vorticuty, dtype=np.double)
+        vorticity = coef.dudxyz(v, coef.drdx, coef.dsdx) - coef.dudxyz(u, coef.drdy, coef.dsdy)
+        vorticity = conn.dssum(field=vorticity, msh=msh, average="multiplicity")
+        fld_.add_field(comm, field_name="vorticity", field = vorticity, dtype=np.double)
 
         from pysemtools.io.ppymech import pynekwrite
         count = step // 10
@@ -321,12 +322,11 @@ for step in range(nsteps):
         pynekwrite(filename, comm, msh=msh, fld=fld_, istep=step)
     
     log.write("info", f"Pressure solve:")
-    log.write("info", f"  Residual: {res_p:.3e}, iterations: {it_p}")
-    log.write("info", f"Velocity solve u:")
-    log.write("info", f"  Residual: {res_u:.3e}, iterations: {it_u}")
+    log.write("info", f"    Residual: {res_p:.3e}, iterations: {it_p}")
+    log.write("info", f"Velocity solve u:")    
+    log.write("info", f"    Residual: {res_u:.3e}, iterations: {it_u}")
     log.write("info", f"Velocity solve v:")
-    log.write("info", f"  Residual: {res_v:.3e}, iterations: {it_v}")
-
+    log.write("info", f"    Residual: {res_v:.3e}, iterations: {it_v}") 
 
     log.write("info", "---------------------------------------------")
 
