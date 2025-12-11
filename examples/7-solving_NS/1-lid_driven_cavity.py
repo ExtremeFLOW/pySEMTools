@@ -63,17 +63,14 @@ def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200):
         rsnew = np.vdot(r, r).real
         rsnew = coef.glsum(rsnew, comm=comm)  # global sum
 
-        #res_check = np.sqrt(rsnew)/coef.glsum(coef.B, comm=comm)
         res_check = np.sqrt(rsnew)/(msh.glb_nelv*msh.lxyz) # Normalized residual - feels a bit like cheating...
 
         if res_check < tol:
-            #print(f"CG converged in {it} iterations, residual {res_check:.3e}")
             break
 
         p = r + (rsnew / rsold) * p
         rsold = rsnew
 
-    #print(f"CG finished in {it} iterations, residual {res_check:.3e}")
     return x, res_check, it
 
 # -------------------------------------------------------------
@@ -129,18 +126,31 @@ fld_.add_field(comm, field_name="boundary_ids", field=boundary_ids)
 pynekwrite("boundary_ids0.f00000", comm, msh=msh, fld=fld_)
 fld_.clear()
 
-# Create helper function for the boundary conditions
-def enforce_velocity_bc(u, v):
-    # Velocity
+def smooth_step(x):
+    x = np.asarray(x, dtype=float)
+    out = np.zeros_like(x)
+
+    mid = (x > 0.02) & (x < 0.98)
+    xm = x[mid]
+    out[mid] = 1.0 / (1.0 + np.exp(1.0/(xm - 1.0) + 1.0/xm))
+
+    out[x >= 0.98] = 1.0
+    return out
+
+def enforce_velocity_bc(u, v, lsmoothing=0.1):
+    # No-slip walls
     u[is_left]   = 0.0; v[is_left]   = 0.0
     u[is_right]  = 0.0; v[is_right]  = 0.0
     u[is_bottom] = 0.0; v[is_bottom] = 0.0
-    u[is_top] = lid_speed
+
+    # Smoothed lid on top
+    xi = msh.x[is_top] # it goes from 0 to 1
+
+    s = smooth_step(xi/lsmoothing) * smooth_step((1.0 - xi)/lsmoothing)
+    u[is_top] = lid_speed * s
     v[is_top] = 0.0
 
-    # Pressure will have homogenous Neumann BCs (do nothing) for now.
-
-    # Make boundary nodes consistent across elements - Consider removing this after checking it works
+    # Make boundary nodes consistent across elements
     u = conn.dssum(field=u, msh=msh, average="multiplicity")
     v = conn.dssum(field=v, msh=msh, average="multiplicity")
     return u, v
