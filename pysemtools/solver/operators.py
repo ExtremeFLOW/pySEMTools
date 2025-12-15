@@ -207,3 +207,39 @@ class StiffnessOperator:
 
         return stiff_global
 
+    def build_jacobi_diag(self, msh):
+        """
+        Build Jacobi (diagonal) preconditioner for the stiffness operator K
+        in a vectorized way.
+
+        This follows the formula from https://people.kth.se/~jacobwah/portfolio/dd2444-report.pdf
+
+        """
+        assert self.coef.gdim in (2, 3), "Only 2D/3D supported"
+
+        # 1D derivative matrix and its entrywise square
+        Dr = self.coef.dn              
+        D2 = Dr**2                     
+
+        # Metric * mass factors: G11 = g_11 * B, G22 = g_22 * B
+        G11 = self.g_ij["11"] * self.coef.B   
+        G22 = self.g_ij["22"] * self.coef.B
+
+        # d11[e,z,j,i] = sum_l D2[l,i] * G11[e,z,j,l]
+        d11 = np.einsum("li,ezjl->ezji", D2, G11)
+
+        # d22[e,z,j,i] = sum_l D2[l,j] * G22[e,z,l,i]
+        d22 = np.einsum("lj,ezli->ezji", D2, G22)
+
+        diag_local = d11 + d22
+
+        if self.coef.gdim == 3:
+            G33 = self.g_ij["33"] * self.coef.B
+            # d33[e,k,j,i] = sum_l D2[l,k] * G33[e,l,j,i]
+            d33 = np.einsum("lk,elji->ekji", D2, G33)
+            diag_local += d33
+
+        # Assemble across elements
+        diag_global = self.conn.dssum(field=diag_local, msh=msh, average="None")
+
+        return diag_global
