@@ -23,8 +23,8 @@ nsteps = int(t_end / dt)
 
 tol_v = 1e-7
 tol_p = 1e-4
-max_iter_v = 100
-max_iter_p = 100
+max_iter_v = 1000
+max_iter_p = 1000
 
 output_interval_t = 1
 
@@ -32,10 +32,11 @@ output_interval_t = 1
 # Helper functions
 # -------------------------------------------------------------
 
-def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200):
+def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200, project=None):
     """
     Solve A x = b using Conjugate Gradient.
-    apply_A: function that computes A(x).
+    apply_A : function that returns A(x)
+    project : optional function q -> q_proj (e.g. zero-mean projection for Neumann Poisson)
     """
     if x0 is None:
         x = np.zeros_like(b)
@@ -43,27 +44,38 @@ def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200):
         x = x0.copy()
 
     r = b - apply_A(x)
-    p = r.copy()
+    if project is not None:
+        r = project(r)
+
+    # rsold = (r, r) globally
     rsold = np.vdot(r, r).real
-    rsold = coef.glsum(rsold, comm=comm)  # global sum
+    rsold = coef.glsum(rsold, comm=comm)
 
     if rsold == 0.0:
-        return x
+        return x, 0.0, 0
+
+    p = r.copy()
+    N_global = msh.glb_nelv * msh.lxyz
 
     for it in range(1, maxiter + 1):
         Ap = apply_A(p)
         pAp = np.vdot(p, Ap).real
-        pAp = coef.glsum(pAp, comm=comm)  # global sum
+        pAp = coef.glsum(pAp, comm=comm)
         if pAp == 0.0:
             break
 
         alpha = rsold / pAp
         x = x + alpha * p
         r = r - alpha * Ap
-        rsnew = np.vdot(r, r).real
-        rsnew = coef.glsum(rsnew, comm=comm)  # global sum
 
-        res_check = np.sqrt(rsnew)/(msh.glb_nelv*msh.lxyz) # Normalized residual - feels a bit like cheating...
+        if project is not None:
+            r = project(r)
+
+        rsnew = np.vdot(r, r).real
+        rsnew = coef.glsum(rsnew, comm=comm)
+
+        # RMS residual
+        res_check = np.sqrt(rsnew / N_global)
 
         if res_check < tol:
             break
@@ -72,6 +84,115 @@ def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200):
         rsold = rsnew
 
     return x, res_check, it
+
+def pcg_solve(apply_A,
+              b,
+              apply_Minv=None,
+              x0=None,
+              tol=1e-8,
+              maxiter=200,
+              project=None):
+    """
+    Preconditioned Conjugate Gradient:
+        A x = b
+
+    Parameters
+    ----------
+    apply_A : callable
+        y = apply_A(x) = A @ x  (matrix-free operator)
+    apply_Minv : callable or None
+        z = apply_Minv(r) = M^{-1} @ r  (Jacobi, etc).
+        If None, no preconditioning (M = I).
+    project : callable or None
+        q_proj = project(q). Use this to remove nullspace components,
+        e.g. de-mean for Neumann Poisson.
+    """
+
+    # Initial guess
+    if x0 is None:
+        x = np.zeros_like(b)
+    else:
+        x = x0.copy()
+
+    # r0 = b - A x0
+    r = b - apply_A(x)
+    if project is not None:
+        r = project(r)
+
+    # Preconditioned residual z0 = M^{-1} r0
+    if apply_Minv is None:
+        z = r.copy()
+    else:
+        z = apply_Minv(r)
+
+    # Dot products (global)
+    rz_old = np.vdot(r, z).real
+    rz_old = coef.glsum(rz_old, comm=comm)
+
+    rr = np.vdot(r, r).real
+    rr = coef.glsum(rr, comm=comm)
+
+    N_global = msh.glb_nelv * msh.lxyz
+
+    # Handle trivial case
+    if rz_old == 0.0:
+        res_check = np.sqrt(rr / N_global)
+        return x, res_check, 0
+
+    p = z.copy()
+
+    for it in range(1, maxiter + 1):
+        # Ap = A p
+        Ap = apply_A(p)
+
+        # pAp = (p, Ap)
+        pAp = np.vdot(p, Ap).real
+        pAp = coef.glsum(pAp, comm=comm)
+        if pAp == 0.0:
+            break
+
+        alpha = rz_old / pAp
+
+        # x_{k+1} = x_k + alpha p_k
+        x = x + alpha * p
+
+        # r_{k+1} = r_k - alpha Ap
+        r = r - alpha * Ap
+        if project is not None:
+            r = project(r)
+
+        # New norms
+        rr = np.vdot(r, r).real
+        rr = coef.glsum(rr, comm=comm)
+
+        # RMS residual
+        res_check = np.sqrt(rr / N_global)
+        if res_check < tol:
+            break
+
+        # z_{k+1} = M^{-1} r_{k+1}
+        if apply_Minv is None:
+            z = r.copy()
+        else:
+            z = apply_Minv(r)
+
+        rz_new = np.vdot(r, z).real
+        rz_new = coef.glsum(rz_new, comm=comm)
+
+        if rz_old == 0.0:
+            break
+
+        beta = rz_new / rz_old
+
+        # p_{k+1} = z_{k+1} + beta p_k
+        p = z + beta * p
+        rz_old = rz_new
+
+    return x, res_check, it
+
+def de_mean_pressure_rhs(q):
+    q_mean = coef.glsum(q, comm=comm) / (msh.glb_nelv*msh.lxyz)
+    return q - q_mean
 
 # -------------------------------------------------------------
 # Read mesh and set up connectivity
@@ -186,6 +307,15 @@ log.write("info", "---------------------------------------------")
 
 file_counter = -1
 step_buff = 0
+
+# Set up the pressure preconditioner
+jacobi_diag_K = stiffness_op.build_jacobi_diag(msh)
+eps = 1e-14
+Minv_K = 1.0 / (jacobi_diag_K + eps)
+
+def Minv_pressure(r):
+    return Minv_K * r
+
 for step in range(nsteps):
 
     log.write("info", f"tstep: {step}, t={step*dt:.4f}")
@@ -269,7 +399,8 @@ for step in range(nsteps):
         return K_global
 
     # Solve for p^{n+1}
-    p, res_p, it_p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=max_iter_p)
+    #p, res_p, it_p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=max_iter_p, project=de_mean_pressure_rhs)
+    p, res_p, it_p = pcg_solve(apply_poisson, rhs_p, apply_Minv=Minv_pressure, x0=p, tol=tol_p, maxiter=max_iter_p, project=de_mean_pressure_rhs)
 
     # Pressure gauge: make mass-weighted mean(p) = 0 -> this pairs with the compatibility condition 3 steps above
     p_mean = coef.glsum(p*coef.B, comm=comm) / coef.glsum(coef.B, comm=comm)
