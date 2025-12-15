@@ -9,6 +9,7 @@ comm = MPI.COMM_WORLD
 from pysemtools.io.ppymech import pynekwrite, pynekread
 from pysemtools.datatypes import Mesh, Coef, FieldRegistry, MeshConnectivity
 from pysemtools.solver.operators import AdvectionOperator, StiffnessOperator
+from pysemtools.solver.linear_solver import LinearSolver
 from pysemtools.monitoring import Logger
 
 # -------------------------------------------------------------
@@ -27,168 +28,6 @@ max_iter_v = 1000
 max_iter_p = 1000
 
 output_interval_t = 1
-
-# -------------------------------------------------------------
-# Helper functions
-# -------------------------------------------------------------
-
-def cg_solve(apply_A, b, x0=None, tol=1e-8, maxiter=200, project=None):
-    """
-    Solve A x = b using Conjugate Gradient.
-    apply_A : function that returns A(x)
-    project : optional function q -> q_proj (e.g. zero-mean projection for Neumann Poisson)
-    """
-    if x0 is None:
-        x = np.zeros_like(b)
-    else:
-        x = x0.copy()
-
-    r = b - apply_A(x)
-    if project is not None:
-        r = project(r)
-
-    # rsold = (r, r) globally
-    rsold = np.vdot(r, r).real
-    rsold = coef.glsum(rsold, comm=comm)
-
-    if rsold == 0.0:
-        return x, 0.0, 0
-
-    p = r.copy()
-    N_global = msh.glb_nelv * msh.lxyz
-
-    for it in range(1, maxiter + 1):
-        Ap = apply_A(p)
-        pAp = np.vdot(p, Ap).real
-        pAp = coef.glsum(pAp, comm=comm)
-        if pAp == 0.0:
-            break
-
-        alpha = rsold / pAp
-        x = x + alpha * p
-        r = r - alpha * Ap
-
-        if project is not None:
-            r = project(r)
-
-        rsnew = np.vdot(r, r).real
-        rsnew = coef.glsum(rsnew, comm=comm)
-
-        # RMS residual
-        res_check = np.sqrt(rsnew / N_global)
-
-        if res_check < tol:
-            break
-
-        p = r + (rsnew / rsold) * p
-        rsold = rsnew
-
-    return x, res_check, it
-
-def pcg_solve(apply_A,
-              b,
-              apply_Minv=None,
-              x0=None,
-              tol=1e-8,
-              maxiter=200,
-              project=None):
-    """
-    Preconditioned Conjugate Gradient:
-        A x = b
-
-    Parameters
-    ----------
-    apply_A : callable
-        y = apply_A(x) = A @ x  (matrix-free operator)
-    apply_Minv : callable or None
-        z = apply_Minv(r) = M^{-1} @ r  (Jacobi, etc).
-        If None, no preconditioning (M = I).
-    project : callable or None
-        q_proj = project(q). Use this to remove nullspace components,
-        e.g. de-mean for Neumann Poisson.
-    """
-
-    # Initial guess
-    if x0 is None:
-        x = np.zeros_like(b)
-    else:
-        x = x0.copy()
-
-    # r0 = b - A x0
-    r = b - apply_A(x)
-    if project is not None:
-        r = project(r)
-
-    # Preconditioned residual z0 = M^{-1} r0
-    if apply_Minv is None:
-        z = r.copy()
-    else:
-        z = apply_Minv(r)
-
-    # Dot products (global)
-    rz_old = np.vdot(r, z).real
-    rz_old = coef.glsum(rz_old, comm=comm)
-
-    rr = np.vdot(r, r).real
-    rr = coef.glsum(rr, comm=comm)
-
-    N_global = msh.glb_nelv * msh.lxyz
-
-    # Handle trivial case
-    if rz_old == 0.0:
-        res_check = np.sqrt(rr / N_global)
-        return x, res_check, 0
-
-    p = z.copy()
-
-    for it in range(1, maxiter + 1):
-        # Ap = A p
-        Ap = apply_A(p)
-
-        # pAp = (p, Ap)
-        pAp = np.vdot(p, Ap).real
-        pAp = coef.glsum(pAp, comm=comm)
-        if pAp == 0.0:
-            break
-
-        alpha = rz_old / pAp
-
-        # x_{k+1} = x_k + alpha p_k
-        x = x + alpha * p
-
-        # r_{k+1} = r_k - alpha Ap
-        r = r - alpha * Ap
-        if project is not None:
-            r = project(r)
-
-        # New norms
-        rr = np.vdot(r, r).real
-        rr = coef.glsum(rr, comm=comm)
-
-        # RMS residual
-        res_check = np.sqrt(rr / N_global)
-        if res_check < tol:
-            break
-
-        # z_{k+1} = M^{-1} r_{k+1}
-        if apply_Minv is None:
-            z = r.copy()
-        else:
-            z = apply_Minv(r)
-
-        rz_new = np.vdot(r, z).real
-        rz_new = coef.glsum(rz_new, comm=comm)
-
-        if rz_old == 0.0:
-            break
-
-        beta = rz_new / rz_old
-
-        # p_{k+1} = z_{k+1} + beta p_k
-        p = z + beta * p
-        rz_old = rz_new
-
-    return x, res_check, it
 
 def de_mean_pressure_rhs(q):
     q_mean = coef.glsum(q, comm=comm) / (msh.glb_nelv*msh.lxyz)
@@ -295,8 +134,10 @@ rhs_hist_u = [np.zeros_like(u) for _ in range(3)]
 rhs_hist_v = [np.zeros_like(v) for _ in range(3)]
 
 # Operators - This build the advection and stiffness operators
+## Also initializes the solvers
 advection_op  = AdvectionOperator(coef, conn)
 stiffness_op  = StiffnessOperator(coef, conn)
+solver = LinearSolver(coef, conn, msh)
 
 # -------------------------------------------------------------
 # Do the time integration
@@ -307,14 +148,6 @@ log.write("info", "---------------------------------------------")
 
 file_counter = -1
 step_buff = 0
-
-# Set up the pressure preconditioner
-jacobi_diag_K = stiffness_op.build_jacobi_diag(msh)
-eps = 1e-14
-Minv_K = 1.0 / (jacobi_diag_K + eps)
-
-def Minv_pressure(r):
-    return Minv_K * r
 
 for step in range(nsteps):
 
@@ -374,35 +207,40 @@ for step in range(nsteps):
 
     # Enforce lid/wall BCs on \hat{v}
     u_hat, v_hat = enforce_velocity_bc(u_hat, v_hat)
-
-    
+ 
     # -------------------------------------------------------------
     # Step 2: Pressure Poisson
-    # -------------------------------------------------------------
     # K p^{n+1} = -(1/dt) B div(u_hat)
+    # -------------------------------------------------------------
+    
+    ## Set up the rhs for the poisson eq. for the global domain
     duhat_dx = coef.dudxyz(u_hat, coef.drdx, coef.dsdx)
     dvhat_dy = coef.dudxyz(v_hat, coef.drdy, coef.dsdy)
-    div_hat  = duhat_dx + dvhat_dy
-
-    # Set up the rhs for the poisson eq. for the global domain
+    div_hat  = duhat_dx + dvhat_dy    
     rhs_p_local = -(1.0/dt) * coef.B * div_hat
     rhs_p = conn.dssum(field=rhs_p_local, msh=msh, average="None")
-
-    # Compatibility for Neumann Poisson: sum(rhs_p) = 0 - This to set up a pressure value
+    ## Compatibility for Neumann Poisson: sum(rhs_p) = 0
     c = coef.glsum(rhs_p, comm=comm) / (msh.glb_nelv*msh.lxyz)
     rhs_p -= c
 
-    # Poisson operator: K p # Verify that the signs of rhs and lhs are correct. I think they are
+    ## Set up the pressure preconditioner (only do it once)
+    if step == 0:
+        jacobi_diag_K = stiffness_op.build_jacobi_diag(msh)
+        eps = 1e-14
+        Minv_K = 1.0 / (jacobi_diag_K + eps)
+        def apply_Minv(r):
+            return Minv_K * r
+
+    ## Set up the application of the poisson operator
     def apply_poisson(p_field):
         K_local  = stiffness_op.apply_local(p_field, kappa=1.0)
         K_global = conn.dssum(field=K_local, msh=msh, average="None")
         return K_global
 
     # Solve for p^{n+1}
-    #p, res_p, it_p = cg_solve(apply_poisson, rhs_p, x0=p, tol=tol_p, maxiter=max_iter_p, project=de_mean_pressure_rhs)
-    p, res_p, it_p = pcg_solve(apply_poisson, rhs_p, apply_Minv=Minv_pressure, x0=p, tol=tol_p, maxiter=max_iter_p, project=de_mean_pressure_rhs)
+    p, res_p, it_p = solver.pcg(apply_poisson, rhs_p, apply_Minv=apply_Minv, x0=p, tol=tol_p, maxiter=max_iter_p, project=de_mean_pressure_rhs)
 
-    # Pressure gauge: make mass-weighted mean(p) = 0 -> this pairs with the compatibility condition 3 steps above
+    # Pressure gauge: make mass-weighted mean(p) = 0 -> this pairs with the compatibility condition step above
     p_mean = coef.glsum(p*coef.B, comm=comm) / coef.glsum(coef.B, comm=comm)
     p -= p_mean
 
@@ -437,11 +275,15 @@ for step in range(nsteps):
         A_global   = conn.dssum(field=A_local, msh=msh, average="None")
         return A_global
 
-    u, res_u, it_u = cg_solve(apply_helmholtz, rhs_helm_u, x0=u, tol=tol_v, maxiter=max_iter_v)
-    v, res_v, it_v = cg_solve(apply_helmholtz, rhs_helm_v, x0=v, tol=tol_v, maxiter=max_iter_v)
+    u, res_u, it_u = solver.cg(apply_helmholtz, rhs_helm_u, x0=u, tol=tol_v, maxiter=max_iter_v)
+    v, res_v, it_v = solver.cg(apply_helmholtz, rhs_helm_v, x0=v, tol=tol_v, maxiter=max_iter_v)
 
     # Final BC enforcement at t^{n+1}
     u, v = enforce_velocity_bc(u, v)
+    
+    # -------------------------------------------------------------
+    # Step 4: Write output when needed
+    # -------------------------------------------------------------
 
     step_buff += 1
     if step_buff*dt >= output_interval_t:
@@ -457,11 +299,13 @@ for step in range(nsteps):
         vorticity = conn.dssum(field=vorticity, msh=msh, average="multiplicity")
         fld_.add_field(comm, field_name="vorticity", field = vorticity, dtype=np.double)
 
-        from pysemtools.io.ppymech import pynekwrite
-        count = step // 10
         filename = f"field0.f{str(file_counter).zfill(5)}"
         pynekwrite(filename, comm, msh=msh, fld=fld_, istep=step)
-    
+
+    # ------------------------------------------------------------- 
+    # Log info about the current step
+    # -------------------------------------------------------------
+      
     log.write("info", f"Pressure solve:")
     log.write("info", f"    Residual: {res_p:.3e}, iterations: {it_p}")
     log.write("info", f"Velocity solve u:")    
