@@ -52,7 +52,7 @@ class MeshConnectivity:
         The default value is selected if this input is left as None
     """
 
-    def __init__(self, comm, msh: Mesh = None, rel_tol=1e-5, use_hashtable=False, max_simultaneous_sends=1, max_elem_per_vertex: int = None, max_elem_per_edge: int = None, max_elem_per_face: int = None):
+    def __init__(self, comm, msh: Mesh = None, rel_tol=1e-5, use_hashtable=False, max_simultaneous_sends=1, max_elem_per_vertex: int = None, max_elem_per_edge: int = None, max_elem_per_face: int = None, coef = None):
 
         self.log = Logger(comm=comm, module_name="MeshConnectivity")
         self.log.write("info", "Initializing MeshConnectivity")
@@ -64,6 +64,7 @@ class MeshConnectivity:
         self.max_elem_per_vertex = max_elem_per_vertex
         self.max_elem_per_edge = max_elem_per_edge
         self.max_elem_per_face = max_elem_per_face
+        self.coef = coef
 
         if isinstance(msh, Mesh):
 
@@ -81,6 +82,9 @@ class MeshConnectivity:
             # Get the multiplicity
             self.log.write("info", "Computing multiplicity")
             self.get_multiplicity(msh)
+
+            if isinstance(self.coef, Coef):
+                self.global_B = self.dssum(field=self.coef.B, msh=msh, average="None")
 
         self.log.write("info", "MeshConnectivity initialized")
         self.log.toc()
@@ -387,16 +391,19 @@ class MeshConnectivity:
         np.ndarray
             The dssum of the field
         """
+        
+        _field = np.copy(field)
+        if average == "mass": _field = _field * self.coef.B
 
         # Always compute local dssum
-        dssum_field = self.dssum_local(field=field, msh=msh)
+        dssum_field = self.dssum_local(field=_field, msh=msh)
 
         # If running in parallel, compute the global ds sum
         if self.rt.comm.Get_size() > 1:
             iferror = False
             try:
                 dssum_field = self.dssum_global(
-                    local_dssum_field=dssum_field, field=field, msh=msh
+                    local_dssum_field=dssum_field, field=_field, msh=msh
                 )
             
             except KeyError as e:
@@ -412,6 +419,9 @@ class MeshConnectivity:
         if average == "multiplicity":
             self.log.write("debug", "Averaging using the multiplicity")
             dssum_field = dssum_field / self.multiplicity
+        elif average == "mass":
+            self.log.write("debug", "Averaging using the mass matrix")
+            dssum_field = dssum_field / (self.global_B)
 
         return dssum_field
 
