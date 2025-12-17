@@ -4,13 +4,30 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysemtools"
-version = "0.1.0"
-requires-python = ">= 3.10"
+version = "1.0.0"
+requires-python = ">= 3.10, <3.13"
 dependencies = [
-    "numpy",
+    "numpy<2.0",
     "scipy",
     "pre-commit",
     "pymech",
+    "mpi4py", 
+    "tqdm",
+    "h5py",
+    "pympler", 
+    "rtree",
+    "pytest",
+    "memory-profiler",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch",
+    "torchvision", 
+    "torchaudio"
+]
+streaming = [
+    "adios2"
 ]
 
 [project.scripts]
