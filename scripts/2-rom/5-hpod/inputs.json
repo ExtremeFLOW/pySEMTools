@@ -1,0 +1,45 @@
+{
+"Version": 1.0,
+"number_of_snapshots": 20,
+"batch_size"         : 20,
+"keep_modes"         : 20,
+"write_modes"        : 20,
+"fields"             : ["u","v"],
+"dtype"              : "double",
+"backend"            : "numpy",
+"hpod"               : true,
+"IO":{
+	"mesh_data": {
+		"dataPath" : "./temp_data/",
+		"casename"           : "field",
+		"first_index"        : 0
+	},
+	"field_data": {
+		"dataPath" : "./temp_data/",
+		"casename"           : "field",
+		"first_index"        : 1500
+	}
+},
+"interpolation":{
+    "query_points_fname" : "./meshgrid_data/points.hdf5",
+    "output_sequence_fname" : "field.hdf5",
+    "parallel_io" : true,
+    "distributed_axis" : 1, 
+    "interpolation_settings": {
+        "find_points_max_iter": 10,
+        "max_pts":256,
+        "find_points_iterative": [
+            false,
+            1
+        ],
+        "find_points_tol": 1e-7,
+        "write_coords": false,
+        "global_tree_type": "rank_bbox",
+        "global_tree_nbins": 100000,
+        "find_points_comm_pattern": "rma",
+        "local_data_structure": "kdtree",
+        "point_interpolator_type": "multiple_point_legendre_numpy",
+        "use_oriented_bbox": true
+    }
+}
+}
