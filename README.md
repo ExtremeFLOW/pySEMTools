@@ -25,7 +25,7 @@ Agreement number: 956748.
 
 # Installation
 
-To install in your pip enviroment, clone this repository and execute:
+To install in your pip environment (requires Python 3.10-3.12), clone this repository and execute:
 ```
 pip install  --editable .
 ```
