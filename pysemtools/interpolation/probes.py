@@ -155,24 +155,24 @@ class Probes:
         self.log = Logger(comm=comm, module_name="Probes")
 
         self.log.tic()
-        self.log.write("info", "Initializing Probes object:")
-        self.log.write("info", f" ======= Settings =======")
-        self.log.write("info", f"output_fname: {output_fname}")
-        self.log.write("info", f"write_coords: {write_coords}")
-        self.log.write("info", f"progress_bar: {progress_bar}")
-        self.log.write("info", f"point_interpolator_type: {point_interpolator_type}")
-        self.log.write("info", f"max_pts: {max_pts}")
-        self.log.write("info", f"find_points_iterative: {find_points_iterative}")
-        self.log.write("info", f"find_points_comm_pattern: {find_points_comm_pattern}")
-        self.log.write("info", f"elem_percent_expansion: {elem_percent_expansion}")
-        self.log.write("info", f"global_tree_type: {global_tree_type}")
-        self.log.write("info", f"global_tree_nbins: {global_tree_nbins}")
-        self.log.write("info", f"use_autograd: {use_autograd}")
-        self.log.write("info", f"find_points_tol: {find_points_tol}")
-        self.log.write("info", f"find_points_max_iter: {find_points_max_iter}")
-        self.log.write("info", f"local_data_structure: {local_data_structure}")
-        self.log.write("info", f"use_oriented_bbox: {use_oriented_bbox}")
-        self.log.write("info", f" ========================")
+        self.log.write("info", "Initializing Probes object")
+        self.log.write("debug", f" ======= Settings =======")
+        self.log.write("debug", f"output_fname: {output_fname}")
+        self.log.write("debug", f"write_coords: {write_coords}")
+        self.log.write("debug", f"progress_bar: {progress_bar}")
+        self.log.write("debug", f"point_interpolator_type: {point_interpolator_type}")
+        self.log.write("debug", f"max_pts: {max_pts}")
+        self.log.write("debug", f"find_points_iterative: {find_points_iterative}")
+        self.log.write("debug", f"find_points_comm_pattern: {find_points_comm_pattern}")
+        self.log.write("debug", f"elem_percent_expansion: {elem_percent_expansion}")
+        self.log.write("debug", f"global_tree_type: {global_tree_type}")
+        self.log.write("debug", f"global_tree_nbins: {global_tree_nbins}")
+        self.log.write("debug", f"use_autograd: {use_autograd}")
+        self.log.write("debug", f"find_points_tol: {find_points_tol}")
+        self.log.write("debug", f"find_points_max_iter: {find_points_max_iter}")
+        self.log.write("debug", f"local_data_structure: {local_data_structure}")
+        self.log.write("debug", f"use_oriented_bbox: {use_oriented_bbox}")
+        self.log.write("debug", f" ========================")
 
         # Check for errors
         if clean_search_traces and point_interpolator_type != "multiple_point_legendre_numpy":
@@ -182,17 +182,17 @@ class Probes:
         self.log.sync_tic()
         self.data_read_from_structured_mesh = False
         if isinstance(probes, np.ndarray) or isinstance(probes, NoneType):
-            self.log.write("info", "Probes provided as keyword argument")
+            self.log.write("debug", "Probes provided as keyword argument")
             self.probes = probes
         elif isinstance(probes, str):
-            self.log.write("info", f"Reading probes from {probes}")
+            self.log.write("debug", f"Reading probes from {probes}")
             self.probes = read_probes(self, comm, probes)
         else:
             print(
                 "ERROR: Probes must be provided as a string, numpy array or None if the probes are not distributed"
             )
             comm.Abort(1)
-        self.log.sync_toc(message="Query points (probes) read")
+        self.log.sync_toc(message="Query points (probes) read/assigned")
 
         # Check if the probes are distributed
         self.distributed_probes = False
@@ -209,7 +209,7 @@ class Probes:
             self.distributed_probes = True
 
         self.log.write(
-            "info",
+            "debug",
             f"Input probes are distributed: {self.distributed_probes}",
         )
         if self.distributed_probes:
@@ -228,7 +228,7 @@ class Probes:
 
         # Assign mesh data
         if isinstance(msh, Mesh):
-            self.log.write("info", "Mesh provided as keyword argument")
+            self.log.write("debug", "Mesh provided as keyword argument")
             if msh.bckend != 'numpy':
                 raise ValueError("Only supported Mesh backend at the moment is numpy")
             self.x = msh.x
@@ -254,7 +254,7 @@ class Probes:
             self.n_probes = 0
 
         # Initialize the interpolator
-        self.log.write("info", "Initializing interpolator")
+        self.log.write("debug", "Initializing interpolator")
         self.log.sync_tic()
         self.itp = Interpolator(
             self.x,
@@ -270,7 +270,7 @@ class Probes:
         )
 
         # Set up the global tree
-        self.log.write("info", "Setting up global tree")
+        self.log.write("debug", "Setting up global tree")
         self.itp.set_up_global_tree(
             comm,
             find_points_comm_pattern=find_points_comm_pattern,
@@ -281,14 +281,14 @@ class Probes:
 
         # Scatter the probes to all ranks
         if self.distributed_probes:
-            self.log.write("info", "Assigning input probes to be a probe partition")
+            self.log.write("debug", "Assigning input probes to be a probe partition")
             self.itp.assign_local_probe_partitions()
         else:
-            self.log.write("info", "Scattering probes to all ranks")
+            self.log.write("debug", "Scattering probes to all ranks")
             self.itp.scatter_probes_from_io_rank(0, comm)
 
         # Find where the point in each rank should be
-        self.log.write("info", "Finding points")
+        self.log.write("debug", "Finding points")
         self.log.sync_tic()
         self.itp.find_points(
             comm,

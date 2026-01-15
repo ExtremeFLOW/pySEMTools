@@ -341,7 +341,7 @@ class FieldRegistry(Field):
                     self.registry_pos[f"s{i}"] = f"scal_{i}"
 
         if self.registry.keys().__len__() > 0:
-            self.log.write("info", f"Field registry updated with: {list(self.registry.keys())}")
+            self.log.write("info", f"Field registry updated with: {list(self.registry.keys())} - dtype: {self.registry[list(self.registry.keys())[0]].dtype}")
 
     def clear(self):
         """
