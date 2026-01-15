@@ -1262,7 +1262,7 @@ class Interpolator:
         self.rank = rank
 
         self.log.write("info", "Finding points - start")
-        self.log.tic()
+        if DEBUG: self.log.tic()
         start_time = MPI.Wtime()
         
         kwargs = {
@@ -1355,10 +1355,13 @@ class Interpolator:
         buffers["test_interp"] = self.test_interp
 
         # Now find the rst coordinates for the points stored in each of the buffers
+        self.log.write(
+            "info", f"Processing data in multiple ranks. Reporting progress only for rank 0"
+        )
         for source_index in range(0, len(my_source)):
 
             self.log.write(
-                "debug", f"Processing batch: {source_index} out of {len(my_source)}"
+                "info", f"Processing batch: {source_index+1} out of {len(my_source)}"
             )
 
             probes_info = {}
@@ -1475,8 +1478,8 @@ class Interpolator:
                 self.err_code_partition[j] = 0
 
         comm.Barrier()
-        self.log.write("info", "Finding points - finished")
-        self.log.toc()
+        self.log.write("debug", "Finding points - finished")
+        if DEBUG: self.log.toc()
 
         return
 
@@ -1496,8 +1499,8 @@ class Interpolator:
         rank = comm.Get_rank()
         self.rank = rank
 
-        self.log.write("info", "Finding points - start")
-        self.log.tic()
+        self.log.write("debug", "Finding points - start")
+        if DEBUG: self.log.tic()
         start_time = MPI.Wtime()
 
         kwargs = {
@@ -1768,8 +1771,8 @@ class Interpolator:
                 self.err_code_partition[j] = 0
 
         comm.Barrier()
-        self.log.write("info", "Finding points - finished")
-        self.log.toc()
+        self.log.write("debug", "Finding points - finished")
+        if DEBUG: self.log.toc()
 
         return
     
@@ -1787,8 +1790,8 @@ class Interpolator:
         rank = comm.Get_rank()
         self.rank = rank
 
-        self.log.write("info", "Finding points - start")
-        self.log.tic()
+        self.log.write("debug", "Finding points - start")
+        if DEBUG: self.log.tic()
         start_time = MPI.Wtime()
 
         self.log.write("warning", "RMA mode is known to miss some points that can be found otherwise. If you encounter some not found points, consider changing communication pattern")
@@ -2156,8 +2159,8 @@ class Interpolator:
                 self.err_code_partition[j] = 0
 
         comm.Barrier()
-        self.log.write("info", "Finding points - finished")
-        self.log.toc()
+        self.log.write("debug", "Finding points - finished")
+        if DEBUG: self.log.toc()
 
         return
 
@@ -2274,7 +2277,7 @@ class Interpolator:
         have been determined in the search"""
 
         self.log.write("debug", "Redistributing probes to owners")
-        self.log.tic()
+        if DEBUG: self.log.tic()
 
         # Assing the partitions
         self.probes[:, :] = self.probe_partition[:, :]
@@ -2357,7 +2360,7 @@ class Interpolator:
         )
 
         self.log.write("debug", "done")
-        self.log.toc()
+        if DEBUG: self.log.toc()
 
         return
 

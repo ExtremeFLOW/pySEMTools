@@ -219,9 +219,9 @@ class Logger:
                 self.log.info(message)
 
         if level == "info_all":
-            self.log.info(f"Rank {comm.Get_rank()}: {message}")
             comm.Barrier()
-
+            self.log.info(f"Rank {comm.Get_rank()}: {message}")
+            
         if level == "warning":
             if rank == 0:
                 self.log.warning(message)

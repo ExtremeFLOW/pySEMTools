@@ -304,15 +304,15 @@ class Probes:
 
         # Send points to the owners
         if self.distributed_probes:
-            self.log.write("info", "Redistributing probes to found owners")
+            self.log.write("debug", "Redistributing probes to found owners")
             self.itp.redistribute_probes_to_owners()
         else:
             # Gather probes to rank 0 again
-            self.log.write("info", "Gathering probes to rank 0 after search")
+            self.log.write("debug", "Gathering probes to rank 0 after search")
             self.itp.gather_probes_to_io_rank(0, comm)
 
             # Redistribute the points
-            self.log.write("info", "Redistributing probes to found owners")
+            self.log.write("debug", "Redistributing probes to found owners")
             self.itp.redistribute_probes_to_owners_from_io_rank(0, comm)
 
         self.output_fname = output_fname
@@ -362,8 +362,8 @@ class Probes:
         if clean_search_traces:
             self.clean_search_traces()
 
-        self.log.write("info", "Probes object initialized")
-        self.log.toc()
+        self.log.write("debug", "Probes object initialized")
+        self.log.toc(message="Probes object initialized in all ranks")
 
     def interpolate_from_field_list(
         self, t, field_list, comm, write_data=True, field_names: list[str] = None
