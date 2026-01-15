@@ -22,7 +22,9 @@ class CustomFormatter(logging.Formatter):
     # formatt = (
     #    "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
     # )
-    formatt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    #formatt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    formatt = "%(asctime)s  %(name)-20s  %(levelname)-8s  %(message)s"
+
 
     FORMATS_colored = {
         logging.DEBUG: grey + formatt + reset,

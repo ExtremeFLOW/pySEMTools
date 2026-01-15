@@ -431,7 +431,7 @@ class Probes:
 
                 field = field_list[i]
 
-                self.log.write("info", f"Interpolating field {i}")
+                self.log.write("debug", f"Interpolating field {i}")
 
                 interpolated_fields_from_sources = self.itp.interpolate_field_from_rst(
                     field
@@ -443,7 +443,7 @@ class Probes:
                         interpolated_fields_from_sources[j]
                     )
 
-            self.log.sync_toc(message="Interpolation: point evaluation done")
+            self.log.sync_toc(message="Interpolation: point evaluation done", level="debug")
             self.log.sync_tic(id=1)
 
             # Send the data back to the ranks that sent me the probes
@@ -464,7 +464,7 @@ class Probes:
                     self.itp.local_probe_index_sent_to_destination[i]
                 ] = interpolated_data[list(sources).index(self.itp.destinations[i])][:]
             
-            self.log.sync_toc(id = 1, message="Interpolation: point redistribution done")
+            self.log.sync_toc(id = 1, message="Interpolation: point redistribution done", level="debug")
             self.log.sync_toc(message="Finished interpolation and redistribution in all ranks", time_message="Aggregated time: ")
 
         # If the probes were given in rank 0, then each rank interpolates the points that it owns physically
@@ -489,14 +489,14 @@ class Probes:
             i = 0
             for field in field_list:
 
-                self.log.write("info", f"Interpolating field {i}")
+                self.log.write("debug", f"Interpolating field {i}")
                 self.my_interpolated_fields[:, i + 1] = (
                     self.itp.interpolate_field_from_rst(field)[:]
                 )
 
                 i += 1
 
-            self.log.sync_toc(message="Interpolation: point evaluation done")
+            self.log.sync_toc(message="Interpolation: point evaluation done", level="debug")
             self.log.sync_tic(id=1)
 
             # Gather in rank zero for processing
@@ -520,7 +520,7 @@ class Probes:
                 # You sort to make sure that the data from each rank is grouped.
                 self.interpolated_fields[self.itp.sort_by_rank] = tmp
             
-            self.log.sync_toc(id = 1, message="Interpolation: point redistribution done")
+            self.log.sync_toc(id = 1, message="Interpolation: point redistribution done", level="debug")
             self.log.sync_toc(message="Finished interpolation and redistribution in all ranks", time_message="Aggregated time: ")
 
         # Write the data

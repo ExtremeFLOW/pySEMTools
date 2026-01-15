@@ -2368,7 +2368,7 @@ class Interpolator:
         """Interpolate the field from the rst coordinates found"""
 
         self.log.write("debug", "Interpolating field from rst coordinates")
-        self.log.tic()
+        if DEBUG: self.log.tic()
 
         if isinstance(self.my_probes_rst, list):
             # The inputs were distributed
@@ -2418,7 +2418,7 @@ class Interpolator:
                 settings=settings,
             )
 
-        self.log.toc()
+        if DEBUG: self.log.toc()
 
         return sampled_field_at_probe
 
