@@ -96,6 +96,18 @@ class Logger:
 
         if isinstance(level, type(None)):
             level = logging.INFO
+        elif level == "debug":
+            level = logging.DEBUG
+        elif level == "info":
+            level = logging.INFO
+        elif level == "warning":
+            level = logging.WARNING
+        elif level == "error":
+            level = logging.ERROR
+        elif level == "critical":
+            level = logging.CRITICAL
+        elif level == "hide":
+            level = logging.CRITICAL
         if DEBUG:
             level = logging.DEBUG
         if HIDE:
@@ -154,13 +166,16 @@ class Logger:
         self.comm.Barrier()
         self.sync_time[id] = time()
 
-    def toc(self, level="info"):
+    def toc(self, message=None, time_message="Elapsed time: ", level="info"):
         """
         Write elapsed time since the last call to tic.
 
         """
 
-        self.write(level, f"Elapsed time: {time() - self.time}s")
+        if message is None:
+            self.write(level, f"{time_message}{time() - self.time}s")
+        else:
+            self.write(level, f"{message} - {time_message}{time() - self.time}s")
     
     def sync_toc(self, id = 0, message=None, time_message="Elapsed time: ", level="info"):
         """

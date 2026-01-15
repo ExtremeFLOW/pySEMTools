@@ -85,10 +85,10 @@ class Mesh:
     """
 
     def __init__(
-        self, comm, data=None, x=None, y=None, z=None, elmap=None, create_connectivity=False, bckend="numpy"
+        self, comm, data=None, x=None, y=None, z=None, elmap=None, create_connectivity=False, bckend="numpy", log_level=None
     ):
 
-        self.log = Logger(comm=comm, module_name="Mesh")
+        self.log = Logger(comm=comm, module_name="Mesh", level=log_level)
         self.create_connectivity_bool = create_connectivity
 
         self.bckend = bckend
@@ -107,7 +107,7 @@ class Mesh:
             self.init_from_coords(comm, x, y, z, elmap=elmap)
 
         else:
-            self.log.write("info", "Initializing empty Mesh object.")
+            self.log.write("debug", "Initializing empty Mesh object.")
 
     def init_from_data(self, comm, data):
         """
@@ -165,7 +165,7 @@ class Mesh:
         """
 
         self.log.tic()
-        self.log.write("info", "Initializing Mesh object from x,y,z ndarrays.")
+        self.log.write("debug", "Initializing Mesh object from x,y,z ndarrays.")
 
         self.x = x
         self.y = y
@@ -174,9 +174,9 @@ class Mesh:
 
         self.init_common(comm)
 
-        self.log.write("info", "Mesh object initialized.")
-        self.log.write("info", f"Mesh data is of type: {self.x.dtype}")
-        self.log.toc()
+        self.log.write("debug", "Mesh object initialized.")
+        self.log.write("debug", f"Mesh data is of type: {self.x.dtype}")
+        self.log.toc(message=f"Mesh object initialized from coordinates with type: {self.x.dtype}")
 
     def init_common(self, comm):
         """
@@ -195,7 +195,7 @@ class Mesh:
             Nothing is returned, the attributes are set in the object.
         """
 
-        self.log.write("info", "Initializing common attributes.")
+        self.log.write("debug", "Initializing common attributes.")
 
         self.lx = np.int64(
             self.x.shape[3]
@@ -279,7 +279,7 @@ class Mesh:
         we store 3 coordinates for each vertex.
         '''
 
-        self.log.write("info", "Getting vertices")
+        self.log.write("debug", "Getting vertices")
 
         if self.gdim == 2:
             self.vertices = np.zeros((self.nelv, 4, 3), dtype=self.x.dtype) # 4 vertices, 3 coords (z = 0)
@@ -310,7 +310,7 @@ class Mesh:
         we store 3 coordinates for each edge.
         '''
 
-        self.log.write("info", "Getting edge centers")
+        self.log.write("debug", "Getting edge centers")
 
         if self.gdim == 2:
             self.edge_centers = np.zeros((self.nelv, 4, 3), dtype=self.x.dtype) # 4 vertices, 3 coords (z = 0)
@@ -348,10 +348,10 @@ class Mesh:
         '''
 
         if self.gdim == 2:
-            self.log.write("info", "Facet centers not available for 2D")
+            self.log.write("debug", "Facet centers not available for 2D")
 
         elif self.gdim == 3:
-            self.log.write("info", "Getting facet centers")
+            self.log.write("debug", "Getting facet centers")
 
             self.facet_centers = np.zeros((self.nelv, 6, 3), dtype=self.x.dtype) # 6 facets, 3 coordinates
 

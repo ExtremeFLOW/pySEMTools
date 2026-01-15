@@ -115,7 +115,7 @@ class Field:
         if not isinstance(data, NoneType):
 
             self.log.tic()
-            self.log.write("info", "Initializing Field object from HexaData")
+            self.log.write("debug", "Initializing Field object from HexaData")
 
             vars_ = data.var
             self.vel_fields = vars_[1]
@@ -142,10 +142,10 @@ class Field:
 
             self.t = data.time
 
-            self.log.write("info", "Field object initialized")
-            self.log.toc()
+            self.log.write("debug", "Field object initialized")
+            self.log.toc(message="Field object initialized from HexaData")
         else:
-            self.log.write("info", "Initializing empty Field object")
+            self.log.write("debug", "Initializing empty Field object")
 
     def update_vars(self):
         """
@@ -339,6 +339,9 @@ class FieldRegistry(Field):
                     self.fields["scal"][i] = torch.as_tensor(self.fields["scal"][i], dtype=dtype_d, device=self.device)
                     self.registry[f"s{i}"] = self.fields["scal"][i]
                     self.registry_pos[f"s{i}"] = f"scal_{i}"
+
+        if self.registry.keys().__len__() > 0:
+            self.log.write("info", f"Field registry updated with: {list(self.registry.keys())}")
 
     def clear(self):
         """

@@ -614,7 +614,7 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None, overwrit
             mpi_offset += ioh.glb_nelv * ioh.gdim * ioh.lxyz * ioh.fld_data_size
 
     if not isinstance(fld, type(None)):
-        log.write("info", "Reading field data")
+        log.write("debug", "Reading field data")
         if overwrite_fld:
             log.write("info", "Overwriting fld object")
             fld.clear()
@@ -693,8 +693,8 @@ def pynekread(filename, comm, data_dtype=np.double, msh=None, fld=None, overwrit
 
     fh.Close()
 
-    log.write("info", "File read")
-    log.toc()
+    log.write("debug", "File read")
+    log.toc(message="File successfully read")
 
     del log
     return
@@ -1420,7 +1420,7 @@ def pynekwrite(filename, comm, msh=None, fld=None, wdsz=4, istep=0, write_mesh=T
     fh.Close()
 
     log.write("debug", "File written")
-    log.toc()
+    log.toc(message="File written")
 
     del log
 
