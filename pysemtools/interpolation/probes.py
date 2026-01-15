@@ -451,7 +451,7 @@ class Probes:
                 destination=self.itp.my_sources,
                 data=my_interpolated_fields,
                 dtype=self.itp.interpolator_dtype,
-                tag = 1,
+                tag = 100,
             )
             # reshape the data
             for i in range(0, len(sources)):
