@@ -22,7 +22,9 @@ class CustomFormatter(logging.Formatter):
     # formatt = (
     #    "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
     # )
-    formatt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    #formatt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    formatt = "%(asctime)s  %(name)-20s  %(levelname)-8s  %(message)s"
+
 
     FORMATS_colored = {
         logging.DEBUG: grey + formatt + reset,
@@ -96,6 +98,18 @@ class Logger:
 
         if isinstance(level, type(None)):
             level = logging.INFO
+        elif level == "debug":
+            level = logging.DEBUG
+        elif level == "info":
+            level = logging.INFO
+        elif level == "warning":
+            level = logging.WARNING
+        elif level == "error":
+            level = logging.ERROR
+        elif level == "critical":
+            level = logging.CRITICAL
+        elif level == "hide":
+            level = logging.CRITICAL
         if DEBUG:
             level = logging.DEBUG
         if HIDE:
@@ -154,13 +168,16 @@ class Logger:
         self.comm.Barrier()
         self.sync_time[id] = time()
 
-    def toc(self, level="info"):
+    def toc(self, message=None, time_message="Elapsed time: ", level="info"):
         """
         Write elapsed time since the last call to tic.
 
         """
 
-        self.write(level, f"Elapsed time: {time() - self.time}s")
+        if message is None:
+            self.write(level, f"{time_message}{time() - self.time}s")
+        else:
+            self.write(level, f"{message} - {time_message}{time() - self.time}s")
     
     def sync_toc(self, id = 0, message=None, time_message="Elapsed time: ", level="info"):
         """
@@ -204,9 +221,9 @@ class Logger:
                 self.log.info(message)
 
         if level == "info_all":
-            self.log.info(f"Rank {comm.Get_rank()}: {message}")
             comm.Barrier()
-
+            self.log.info(f"Rank {comm.Get_rank()}: {message}")
+            
         if level == "warning":
             if rank == 0:
                 self.log.warning(message)

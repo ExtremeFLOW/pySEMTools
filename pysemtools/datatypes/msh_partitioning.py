@@ -56,7 +56,7 @@ class MeshPartitioner:
         y_ = msh.y[self.compliant_elements]
         z_ = msh.z[self.compliant_elements]
 
-        sub_mesh = Mesh(comm, x=x_, y=y_, z=z_, create_connectivity=False)
+        sub_mesh = Mesh(comm, x=x_, y=y_, z=z_, create_connectivity=False, log_level="hide")
 
         self.partition_nelv = sub_mesh.nelv
         self.partition_glb_nelv = sub_mesh.glb_nelv
@@ -87,16 +87,16 @@ class MeshPartitioner:
         """
 
         self.log.write(
-            "info",
+            "debug",
             f"Partitioning the mesh coordinates with {partitioning_algorithm} algorithm",
         )
         x_ = self.redistribute_field_elements(msh.x, partitioning_algorithm)
         y_ = self.redistribute_field_elements(msh.y, partitioning_algorithm)
         z_ = self.redistribute_field_elements(msh.z, partitioning_algorithm)
 
-        self.log.write("info", "Creating mesh object")
+        self.log.write("debug", "Creating mesh object")
         partitioned_mesh = Mesh(
-            self.rt.comm, x=x_, y=y_, z=z_, create_connectivity=create_conectivity
+            self.rt.comm, x=x_, y=y_, z=z_, create_connectivity=create_conectivity, log_level="hide"
         )
 
         return partitioned_mesh
@@ -124,7 +124,7 @@ class MeshPartitioner:
         """
 
         self.log.write(
-            "info",
+            "debug",
             f"Partitioning the field object with {partitioning_algorithm} algorithm",
         )
         
