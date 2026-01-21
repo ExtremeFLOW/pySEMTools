@@ -776,7 +776,8 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
     if_do_dssum_before_interp=True,
     if_create_boundingBox_for_interp=False,
     if_pass_points_to_rank0_only=True,
-    interpolation_output_fname="interpolated_fields.hdf5"
+    interpolation_output_fname="interpolated_fields.hdf5",
+    find_points_tol: float = np.finfo(np.double).eps * 10
 ):
 
     from mpi4py import MPI  # equivalent to the use of MPI_init() in C
@@ -965,7 +966,8 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
             msh=msh,
             point_interpolator_type="multiple_point_legendre_numpy",
             max_pts=128,
-            output_fname = interpolation_output_fname
+            output_fname = interpolation_output_fname,
+            find_points_tol=find_points_tol
         )
     else:
         if comm.Get_rank() == 0:
@@ -975,7 +977,8 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
                 msh=msh,
                 point_interpolator_type="multiple_point_legendre_numpy",
                 max_pts=128,
-                output_fname = interpolation_output_fname
+                output_fname = interpolation_output_fname,
+                find_points_tol=find_points_tol
             )
         else:
             probes = Probes(
@@ -984,7 +987,8 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
                 msh=msh,
                 point_interpolator_type="multiple_point_legendre_numpy",
                 max_pts=128,
-                output_fname = interpolation_output_fname
+                output_fname = interpolation_output_fname,
+                find_points_tol=find_points_tol
             )
 
     ###########################################################################################
