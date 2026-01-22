@@ -776,7 +776,8 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
     if_do_dssum_before_interp=True,
     if_create_boundingBox_for_interp=False,
     if_pass_points_to_rank0_only=True,
-    interpolation_output_fname="interpolated_fields.hdf5"
+    interpolation_output_fname="interpolated_fields.hdf5",
+    find_points_tol=None
 ):
 
     from mpi4py import MPI  # equivalent to the use of MPI_init() in C
@@ -958,34 +959,24 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
     #                 point_interpolator_type="multiple_point_legendre_numpy", \
     #                 global_tree_type="domain_binning" , \
     #                 max_pts = 256 )
+
+    probe_kwargs = {
+        "comm": comm,
+        "msh": msh,
+        "point_interpolator_type": "multiple_point_legendre_numpy",
+        "max_pts": 128,
+        "output_fname": interpolation_output_fname,
+    }
+    if find_points_tol is not None:
+        probe_kwargs["find_points_tol"] = find_points_tol
+
     if not if_pass_points_to_rank0_only:
-        probes = Probes(
-            comm,
-            probes=xyz,
-            msh=msh,
-            point_interpolator_type="multiple_point_legendre_numpy",
-            max_pts=128,
-            output_fname = interpolation_output_fname
-        )
+        probes = Probes(probes=xyz, **probe_kwargs)
     else:
         if comm.Get_rank() == 0:
-            probes = Probes(
-                comm,
-                probes=xyz,
-                msh=msh,
-                point_interpolator_type="multiple_point_legendre_numpy",
-                max_pts=128,
-                output_fname = interpolation_output_fname
-            )
+            probes = Probes(probes=xyz, **probe_kwargs)
         else:
-            probes = Probes(
-                comm,
-                probes=None,
-                msh=msh,
-                point_interpolator_type="multiple_point_legendre_numpy",
-                max_pts=128,
-                output_fname = interpolation_output_fname
-            )
+            probes = Probes(probes=None, **probe_kwargs)
 
     ###########################################################################################
     for fname in these_names:
