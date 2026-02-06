@@ -501,18 +501,17 @@ def compute_and_write_additional_sstat_fields(
 # interpolate the 42+N fields onto the user specified set of points
 ###########################################################################################
 ###########################################################################################
-def interpolate_all_stat_and_pstat_fields_onto_points(
+def interpolate_all_stat_and_sstat_fields_onto_points(
     which_dir,
     fname_mesh,
     fname_mean,
     fname_stat,
     xyz,
     which_code="NEKO",
-    nek5000_stat_type="s",
     if_do_dssum_before_interp=True,
     if_create_boundingBox_for_interp=False,
     if_pass_points_to_rank0_only=True,
-    interpolation_output_fname="interpolated_fields.hdf5",
+    interpolation_output_fname="interpolated_scalar_fields.hdf5",
     find_points_tol=None
 ):
 
@@ -542,12 +541,9 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
             "fname_mean must be the same as fname_stat"
         )
 
-    # see if nek5000 file names, etc. are correct
-    if which_code.casefold() == "nek5000":
-        if nek5000_stat_type != "s" and nek5000_stat_type != "t":
-            sys.exit(
-                'for NEK5000 statistics nek5000_stat_type can be either "s" or "t"'
-            )
+    # Scalar statistics only implemented for Neko
+    if which_code.casefold() != "NEKO":
+        sys.exit("only NEKO is supported for passive scalar statistics")
 
     ###########################################################################################
     # Get mpi info
@@ -569,85 +565,25 @@ def interpolate_all_stat_and_pstat_fields_onto_points(
             "File index of fname_stat and fname_mean differ! Hope you know what you are doing!"
         )
 
-    fname_gradU  = which_dir + "/dUdx" + this_ext
-    fname_hessU  = which_dir + "/d2Udx2" + this_ext
-    fname_derivP = which_dir + "/dnPdxn" + this_ext
-    fname_gradPU = which_dir + "/dPUdx" + this_ext
-    # full_fname_mean = which_dir+"/"+fname_mean
-    # full_fname_stat = which_dir+"/"+fname_stat
     full_fname_mesh = which_dir + "/" + fname_mesh
 
-    ###########################################################################################
-    # get the file name for the 44 fileds collected in run time
-    if which_code.casefold() == "neko":
-        these_names = [
-            give_me_the_stat_file_name(
-                which_dir, fname_stat, "00", which_code, nek5000_stat_type
-            )
-        ]
-        # these_field_names = [  ]
-    elif which_code.casefold() == "nek5000":
-        these_names = [
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "01", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "02", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "03", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "04", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "05", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "06", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "07", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "08", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "09", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "10", which_code, nek5000_stat_type
-            ),
-            give_me_the_stat_file_name(
-                which_dir, fname_mean, "11", which_code, nek5000_stat_type
-            )
-        ]
+    # get the file name for the 42 fileds collected in run time
+    these_names = which_dir + "/" + fname_stat
 
-    # add the name of the additional fields, these are common between neko and nek5000
-    these_names.extend([fname_gradU, fname_hessU, fname_derivP, fname_gradPU])
+    # add the name of the additional fields
+    these_names.extend([which_dir + "/dnSdxn" + this_ext,
+                        which_dir + "/dnSSdxn" + this_ext,
+                        which_dir + "/dUSdx" + this_ext,
+                        which_dir + "/dUSSdx" + this_ext])
 
-    actual_field_names = ["UU", "VV", "WW", "UV", "UW", "VW"]
+    actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
     for icomp in range(0, 6):
         this_file_name = (
-            which_dir + "/dn" + actual_field_names[icomp] + "dxn" + this_ext
+            which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
         )
         these_names.append(this_file_name)
 
-    actual_field_names = [
-        "UUU",
-        "VVV",
-        "WWW",
-        "UUV",
-        "UUW",
-        "UVV",
-        "UVW",
-        "VVW",
-        "UWW",
-        "VWW",
-    ]
-    for icomp in range(0, 10):
-        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        these_names.append(this_file_name)
+    thse_names.append(which_dir + "/dPSdx" + this_ext)
 
     # if comm.Get_rank() == 0:
     #     print(these_names)
