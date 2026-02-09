@@ -4,7 +4,7 @@
 "batch_size"         : 20,
 "keep_modes"         : 20,
 "write_modes"        : 20,
-"fields"             : ["u","v"],
+"fields"             : ["u","v", "w"],
 "dtype"              : "double",
 "backend"            : "numpy",
 "hpod"               : true,
