@@ -5,12 +5,13 @@
 #####################################################################################
 # function to read and store the interpolated fields as structured and averaged fields
 #####################################################################################
-def read_interpolated_stat_hdf5_fields( 
+def read_interpolated_scalar_stat_hdf5_fields( 
         path_to_files , 
         Reynolds_number , 
+        Prandtl_number ,
         If_average , If_convert_to_single , 
         Nstruct , av_func , 
-        output_fname='averaged_and_renamed_interpolated_fields.hdf5'
+        output_fname='averaged_and_renamed_interpolated_scalar_fields.hdf5'
         ):
     
     #%%
@@ -19,9 +20,25 @@ def read_interpolated_stat_hdf5_fields(
     import time
 
     #%%
+    # Generic function to load field by number
+    def load_field(num, prefix='interpolated_scalar_fields'):
+        """Load HDF5 field from file by number.
+        
+        Parameters:
+        - num: field number (int)
+        - prefix: filename prefix (default: 'interpolated_scalar_fields')
+        
+        Returns:
+        - Flattened numpy array of field data
+        """
+        filename = path_to_files + '/' + f'{prefix}{num:05d}.hdf5'
+        with h5py.File(filename, 'r') as f:
+            return np.array(f['/field_0']).flatten()
+
+    #%%
     print('reading xyz coordinates...')
     start_time = time.time()
-    with h5py.File(path_to_files+'/'+'coordinates_interpolated_fields.hdf5', 'r') as f:
+    with h5py.File(path_to_files+'/'+'coordinates_interpolated_scalar_fields.hdf5', 'r') as f:
         XYZ_vec = np.array(f['/xyz']).T  # Transpose to match MATLAB's permute([2,1])
     XYZ_vec = XYZ_vec.T 
 
@@ -29,117 +46,43 @@ def read_interpolated_stat_hdf5_fields(
     print(f'Done in {time.time() - start_time:.2f} seconds.')
 
     #%%
-    print('reading the 44 statistics fields...')
+    print('reading the 42 statistics fields...')
     start_time = time.time()
-    UVW_vec = np.zeros((Npts, 3))
-    for i in range(1, 4):
-        filename = path_to_files+'/'+f'interpolated_fields0000{i}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            UVW_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    with h5py.File(path_to_files+'/'+'interpolated_fields00004.hdf5', 'r') as f:
-        P_vec = np.array(f['/field_0']).flatten()
-
-    with h5py.File(path_to_files+'/'+'interpolated_fields00005.hdf5', 'r') as f:
-        P2_vec = np.array(f['/field_0']).flatten()
-
-    UiUj_vec = np.zeros((Npts, 6))
-    for i in range(1, 7):
-        tmp = str(5 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            UiUj_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    UiUjUk_vec = np.zeros((Npts, 10))
-    for i in range(1, 11):
-        tmp = str(11 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            UiUjUk_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    # Reordering columns based on MATLAB's conversion
-    UiUjUk_vec = UiUjUk_vec[:, [0, 1, 2, 3, 4, 5, 7, 8, 9, 6]]
-
-    Ui4_vec = np.zeros((Npts, 3))
-    for i in range(1, 4):
-        tmp = str(21 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            Ui4_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    with h5py.File(path_to_files+'/'+'interpolated_fields00025.hdf5', 'r') as f:
-        P3_vec = np.array(f['/field_0']).flatten()
-
-    with h5py.File(path_to_files+'/'+'interpolated_fields00026.hdf5', 'r') as f:
-        P4_vec = np.array(f['/field_0']).flatten()
-
-    PUi_vec = np.zeros((Npts, 3))
-    for i in range(1, 4):
-        tmp = str(26 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            PUi_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    PGij_vec = np.zeros((Npts, 9))
-    for i in range(1, 10):
-        tmp = str(29 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            PGij_vec[:, i-1] = np.array(f['/field_0']).flatten()
-
-    pseudoDiss_vec = np.zeros((Npts, 6))
-    for i in range(1, 7):
-        tmp = str(38 + i)
-        fnum = ('000000'[:5 - len(tmp)] + tmp)
-        filename = path_to_files+'/'+f'interpolated_fields{fnum}.hdf5'
-        with h5py.File(filename, 'r') as f:
-            pseudoDiss_vec[:, i-1] = np.array(f['/field_0']).flatten()
+    
+    S_vec = load_field(0)
+    UiS_vec = np.column_stack([load_field(i) for i in range(1, 4)])
+    S2_vec = load_field(4)
+    S3_vec = load_field(5)
+    S4_vec = load_field(6)
+    UiS2_vec = np.column_stack([load_field(i) for i in range(7, 10)])
+    UiUjS_vec = np.column_stack([load_field(i) for i in range(10, 16)])
+    PS_vec = load_field(16)
+    PdSdxi_vec = np.column_stack([load_field(i) for i in range(17, 20)])
+    UidSdxj_vec = np.column_stack([load_field(i) for i in range(20, 29)])
+    SdUidxj_vec = np.column_stack([load_field(i) for i in range(29, 38)])
+    SDiss_vec = np.column_stack([load_field(i) for i in range(38, 42)])
     
     print(f'Done in {time.time() - start_time:.2f} seconds.')
 
     #%% make 1D arrays 2D
-    P_vec  = P_vec[:, np.newaxis]
-    P2_vec = P2_vec[:, np.newaxis]
-    P3_vec = P3_vec[:, np.newaxis]
-    P4_vec = P4_vec[:, np.newaxis]
+    S_vec  = S_vec[:, np.newaxis]
+    S2_vec = S2_vec[:, np.newaxis]
+    S3_vec = S3_vec[:, np.newaxis]
+    S4_vec = S4_vec[:, np.newaxis]
+    PS_vec = PS_vec[:, np.newaxis]
 
     #%%
-    print('reading the additional 99 fields...')
+    print('reading the additional fields...')
     start_time = time.time()
 
-    def read_hdf5_field(filename):
-        with h5py.File(filename, 'r') as f:
-            return np.array(f['/field_0']).flatten()
-
-    def generate_filenames(start, count):
-        return [path_to_files+'/'+f'interpolated_fields{str(start + i).zfill(5)}.hdf5' for i in range(1, count + 1)]
-
-    dUidxj_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(44, 9)])
-    d2Uidx2_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(53, 9)])
-    dPdx_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(62, 3)])
-    d2Pdx2_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(65, 3)])
-    dPUidxj_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(68, 9)])
-    dUiUjdx_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(77, 3)] +
-                                [read_hdf5_field(f) for f in generate_filenames(83, 3)] +
-                                [read_hdf5_field(f) for f in generate_filenames(89, 3)] +
-                                [read_hdf5_field(f) for f in generate_filenames(95, 3)] +
-                                [read_hdf5_field(f) for f in generate_filenames(101, 3)] +
-                                [read_hdf5_field(f) for f in generate_filenames(107, 3)])
-    d2UiUjdx2_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(80, 3)] +
-                                    [read_hdf5_field(f) for f in generate_filenames(86, 3)] +
-                                    [read_hdf5_field(f) for f in generate_filenames(92, 3)] +
-                                    [read_hdf5_field(f) for f in generate_filenames(98, 3)] +
-                                    [read_hdf5_field(f) for f in generate_filenames(104, 3)] +
-                                    [read_hdf5_field(f) for f in generate_filenames(110, 3)])
-    dUiUjUkdx_vec = np.column_stack([read_hdf5_field(f) for f in generate_filenames(113, 30)])
-
-    # Reordering columns based on MATLAB's conversion
-    dUiUjUkdx_vec = dUiUjUkdx_vec[:, list(range(18)) + list(range(21, 30)) + list(range(18, 21))]
+    dSdxj_vec = np.column_stack([load_field(i) for i in range(42, 45)])
+    d2Sdx2_vec = np.column_stack([load_field(i) for i in range(45, 48)])
+    dS2dxj_vec = np.column_stack([load_field(i) for i in range(48, 51)])
+    d2S2dx2_vec = np.column_stack([load_field(i) for i in range(51, 54)])
+    dUiSdxj_vec = np.column_stack([load_field(i) for i in range(54, 57)])
+    dUiS2dxj_vec = np.column_stack([load_field(i) for i in range(57, 60)])
+    dUiUjSdxj_vec = np.column_stack([load_field(i) for i in range(60, 66)])
+    dPSdxj_vec = np.column_stack([load_field(i) for i in range(66, 69)])
 
     print('Finished reading all fields.')
     print(f'Done in {time.time() - start_time:.2f} seconds.')
@@ -191,9 +134,11 @@ def read_interpolated_stat_hdf5_fields(
         print('Averaging complete.')
         print(f'Done in {time.time() - start_time:.2f} seconds.')
 
-    #%% Reynolds number needed to calculate viscous related terms later
+    #%% Reynolds and Prandtl numbers needed to calculate viscous related terms later
     Rer_here    = Reynolds_number
+    Prt_here    = Prandtl_number
     vars['Rer_here'] = Rer_here
+    vars['Prt_here'] = Prt_here
 
     #%% Save the data in HDF5 format
     print('Saving the data in HDF5 format...')
@@ -214,12 +159,12 @@ def read_interpolated_stat_hdf5_fields(
 #####################################################################################
 #####################################################################################
 #####################################################################################
-# function to read the raw but averaged fields and calcuate the budgets in Cartesian coordinates
+# function to read the raw but averaged fields and calcuate the scalar budgets in Cartesian coordinates
 #####################################################################################
-def calculate_budgets_in_Cartesian(
+def calculate_scalar_budgets_in_Cartesian(
         path_to_files = './' ,
-        input_filename  = "averaged_and_renamed_interpolated_fields.hdf5",
-        output_filename = "pstat3d_format.hdf5" ):
+        input_filename  = "averaged_and_renamed_interpolated_scalar_fields.hdf5",
+        output_filename = "sstat3d_format.hdf5" ):
     
     #%%
     import h5py
@@ -235,6 +180,12 @@ def calculate_budgets_in_Cartesian(
         print('Reynolds number = ', Rer_here)
 
         output_file.create_dataset('Rer_here', data=Rer_here, compression=None)
+
+        #%%
+        Prt_here = np.float64(input_file['Prt_here'])
+        print('Prandtl number = ', Prt_here)
+
+        output_file.create_dataset('Prt_here', data=Prt_here, compression=None)
 
         #%% XYZ coordinates
         print('--------------working on XYZ coordinates...')
