@@ -5,7 +5,7 @@
 ## Preliminary functions to make life easier.
 ###########################################################################################
 ###########################################################################################
-#%% generic function to compute the gradient of a scalar field
+# %% generic function to compute the gradient of a scalar field
 def compute_scalar_first_derivative(comm, msh, coef, scalar, scalar_deriv):
     if msh.gdim == 3:
         scalar_deriv.c1 = coef.dudxyz(scalar, coef.drdx, coef.dsdx, coef.dtdx)
@@ -17,12 +17,15 @@ def compute_scalar_first_derivative(comm, msh, coef, scalar, scalar_deriv):
         scalar_deriv.c3 = 0.0 * scalar_deriv.c2
     else:
         import sys
+
         sys.exit("supports either 2D or 3D data")
+
+
 ###########################################################################################
 ###########################################################################################
 
 
-#%% generic function to compute the diagonal second derivatives of a scalar field from its gradient
+# %% generic function to compute the diagonal second derivatives of a scalar field from its gradient
 def compute_scalar_second_derivative(comm, msh, coef, scalar_deriv, scalar_deriv2):
     if msh.gdim == 3:
         scalar_deriv2.c1 = coef.dudxyz(scalar_deriv.c1, coef.drdx, coef.dsdx, coef.dtdx)
@@ -34,12 +37,15 @@ def compute_scalar_second_derivative(comm, msh, coef, scalar_deriv, scalar_deriv
         scalar_deriv2.c3 = 0.0 * scalar_deriv2.c3
     else:
         import sys
+
         sys.exit("supports either 2D or 3D data")
+
+
 ###########################################################################################
 ###########################################################################################
 
 
-#%% generic function to write a 9 component field with input as 3 vectors of 3 components each
+# %% generic function to write a 9 component field with input as 3 vectors of 3 components each
 def write_file_9c(comm, msh, dU_dxi, dV_dxi, dW_dxi, fname_gradU, if_write_mesh):
     from pysemtools.datatypes.field import FieldRegistry
     from pysemtools.io.ppymech.neksuite import pynekwrite
@@ -60,11 +66,13 @@ def write_file_9c(comm, msh, dU_dxi, dV_dxi, dW_dxi, fname_gradU, if_write_mesh)
     pynekwrite(fname_gradU, comm, msh=msh, fld=gradU, wdsz=4, write_mesh=if_write_mesh)
 
     gradU.clear()
+
+
 ###########################################################################################
 ###########################################################################################
 
 
-#%% generic function to write a 6-component field with input as 2 vectors of 3 components each
+# %% generic function to write a 6-component field with input as 2 vectors of 3 components each
 def write_file_6c(comm, msh, dU_dxi, dV_dxi, fname_gradU, if_write_mesh):
     from pysemtools.datatypes.field import FieldRegistry
     from pysemtools.io.ppymech.neksuite import pynekwrite
@@ -82,11 +90,13 @@ def write_file_6c(comm, msh, dU_dxi, dV_dxi, fname_gradU, if_write_mesh):
     pynekwrite(fname_gradU, comm, msh=msh, fld=gradU, wdsz=4, write_mesh=if_write_mesh)
 
     gradU.clear()
+
+
 ###########################################################################################
 ###########################################################################################
 
 
-#%% generic function to write a 3-component (vector) field
+# %% generic function to write a 3-component (vector) field
 def write_file_3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
     from pysemtools.datatypes.field import FieldRegistry
     from pysemtools.io.ppymech.neksuite import pynekwrite
@@ -101,62 +111,69 @@ def write_file_3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
     pynekwrite(fname_gradU, comm, msh=msh, fld=gradU, wdsz=4, write_mesh=if_write_mesh)
 
     gradU.clear()
+
+
 ###########################################################################################
 ###########################################################################################
 
 
-
-#%% function to generate the list of fields from the file header
+# %% function to generate the list of fields from the file header
 def return_list_of_vars_from_filename(fname):
     from pymech.neksuite.field import read_header
 
     header = read_header(fname)
-    vars_=  header.nb_vars
+    vars_ = header.nb_vars
 
     vel_fields = vars_[1]
     pres_fields = vars_[2]
     temp_fields = vars_[3]
     scal_fields = vars_[4]
-    if scal_fields>37:
+    if scal_fields > 37:
         import warnings
-        print("Number of scalar fields: "+(f'{(scal_fields):.0f}'))
-        warnings.warn("The number of scalar fields above 39 is not supported. "+
-                      "This was done to make converted 2D statistics files consistent! "+
-                      "Limiting the number to 37...")
+
+        print("Number of scalar fields: " + (f"{(scal_fields):.0f}"))
+        warnings.warn(
+            "The number of scalar fields above 39 is not supported. "
+            + "This was done to make converted 2D statistics files consistent! "
+            + "Limiting the number to 37..."
+        )
         scal_fields = 37
-        
 
     field_names = []
     for i in range(vel_fields):
-        tmp = [("vel_"+str(i))]
+        tmp = ["vel_" + str(i)]
         field_names = field_names + tmp
 
-    if pres_fields==1:
+    if pres_fields == 1:
         field_names = field_names + ["pres"]
 
-    if temp_fields==1:
+    if temp_fields == 1:
         field_names = field_names + ["temp"]
 
     for i in range(scal_fields):
-        tmp = [("scal_"+str(i))]
+        tmp = ["scal_" + str(i)]
         field_names = field_names + tmp
 
     return field_names
+
+
 ###########################################################################################
 ###########################################################################################
 
-#%% do dssum on a vector with components c1, c2, c3
+
+# %% do dssum on a vector with components c1, c2, c3
 def do_dssum_on_3comp_vector(dU_dxi, msh_conn, msh):
     msh_conn.dssum(field=dU_dxi.c1, msh=msh, average="multiplicity")
     msh_conn.dssum(field=dU_dxi.c2, msh=msh, average="multiplicity")
     msh_conn.dssum(field=dU_dxi.c3, msh=msh, average="multiplicity")
+
+
 # def do_dssum_on_3comp_vector(dU_dxi, coef, msh):
 #     coef.dssum(dU_dxi.c1, msh)
 #     coef.dssum(dU_dxi.c2, msh)
 #     coef.dssum(dU_dxi.c3, msh)
 ###########################################################################################
 ###########################################################################################
-
 
 
 ###########################################################################################
@@ -182,9 +199,7 @@ def compute_and_write_additional_sstat_fields(
 
     # check if file names are the same
     if fname_mean != fname_stat:
-        sys.exit(
-            "fname_mean must be the same as fname_stat"
-        )
+        sys.exit("fname_mean must be the same as fname_stat")
 
     # Scalar statistics only implemented for Neko
     if which_code.casefold() != "NEKO":
@@ -217,11 +232,10 @@ def compute_and_write_additional_sstat_fields(
     stat_fields = FieldRegistry(comm)
 
     # generic scalar and vector derivatives
-    dQ1_dxi  = FieldRegistry(comm)
-    dQ2_dxi  = FieldRegistry(comm)
-    dQ3_dxi  = FieldRegistry(comm)
+    dQ1_dxi = FieldRegistry(comm)
+    dQ2_dxi = FieldRegistry(comm)
+    dQ3_dxi = FieldRegistry(comm)
     d2Q1_dxi2 = FieldRegistry(comm)
-
 
     ###########################################################################################
     # using the same .fXXXXXX extenstion as the mean fields
@@ -252,22 +266,20 @@ def compute_and_write_additional_sstat_fields(
     # define file_keys of the fields based on the codes
 
     # Neko key names taken from: https://neko.cfd/docs/develop/df/d8f/statistics-guide.html
-    file_keys_S     = ["pres"]
+    file_keys_S = ["pres"]
     #                   "US"      "VS"      "WS"
-    file_keys_UiS   = ["vel_0", "vel_1", "vel_2"]
-    file_keys_SS    = ["temp"]
+    file_keys_UiS = ["vel_0", "vel_1", "vel_2"]
+    file_keys_SS = ["temp"]
     #                   "USS"      "VSS"     "WSS"
-    file_keys_UjSS  = ["scal_2", "scal_3", "scal_4"]
+    file_keys_UjSS = ["scal_2", "scal_3", "scal_4"]
     #                   "UUS"     "VVS"     "WWS"     "UVS"     "UWS"     "VWS"
     file_keys_UiUjS = ["scal_5", "scal_6", "scal_7", "scal_8", "scal_9", "scal_10"]
-    file_keys_PS    = ["scal_11"]
-
-
+    file_keys_PS = ["scal_11"]
 
     ###########################################################################################
     # S first and second derivatives
     ###########################################################################################
-    
+
     stat_fields.add_field(
         comm,
         field_name="S",
@@ -277,15 +289,13 @@ def compute_and_write_additional_sstat_fields(
         dtype=np.single,
     )
 
-    compute_scalar_first_derivative(
-        comm, msh, coef, stat_fields.registry["S"], dQ1_dxi
-    )
+    compute_scalar_first_derivative(comm, msh, coef, stat_fields.registry["S"], dQ1_dxi)
     compute_scalar_second_derivative(comm, msh, coef, dQ1_dxi, d2Q1_dxi2)
 
     if if_do_dssum_on_derivatives:
         do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
         do_dssum_on_3comp_vector(d2Q1_dxi2, msh_conn, msh)
-    
+
     this_file_name = which_dir + "/dnSdxn" + this_ext
     write_file_6c(
         comm, msh, dQ1_dxi, d2Q1_dxi2, this_file_name, if_write_mesh=if_write_mesh
@@ -296,7 +306,7 @@ def compute_and_write_additional_sstat_fields(
     ###########################################################################################
     # SS first and second derivatives
     ###########################################################################################
-    
+
     stat_fields.add_field(
         comm,
         field_name="SS",
@@ -369,16 +379,21 @@ def compute_and_write_additional_sstat_fields(
 
     this_file_name = which_dir + "/dUSdx" + this_ext
     write_file_9c(
-        comm, msh, dQ1_dxi, dQ2_dxi, dQ3_dxi, 
-        this_file_name, if_write_mesh=if_write_mesh
+        comm,
+        msh,
+        dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
     )
 
     stat_fields.clear()
-    
+
     ###########################################################################################
     # UiSS first derivative
     ###########################################################################################
-    
+
     stat_fields.add_field(
         comm,
         field_name="USS",
@@ -421,8 +436,13 @@ def compute_and_write_additional_sstat_fields(
 
     this_file_name = which_dir + "/dUSSdx" + this_ext
     write_file_9c(
-        comm, msh, dQ1_dxi, dQ2_dxi, dQ3_dxi, 
-        this_file_name, if_write_mesh=if_write_mesh
+        comm,
+        msh,
+        dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
     )
 
     stat_fields.clear()
@@ -454,19 +474,15 @@ def compute_and_write_additional_sstat_fields(
         if if_do_dssum_on_derivatives:
             do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
 
-        this_file_name = (
-            which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        )
-        write_file_3c(
-            comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh
-        )
+        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
+        write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
 
         stat_fields.clear()
-        
+
     ###########################################################################################
     # PS first derivative
     ###########################################################################################
-    
+
     stat_fields.add_field(
         comm,
         field_name="PS",
@@ -483,15 +499,44 @@ def compute_and_write_additional_sstat_fields(
     if if_do_dssum_on_derivatives:
         do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
     this_file_name = which_dir + "/dPSdx" + this_ext
-    write_file_3c(
-        comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh
-    )
+    write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
 
     stat_fields.clear()
     del dQ1_dxi
 
     if comm.Get_rank() == 0:
         print("-------As a great man once said: run successful: dying ...")
+
+    ###########################################################################################
+    # SdUidxj first derivative
+    ###########################################################################################
+
+    actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
+
+    for icomp in range(0, 6):
+        if comm.Get_rank() == 0:
+            print("working on: " + actual_field_names[icomp])
+
+        stat_fields.add_field(
+            comm,
+            field_name=actual_field_names[icomp],
+            file_type="fld",
+            file_name=full_fname_stat,
+            file_key=file_keys_UiUjS[icomp],
+            dtype=np.single,
+        )
+
+        compute_scalar_first_derivative(
+            comm, msh, coef, stat_fields.registry[actual_field_names[icomp]], dQ1_dxi
+        )
+
+        if if_do_dssum_on_derivatives:
+            do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+
+        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
+        write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
+
+        stat_fields.clear()
 
 
 ###########################################################################################
@@ -512,7 +557,7 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     if_create_boundingBox_for_interp=False,
     if_pass_points_to_rank0_only=True,
     interpolation_output_fname="interpolated_scalar_fields.hdf5",
-    find_points_tol=None
+    find_points_tol=None,
 ):
 
     from mpi4py import MPI  # equivalent to the use of MPI_init() in C
@@ -537,9 +582,7 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
 
     # check if file names are the same
     if fname_mean != fname_stat:
-        sys.exit(
-            "fname_mean must be the same as fname_stat"
-        )
+        sys.exit("fname_mean must be the same as fname_stat")
 
     # Scalar statistics only implemented for Neko
     if which_code.casefold() != "NEKO":
@@ -571,19 +614,21 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     these_names = which_dir + "/" + fname_stat
 
     # add the name of the additional fields
-    these_names.extend([which_dir + "/dnSdxn" + this_ext,
-                        which_dir + "/dnSSdxn" + this_ext,
-                        which_dir + "/dUSdx" + this_ext,
-                        which_dir + "/dUSSdx" + this_ext])
+    these_names.extend(
+        [
+            which_dir + "/dnSdxn" + this_ext,
+            which_dir + "/dnSSdxn" + this_ext,
+            which_dir + "/dUSdx" + this_ext,
+            which_dir + "/dUSSdx" + this_ext,
+        ]
+    )
 
     actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
     for icomp in range(0, 6):
-        this_file_name = (
-            which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        )
+        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
         these_names.append(this_file_name)
 
-    thse_names.append(which_dir + "/dPSdx" + this_ext)
+    these_names.append(which_dir + "/dPSdx" + this_ext)
 
     # if comm.Get_rank() == 0:
     #     print(these_names)
@@ -593,8 +638,10 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     pynekread(full_fname_mesh, comm, msh=msh, data_dtype=np.single)
 
     if msh.gdim < 3:
-        sys.exit("only 3D data is supported!" , 
-                 "you can convert your data to 3D using 'convert_2Dstats_to_3D'!")
+        sys.exit(
+            "only 3D data is supported!",
+            "you can convert your data to 3D using 'convert_2Dstats_to_3D'!",
+        )
 
     if if_do_dssum_before_interp:
         msh_conn = MeshConnectivity(comm, msh, rel_tol=1e-5)
@@ -638,8 +685,8 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
             msh=msh,
             point_interpolator_type="multiple_point_legendre_numpy",
             max_pts=128,
-            output_fname = interpolation_output_fname,
-            find_points_tol=find_points_tol
+            output_fname=interpolation_output_fname,
+            find_points_tol=find_points_tol,
         )
     else:
         if comm.Get_rank() == 0:
@@ -649,8 +696,8 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
                 msh=msh,
                 point_interpolator_type="multiple_point_legendre_numpy",
                 max_pts=128,
-                output_fname = interpolation_output_fname,
-                find_points_tol=find_points_tol
+                output_fname=interpolation_output_fname,
+                find_points_tol=find_points_tol,
             )
         else:
             probes = Probes(
@@ -659,8 +706,8 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
                 msh=msh,
                 point_interpolator_type="multiple_point_legendre_numpy",
                 max_pts=128,
-                output_fname = interpolation_output_fname,
-                find_points_tol=find_points_tol
+                output_fname=interpolation_output_fname,
+                find_points_tol=find_points_tol,
             )
 
     ###########################################################################################
@@ -698,7 +745,9 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
 
             # do dssum to make it continuous
             if if_do_dssum_before_interp:
-                msh_conn.dssum(field=mean_fields.registry["tmpF"], msh=msh, average="multiplicity")
+                msh_conn.dssum(
+                    field=mean_fields.registry["tmpF"], msh=msh, average="multiplicity"
+                )
                 # coef.dssum(mean_fields.registry["tmpF"], msh)
 
             # interpolate the fields
@@ -707,5 +756,7 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
             )
 
             mean_fields.clear()
+
+
 ###########################################################################################
 ###########################################################################################
