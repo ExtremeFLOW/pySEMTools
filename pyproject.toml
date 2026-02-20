@@ -9,9 +9,29 @@ requires-python = ">= 3.10"
 dependencies = [
     "numpy",
     "scipy",
-    "pre-commit",
     "pymech",
+    "tqdm",
+    "mpi4py",
+    "pympler",
+    "memory_profiler",
+    "h5py",
+    "rtree",
 ]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pysemtools[torch]",
+]
+dev = [
+    "pre-commit",
+]
+torch = [
+    "torch",
+    "torchvision",
+    "torchaudio"
+]
+
 
 [project.scripts]
 pysemtools_index-files = "pysemtools.cli.index_files:main"
