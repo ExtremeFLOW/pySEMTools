@@ -12,16 +12,24 @@ dependencies = [
     "pymech",
     "tqdm",
     "mpi4py",
+]
+
+[project.urls]
+Repository = "https://github.com/me/spam.git"
+Issues = "https://github.com/me/spam/issues"
+
+[project.optional-dependencies]
+test = [
+    "pysemtools[torch]",
+    "pytest",
+    "pytest-json-report",
     "pympler",
     "memory_profiler",
     "h5py",
     "rtree",
-]
-
-[project.optional-dependencies]
-test = [
-    "pytest",
-    "pysemtools[torch]",
+    "jupyter", 
+    "matplotlib",
+    "pyevtk",
 ]
 dev = [
     "pre-commit",
