@@ -55,18 +55,18 @@ def read_interpolated_scalar_stat_hdf5_fields(
     print("reading the 42 statistics fields...")
     start_time = time.time()
 
-    S_vec = load_field(0)
+    S_vec = load_field(4)
     UiS_vec = np.column_stack([load_field(i) for i in range(1, 4)])
-    S2_vec = load_field(4)
-    S3_vec = load_field(5)
-    S4_vec = load_field(6)
-    UiS2_vec = np.column_stack([load_field(i) for i in range(7, 10)])
-    UiUjS_vec = np.column_stack([load_field(i) for i in range(10, 16)])
-    PS_vec = load_field(16)
-    PdSdxi_vec = np.column_stack([load_field(i) for i in range(17, 20)])
-    UidSdxj_vec = np.column_stack([load_field(i) for i in range(20, 29)])
-    SdUidxj_vec = np.column_stack([load_field(i) for i in range(29, 38)])
-    SDiss_vec = np.column_stack([load_field(i) for i in range(38, 42)])
+    S2_vec = load_field(5)
+    S3_vec = load_field(6)
+    S4_vec = load_field(7)
+    UiS2_vec = np.column_stack([load_field(i) for i in range(8, 11)])
+    UiUjS_vec = np.column_stack([load_field(i) for i in range(11, 17)])
+    PS_vec = load_field(17)
+    PdSdxi_vec = np.column_stack([load_field(i) for i in range(18, 21)])
+    UidSdxj_vec = np.column_stack([load_field(i) for i in range(21, 30)])
+    SdUidxj_vec = np.column_stack([load_field(i) for i in range(30, 39)])
+    SDiss_vec = np.column_stack([load_field(i) for i in range(39, 43)])
 
     print(f"Done in {time.time() - start_time:.2f} seconds.")
 
@@ -81,16 +81,16 @@ def read_interpolated_scalar_stat_hdf5_fields(
     print("reading the additional fields...")
     start_time = time.time()
 
-    dSdxj_vec = np.column_stack([load_field(i) for i in range(42, 45)])
-    d2Sdxj2_vec = np.column_stack([load_field(i) for i in range(45, 48)])
-    dS2dxj_vec = np.column_stack([load_field(i) for i in range(48, 51)])
-    d2S2dxj2_vec = np.column_stack([load_field(i) for i in range(51, 54)])
-    dUiSdxj_vec = np.column_stack([load_field(i) for i in range(54, 63)])
-    dUjS2dxj_vec = np.column_stack([load_field(63)])
-    dUiUjSdxj_vec = np.column_stack([load_field(i) for i in range(64, 67)])
-    dPSdxj_vec = np.column_stack([load_field(i) for i in range(67, 70)])
-    dUidSdxjdxj_vec = np.column_stack([load_field(i) for i in range(70, 73)])
-    dSdUidxjdxj_vec = np.column_stack([load_field(i) for i in range(73, 76)])
+    dSdxj_vec = np.column_stack([load_field(i) for i in range(43, 46)])
+    d2Sdxj2_vec = np.column_stack([load_field(i) for i in range(46, 49)])
+    dS2dxj_vec = np.column_stack([load_field(i) for i in range(49, 52)])
+    d2S2dxj2_vec = np.column_stack([load_field(i) for i in range(52, 55)])
+    dUiSdxj_vec = np.column_stack([load_field(i) for i in range(55, 64)])
+    dUjS2dxj_vec = np.column_stack([load_field(64)])
+    dUiUjSdxj_vec = np.column_stack([load_field(i) for i in range(65, 68)])
+    dPSdxj_vec = np.column_stack([load_field(i) for i in range(68, 71)])
+    dUidSdxjdxj_vec = np.column_stack([load_field(i) for i in range(71, 74)])
+    dSdUidxjdxj_vec = np.column_stack([load_field(i) for i in range(74, 77)])
 
     print("Finished reading all fields.")
     print(f"Done in {time.time() - start_time:.2f} seconds.")
@@ -279,7 +279,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------loading pressure gradients...")
         start_time = time.time()
 
-        dPdXj = np.array(input_fluid_file["dPdxj_struct"])
+        dPdXj = np.array(input_fluid_file["dPdx_struct"])
 
         print(f"Done in {time.time() - start_time:.2f} seconds.")
 
@@ -296,7 +296,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------loading Reynolds stress gradients...")
         start_time = time.time()
 
-        dUiUjdXk = np.array(input_fluid_file["UiUjdx_struct"])
+        dUiUjdXk = np.array(input_fluid_file["dUiUjdx_struct"])
         dUiUjdXk = (
             dUiUjdXk
             - Ui[..., [0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 1, 1]]
@@ -334,7 +334,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------working on scalar fluxes...")
         start_time = time.time()
 
-        UiS = np.array(input_fluid_file["UiS_struct"])
+        UiS = np.array(input_scalar_file["UiS_struct"])
 
         UiS = UiS - Ui * S
 
@@ -346,7 +346,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------working on scalar variance fluxes...")
         start_time = time.time()
 
-        UiS2 = np.array(input_fluid_file["UiS2_struct"])
+        UiS2 = np.array(input_scalar_file["UiS2_struct"])
 
         UiS2 = UiS2 - Ui * S2 - 2 * S * UiS - Ui * S**2
 
@@ -358,7 +358,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------working on scalar flux transport...")
         start_time = time.time()
 
-        UiUjS = np.array(input_fluid_file["UiUjS_struct"])
+        UiUjS = np.array(input_scalar_file["UiUjS_struct"])
 
         UiUjS = (
             UiUjS
@@ -644,8 +644,8 @@ def calculate_scalar_budgets_in_Cartesian(
             dUiUjSdXj[..., i] = (
                 dUiUjSdXj[..., i]
                 - Ui[..., i] * np.sum(Ui * dSdXj, axis=-1)
-                - S * np.sum(Ui * dUidXj[..., 3 * i : 3 * i + 3], axis=-1)
-                - Ui[..., i] * S * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
+                - S[..., 0] * np.sum(Ui * dUidXj[..., 3 * i : 3 * i + 3], axis=-1)
+                - Ui[..., i] * S[..., 0] * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
                 - np.sum(Ui * dUiSdXj[..., 3 * i : 3 * i + 3], axis=-1)
                 - UiS[..., i] * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
                 - Ui[..., i] * np.sum(dUiSdXj[..., [0, 4, 8]], axis=-1)
@@ -654,17 +654,17 @@ def calculate_scalar_budgets_in_Cartesian(
 
         dUiUjSdXj[..., 0] = (
             dUiUjSdXj[..., 0]
-            - S * np.sum(dUiUjdXk[..., [0, 10, 14]], axis=-1)
+            - S[..., 0] * np.sum(dUiUjdXk[..., [0, 10, 14]], axis=-1)
             - np.sum(UiUj[..., [0, 3, 4]] * dSdXj, axis=-1)
         )
         dUiUjSdXj[..., 1] = (
             dUiUjSdXj[..., 1]
-            - S * np.sum(dUiUjdXk[..., [9, 4, 17]], axis=-1)
+            - S[..., 0] * np.sum(dUiUjdXk[..., [9, 4, 17]], axis=-1)
             - np.sum(UiUj[..., [3, 1, 5]] * dSdXj, axis=-1)
         )
         dUiUjSdXj[..., 2] = (
             dUiUjSdXj[..., 2]
-            - S * np.sum(dUiUjdXk[..., [12, 16, 8]], axis=-1)
+            - S[..., 0] * np.sum(dUiUjdXk[..., [12, 16, 8]], axis=-1)
             - np.sum(UiUj[..., [4, 5, 2]] * dSdXj, axis=-1)
         )
 
@@ -697,7 +697,7 @@ def calculate_scalar_budgets_in_Cartesian(
         output_file.create_dataset(
             "UiS_turb_diffusion", data=UiS_turb_diffusion, compression=None
         )
-        del dUiUjSdXk
+        del dUiUjSdXj
         print(f"Done in {time.time() - start_time:.2f} seconds.")
 
         # %% Turbulent scalar flux eqn: molecular diffusion
@@ -706,28 +706,16 @@ def calculate_scalar_budgets_in_Cartesian(
         )
         start_time = time.time()
 
-        dSdUidXjdXj = np.column_stack(
-            [
-                np.array(input_scalar_file["dSdUdxjdxj_struct"]),
-                np.array(input_scalar_file["dSdVdxjdxj_struct"]),
-                np.array(input_scalar_file["dSdWdxjdxj_struct"]),
-            ]
-        )
+        dSdUidXjdXj = np.array(input_scalar_file["dSdUidxjdxj_struct"])
 
         for i in range(3):
             dSdUidXjdXj[..., i] = (
                 dSdUidXjdXj[..., i]
                 - np.sum(dSdXj * dUidXj[..., 3 * i : 3 * i + 3], axis=-1)
-                - S * np.sum(d2UidXj2[..., 3 * i : 3 * i + 3], axis=-1)
+                - S[..., 0] * np.sum(d2UidXj2[..., 3 * i : 3 * i + 3], axis=-1)
             )
 
-        dUidSdXjdXj = np.column_stack(
-            [
-                np.array(input_scalar_file["dUdxjSdxj_struct"]),
-                np.array(input_scalar_file["dVdxjSdxj_struct"]),
-                np.array(input_scalar_file["dWdxjSdxj_struct"]),
-            ]
-        )
+        dUidSdXjdXj = np.array(input_scalar_file["dUidSdxjdxj_struct"])
 
         for i in range(3):
             dUidSdXjdXj[..., i] = (

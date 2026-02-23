@@ -112,6 +112,24 @@ def write_file_3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
 
     gradU.clear()
 
+###########################################################################################
+###########################################################################################
+
+
+# %% generic function to write the sum of a 3-component (vector) field (as a scalar)
+def write_file_sum3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.io.ppymech.neksuite import pynekwrite
+    import numpy as np
+
+    gradU = FieldRegistry(comm)
+
+    gradU.add_field(comm, field_name="sum", field=dU_dxi.c1 + dU_dxi.c2 + dU_dxi.c3, dtype=np.single)
+
+    pynekwrite(fname_gradU, comm, msh=msh, fld=gradU, wdsz=4, write_mesh=if_write_mesh)
+
+    gradU.clear()
+
 
 ###########################################################################################
 ###########################################################################################
@@ -140,10 +158,11 @@ def return_list_of_vars_from_filename(fname):
         scal_fields = 37
 
     field_names = []
+
     for i in range(vel_fields):
         tmp = ["vel_" + str(i)]
         field_names = field_names + tmp
-
+    
     if pres_fields == 1:
         field_names = field_names + ["pres"]
 
@@ -175,12 +194,73 @@ def do_dssum_on_3comp_vector(dU_dxi, msh_conn, msh):
 ###########################################################################################
 ###########################################################################################
 
+#%% convert 2D statistics to 3D
+def convert_scalar_2Dstats_to_3D(stats2D_filename,stats3D_filename,datatype='single'):
+    from mpi4py import MPI 
+    import numpy as np
+    import warnings
+    from pysemtools.io.ppymech.neksuite import pynekread,pynekwrite
+    from pysemtools.datatypes.msh import Mesh
+    from pysemtools.datatypes.field import FieldRegistry
+    from pysemtools.datatypes.utils import extrude_2d_sem_mesh
+    from pysemtools.interpolation.interpolator import get_bbox_from_coordinates
+    from pysemtools.interpolation.point_interpolator.single_point_helper_functions import GLL_pwts
+
+    # Get mpi info
+    comm = MPI.COMM_WORLD
+
+    # initialize fields
+    msh = Mesh(comm, create_connectivity=False)
+    fld = FieldRegistry(comm)
+
+    if datatype=='single':
+        data_type = np.single
+        wdsz = 4
+    else:
+        data_type = np.double
+        wdsz = 8
+
+    # read mesh and fields
+    pynekread(stats2D_filename, comm, data_dtype=data_type, msh=msh, fld=fld)
+
+    # get the 
+    field_names = return_list_of_vars_from_filename(stats2D_filename)
+    print('fields in the given file: ', field_names )
+
+    # extruding mesh and fields
+    ## Find how much to extrude - Extrude the size of the smallest element
+    bbox = get_bbox_from_coordinates(msh.x, msh.y, msh.z)
+    bbox_dist = np.zeros((bbox.shape[0], 3))
+    bbox_dist[:, 0] = bbox[:, 1] - bbox[:, 0]
+    bbox_dist[:, 1] = bbox[:, 3] - bbox[:, 2]
+    bbox_dist[:, 2] = bbox[:, 5] - bbox[:, 4]
+    local_bbox_min_dist = np.min(
+        np.sqrt(bbox_dist[:, 0] ** 2 + bbox_dist[:, 1] ** 2 + bbox_dist[:, 2] ** 2) / 2
+    )
+    bbox_min_dist = comm.allreduce(local_bbox_min_dist, op=MPI.MIN)
+    ## Generate the point distribution
+    x_, _ = GLL_pwts(msh.lx)
+    extrusion_size = bbox_min_dist
+    point_dist = np.flip(x_ * extrusion_size) 
+    msh3d, fld3d = extrude_2d_sem_mesh(comm, lz = msh.lx, msh = msh, fld = fld, point_dist=point_dist)
+
+    # filling in the missing z velocity
+    z_vel = fld3d.registry['s37']
+    fld3d.add_field(comm, field_name="w", field=z_vel, dtype=np.single)
+    warnings.warn('The s37 field (<ws>) was not removed from the file. '+ 
+                  'Be careful with potential inconsistencies!')
+    
+    # writing the extruded stats file
+    pynekwrite(stats3D_filename, comm, msh=msh3d, fld=fld3d, write_mesh=True, wdsz=wdsz)
+
+
 
 ###########################################################################################
 ###########################################################################################
 ###########################################################################################
 ###########################################################################################
 ## generic function to compute the additional fields required for budget terms, etc.
+## only implemented for Neko
 ###########################################################################################
 ###########################################################################################
 def compute_and_write_additional_sstat_fields(
@@ -189,7 +269,6 @@ def compute_and_write_additional_sstat_fields(
     fname_mean,
     fname_stat,
     if_write_mesh=False,
-    which_code="NEKO",
     if_do_dssum_on_derivatives=False,
 ):
 
@@ -201,9 +280,6 @@ def compute_and_write_additional_sstat_fields(
     if fname_mean != fname_stat:
         sys.exit("fname_mean must be the same as fname_stat")
 
-    # Scalar statistics only implemented for Neko
-    if which_code.casefold() != "NEKO":
-        sys.exit("only NEKO is supported for passive scalar statistics")
 
     ###########################################################################################
     import warnings
@@ -266,15 +342,15 @@ def compute_and_write_additional_sstat_fields(
     # define file_keys of the fields based on the codes
 
     # Neko key names taken from: https://neko.cfd/docs/develop/df/d8f/statistics-guide.html
-    file_keys_S = ["pres"]
+    file_keys_S = "pres"
     #                   "US"      "VS"      "WS"
     file_keys_UiS = ["vel_0", "vel_1", "vel_2"]
-    file_keys_SS = ["temp"]
+    file_keys_SS = "temp"
     #                   "USS"      "VSS"     "WSS"
     file_keys_UiSS = ["scal_2", "scal_3", "scal_4"]
     #                   "UUS"     "VVS"     "WWS"     "UVS"     "UWS"     "VWS"
     file_keys_UiUjS = ["scal_5", "scal_6", "scal_7", "scal_8", "scal_9", "scal_10"]
-    file_keys_PS = ["scal_11"]
+    file_keys_PS = "scal_11"
 
     file_keys_UidSdxj = [
         "scal_15",
@@ -458,10 +534,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUjSSdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -515,10 +591,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUUjSdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -568,10 +644,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dVUjSdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -621,10 +697,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dWUjSdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -702,10 +778,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUdSdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -755,10 +831,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dVdSdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -808,10 +884,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dWdSdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -865,10 +941,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdUdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -918,10 +994,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdVdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -971,10 +1047,10 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdWdxjdxj" + this_ext
-    write_file_3c(
+    write_file_sum3c(
         comm,
         msh,
-        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        dQ1_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -991,6 +1067,7 @@ def compute_and_write_additional_sstat_fields(
 ###########################################################################################
 ###########################################################################################
 # interpolate the 42+N fields onto the user specified set of points
+# only implemented for Neko
 ###########################################################################################
 ###########################################################################################
 def interpolate_all_stat_and_sstat_fields_onto_points(
@@ -999,7 +1076,6 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     fname_mean,
     fname_stat,
     xyz,
-    which_code="NEKO",
     if_do_dssum_before_interp=True,
     if_create_boundingBox_for_interp=False,
     if_pass_points_to_rank0_only=True,
@@ -1031,9 +1107,6 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     if fname_mean != fname_stat:
         sys.exit("fname_mean must be the same as fname_stat")
 
-    # Scalar statistics only implemented for Neko
-    if which_code.casefold() != "NEKO":
-        sys.exit("only NEKO is supported for passive scalar statistics")
 
     ###########################################################################################
     # Get mpi info
@@ -1058,7 +1131,7 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     full_fname_mesh = which_dir + "/" + fname_mesh
 
     # get the file name for the 42 fileds collected in run time
-    these_names = which_dir + "/" + fname_stat
+    these_names = [ which_dir + "/" + fname_stat ]
 
     # add the name of the additional fields
     these_names.extend(
