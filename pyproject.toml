@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysemtools"
-version = "0.1.0"
+version = "1.1.0"
 requires-python = ">= 3.10"
 dependencies = [
     "numpy",
@@ -15,8 +15,8 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/me/spam.git"
-Issues = "https://github.com/me/spam/issues"
+Repository = "https://github.com/ExtremeFLOW/pySEMTools.git"
+Issues = "https://github.com/ExtremeFLOW/pySEMTools/issues"
 
 [project.optional-dependencies]
 test = [
@@ -39,7 +39,10 @@ torch = [
     "torchvision",
     "torchaudio"
 ]
-
+all = [
+    "pysemtools[test]",
+    "pysemtools[dev]"
+]
 
 [project.scripts]
 pysemtools_index-files = "pysemtools.cli.index_files:main"
