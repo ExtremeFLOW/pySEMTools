@@ -9,9 +9,37 @@ requires-python = ">= 3.10"
 dependencies = [
     "numpy",
     "scipy",
-    "pre-commit",
     "pymech",
+    "tqdm",
+    "mpi4py",
 ]
+
+[project.urls]
+Repository = "https://github.com/me/spam.git"
+Issues = "https://github.com/me/spam/issues"
+
+[project.optional-dependencies]
+test = [
+    "pysemtools[torch]",
+    "pytest",
+    "pytest-json-report",
+    "pympler",
+    "memory_profiler",
+    "h5py",
+    "rtree",
+    "jupyter", 
+    "matplotlib",
+    "pyevtk",
+]
+dev = [
+    "pre-commit",
+]
+torch = [
+    "torch",
+    "torchvision",
+    "torchaudio"
+]
+
 
 [project.scripts]
 pysemtools_index-files = "pysemtools.cli.index_files:main"
