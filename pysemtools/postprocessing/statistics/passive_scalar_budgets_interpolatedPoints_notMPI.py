@@ -466,7 +466,6 @@ def calculate_scalar_budgets_in_Cartesian(
         output_file.create_dataset(
             "S2_convection", data=S2_convection, compression=None
         )
-        del dS2dXj
         print(f"Done in {time.time() - start_time:.2f} seconds.")
 
         # %% Scalar variance eqn: production
@@ -514,8 +513,8 @@ def calculate_scalar_budgets_in_Cartesian(
         output_file.create_dataset(
             "S2_turb_diffusion", data=S2_turb_diffusion, compression=None
         )
-        del dUjS2dXj
-        print(f"Done in {time.time() - 0:.2f} seconds.")
+        del dUjS2dXj, dS2dXj
+        print(f"Done in {time.time() - start_time:.2f} seconds.")
 
         # %% Scalar variance eqn: molecular diffusion
         print("--------------working on scalar variance eqn: molecular diffusion...")
@@ -529,7 +528,7 @@ def calculate_scalar_budgets_in_Cartesian(
         output_file.create_dataset(
             "S2_molecular_diffusion", data=S2_molecular_diffusion, compression=None
         )
-        del d2S2dXi2, d2SdXj2
+        del d2S2dXi2
         print(f"Done in {time.time() - start_time:.2f} seconds.")
 
         # %% Scalar variance eqn: dissipation
@@ -744,7 +743,7 @@ def calculate_scalar_budgets_in_Cartesian(
         output_file.create_dataset(
             "UiS_molecular_diffusion", data=UiS_molecular_diffusion, compression=None
         )
-        del dSdUidXjdXj, dUidSdXjdXj
+        del dSdUidXjdXj, dUidSdXjdXj, d2SdXj2
         print(f"Done in {time.time() - start_time:.2f} seconds.")
 
         # %% Turbulent scalar flux eqn: scalar-pressure correlation gradient
