@@ -584,6 +584,8 @@ def calculate_scalar_budgets_in_Cartesian(
             "UiS_convection", data=UiS_convection, compression=None
         )
 
+        print(f"Done in {time.time() - start_time:.2f} seconds.")
+
         # %% Turbulent scalar flux eqn: velocity gradient production
         print(
             "--------------working on turbulent scalar flux eqn: velocity gradient production..."
