@@ -271,10 +271,33 @@ def compute_and_write_additional_sstat_fields(
     file_keys_UiS = ["vel_0", "vel_1", "vel_2"]
     file_keys_SS = ["temp"]
     #                   "USS"      "VSS"     "WSS"
-    file_keys_UjSS = ["scal_2", "scal_3", "scal_4"]
+    file_keys_UiSS = ["scal_2", "scal_3", "scal_4"]
     #                   "UUS"     "VVS"     "WWS"     "UVS"     "UWS"     "VWS"
     file_keys_UiUjS = ["scal_5", "scal_6", "scal_7", "scal_8", "scal_9", "scal_10"]
     file_keys_PS = ["scal_11"]
+
+    file_keys_UidSdxj = [
+        "scal_15",
+        "scal_16",
+        "scal_17",
+        "scal_18",
+        "scal_19",
+        "scal_20",
+        "scal_21",
+        "scal_22",
+        "scal_23",
+    ]
+    file_keys_SdUidxj = [
+        "scal_24",
+        "scal_25",
+        "scal_26",
+        "scal_27",
+        "scal_28",
+        "scal_29",
+        "scal_30",
+        "scal_31",
+        "scal_32",
+    ]
 
     ###########################################################################################
     # S first and second derivatives
@@ -377,7 +400,7 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
-    this_file_name = which_dir + "/dUSdx" + this_ext
+    this_file_name = which_dir + "/dUiSdxj" + this_ext
     write_file_9c(
         comm,
         msh,
@@ -391,7 +414,7 @@ def compute_and_write_additional_sstat_fields(
     stat_fields.clear()
 
     ###########################################################################################
-    # UiSS first derivative
+    # UiSS divergence
     ###########################################################################################
 
     stat_fields.add_field(
@@ -407,7 +430,7 @@ def compute_and_write_additional_sstat_fields(
         field_name="VSS",
         file_type="fld",
         file_name=full_fname_stat,
-        file_key=file_keys_UiS[1],
+        file_key=file_keys_UiSS[1],
         dtype=np.single,
     )
     stat_fields.add_field(
@@ -434,50 +457,179 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
-    this_file_name = which_dir + "/dUSSdx" + this_ext
-    write_file_9c(
+    this_file_name = which_dir + "/dUjSSdxj" + this_ext
+    write_file_3c(
         comm,
         msh,
-        dQ1_dxi,
-        dQ2_dxi,
-        dQ3_dxi,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
 
     stat_fields.clear()
-    del dQ2_dxi, dQ3_dxi
 
     ###########################################################################################
-    # UiUjS first derivative
+    # UiUjS gradients: dUiUjS/dxj
     ###########################################################################################
 
-    actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
+    # dUUjS/dxj
 
-    for icomp in range(0, 6):
-        if comm.Get_rank() == 0:
-            print("working on: " + actual_field_names[icomp])
+    stat_fields.add_field(
+        comm,
+        field_name="UUS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[0],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="UVS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[3],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="UWS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[4],
+        dtype=np.single,
+    )
 
-        stat_fields.add_field(
-            comm,
-            field_name=actual_field_names[icomp],
-            file_type="fld",
-            file_name=full_fname_stat,
-            file_key=file_keys_UiUjS[icomp],
-            dtype=np.single,
-        )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UUS"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UVS"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UWS"], dQ3_dxi
+    )
 
-        compute_scalar_first_derivative(
-            comm, msh, coef, stat_fields.registry[actual_field_names[icomp]], dQ1_dxi
-        )
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
-        if if_do_dssum_on_derivatives:
-            do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+    this_file_name = which_dir + "/dUUjSdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
 
-        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
+    stat_fields.clear()
 
-        stat_fields.clear()
+    # dVUjS/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="UVS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[3],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="VVS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[1],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="VWS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[5],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UVS"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VVS"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VWS"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dVUjSdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    # dWUjS/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="UWS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[4],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="VWS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[5],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="WWS",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UiUjS[2],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UWS"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VWS"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["WWS"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dWUjSdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
 
     ###########################################################################################
     # PS first derivative
@@ -498,45 +650,340 @@ def compute_and_write_additional_sstat_fields(
 
     if if_do_dssum_on_derivatives:
         do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
-    this_file_name = which_dir + "/dPSdx" + this_ext
+    this_file_name = which_dir + "/dPSdxj" + this_ext
     write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
 
     stat_fields.clear()
-    del dQ1_dxi
 
+    ###########################################################################################
+    # UidSdxj gradients: d(UidS/dxj)/dxj
+    ###########################################################################################
+
+    # d(UdS/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="UdSdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[0],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="UdSdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[1],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="UdSdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[2],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UdSdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UdSdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["UdSdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dUdSdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    # d(VdS/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="VdSdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[3],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="VdSdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[4],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="VdSdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[5],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VdSdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VdSdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["VdSdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dVdSdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    # d(WdS/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="WdSdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[6],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="WdSdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[7],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="WdSdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[8],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["WdSdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["WdSdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["WdSdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dWdSdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    ###########################################################################################
+    # SdUidxj gradients: d(SdUi/dxj)/dxj
+    ###########################################################################################
+
+    # d(SdU/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="SdUdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[0],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdUdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[1],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdUdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[2],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdUdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdUdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdUdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dSdUdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    # d(SdV/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="SdVdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[3],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdVdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[4],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdVdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_SdUidxj[5],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdVdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdVdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdVdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dSdVdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    # d(SdW/dxj)/dxj
+
+    stat_fields.add_field(
+        comm,
+        field_name="SdWdx",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[6],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdWdy",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[7],
+        dtype=np.single,
+    )
+    stat_fields.add_field(
+        comm,
+        field_name="SdWdz",
+        file_type="fld",
+        file_name=full_fname_stat,
+        file_key=file_keys_UidSdxj[8],
+        dtype=np.single,
+    )
+
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdWdx"], dQ1_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdWdy"], dQ2_dxi
+    )
+    compute_scalar_first_derivative(
+        comm, msh, coef, stat_fields.registry["SdWdz"], dQ3_dxi
+    )
+
+    if if_do_dssum_on_derivatives:
+        do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ2_dxi, msh_conn, msh)
+        do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
+
+    this_file_name = which_dir + "/dSdWdxjdxj" + this_ext
+    write_file_3c(
+        comm,
+        msh,
+        dQ1_dxi.c1 + dQ2_dxi.c2 + dQ3_dxi.c3,
+        this_file_name,
+        if_write_mesh=if_write_mesh,
+    )
+
+    stat_fields.clear()
+
+    del dQ1_dxi, dQ2_dxi, dQ3_dxi
     if comm.Get_rank() == 0:
         print("-------As a great man once said: run successful: dying ...")
-
-    ###########################################################################################
-    # SdUidxj first derivative
-    ###########################################################################################
-
-    actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
-
-    for icomp in range(0, 6):
-        if comm.Get_rank() == 0:
-            print("working on: " + actual_field_names[icomp])
-
-        stat_fields.add_field(
-            comm,
-            field_name=actual_field_names[icomp],
-            file_type="fld",
-            file_name=full_fname_stat,
-            file_key=file_keys_UiUjS[icomp],
-            dtype=np.single,
-        )
-
-        compute_scalar_first_derivative(
-            comm, msh, coef, stat_fields.registry[actual_field_names[icomp]], dQ1_dxi
-        )
-
-        if if_do_dssum_on_derivatives:
-            do_dssum_on_3comp_vector(dQ1_dxi, msh_conn, msh)
-
-        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        write_file_3c(comm, msh, dQ1_dxi, this_file_name, if_write_mesh=if_write_mesh)
-
-        stat_fields.clear()
 
 
 ###########################################################################################
@@ -618,17 +1065,20 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
         [
             which_dir + "/dnSdxn" + this_ext,
             which_dir + "/dnSSdxn" + this_ext,
-            which_dir + "/dUSdx" + this_ext,
-            which_dir + "/dUSSdx" + this_ext,
+            which_dir + "/dUiSdxj" + this_ext,
+            which_dir + "/dUjSSdxj" + this_ext,
+            which_dir + "/dUUjSdxj" + this_ext,
+            which_dir + "/dVUjSdxj" + this_ext,
+            which_dir + "/dWUjSdxj" + this_ext,
+            which_dir + "/dPSdxj" + this_ext,
+            which_dir + "/dUdSdxjdxj" + this_ext,
+            which_dir + "/dVdSdxjdxj" + this_ext,
+            which_dir + "/dWdSdxjdxj" + this_ext,
+            which_dir + "/dSdUdxjdxj" + this_ext,
+            which_dir + "/dSdVdxjdxj" + this_ext,
+            which_dir + "/dSdWdxjdxj" + this_ext,
         ]
     )
-
-    actual_field_names = ["UUS", "VVS", "WWS", "UVS", "UWS", "VWS"]
-    for icomp in range(0, 6):
-        this_file_name = which_dir + "/d" + actual_field_names[icomp] + "dx" + this_ext
-        these_names.append(this_file_name)
-
-    these_names.append(which_dir + "/dPSdx" + this_ext)
 
     # if comm.Get_rank() == 0:
     #     print(these_names)
