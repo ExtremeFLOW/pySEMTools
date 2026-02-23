@@ -25,35 +25,69 @@ Agreement number: 956748.
 
 # Installation
 
-To install in your pip enviroment, clone this repository and execute:
-```
-pip install  --editable .
+There are multiple ways to install `PySEMTools` which are described below in more detail. For a quick-start, you can use:
+```bash
+# Install mpi4py (Assuming your mpi wrapper is cc)
+env MPICC=$(which $cc) python -m pip install --no-cache-dir --no-binary=mpi4py mpi4py
+
+# Install pytorch (Assuming you have NVIDIA GPUs)
+python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+
+# Install PySEMTools and all dependencies
+git clone https://github.com/ExtremeFLOW/pySEMTools.git
+cd pySEMTools/
+pip install --editable .[all]
 ```
 
-The `--editable` flag is optional, and will allow changes in the code of the package to be used
+## For minimal functionality
+
+To avoid cluttering clusters with many modules, the following instructions install the minimun working version of pySEMTools. 
+This allows to read files and perform operations with numpy in parallel.
+
+### For developers, 
+
+the easiest way to install and contribute changes is by cloning the repository:
+```bash
+git clone https://github.com/ExtremeFLOW/pySEMTools.git
+cd pySEMTools/
+pip install --editable .
+```
+Note that the `--editable` flag is optional, and will allow changes in the code of the package to be used
 directly without reinstalling.
+
+### For users, 
+
+the option to install from `PyPI` will be soon available, which will allow to use:
+```bash
+pip install pysemtools
+```
+
+## For full functionality
+
+If the objective is to be able to run all examples and tests available in the package, then more optional dependencies are needed.
+In this instance, the installation instruction must include the "[all]" argument, i.e.:
+```bash
+pip install --editable .[all]
+```
+or 
+```bash
+pip install pysemtools[all]
+```
+
 
 ## Dependencies
 
 ### Mandatory
 
-You can install dependencies as follow:
-
-```
-pip install numpy
-pip install scipy
-pip install pymech
-pip install tdqm
-```
 #### mpi4py
 `mpi4py` is needed even when running in serial, as the library is built with communication in mind. It can typically be installed with: 
-```
+```bash
 pip install mpi4py
 ```
 
 In some instances, such as in supercomputers, it is typically necesary that the mpi of the system is used. If `mpi4py` is not available as a module, we have found (so far) that installing it as follows works:
-```
-export MPICC=$(which CC)
+```bash
+export MPICC=$(which cc)
 pip install mpi4py --no-cache-dir
 ```
 where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need mpicc or so). It is always a good idea to contact support or check the specific documentation if things do not work.
@@ -66,10 +100,10 @@ Some functionalities such as data streaming require the use of adios2. You can c
 
 #### PyTorch
 
-Some classed are compatible with the pytorch module in case you have GPUs and want to use them in the process. We note that we only use pytorch optionally. There are versions that work exclusively with numpy on CPUs so pytorch can be avoided.
+Some classes are compatible with the pytorch module in case you have GPUs and want to use them in the process. We note that we only use pytorch optionally. There are versions that work exclusively with numpy on CPUs so pytorch can be avoided.
 
 To install pytorch, you can check [here](https://pytorch.org/get-started/locally/). A simple installation for CUDA v12.1 on linux would look like this (following the instructions from the link):
-```
+```bash
 pip3 install torch torchvision torchaudio
 ```
 The process of installing pytorch in supercomputers is more intricate. In this case it is best to use the documentation of the specific cluster or contact support.
@@ -83,4 +117,9 @@ To get an idea on how the codes are used, feel free to check the examples we hav
 
 You can use the provided tests to check if your installation is complete (Not all functionallities are currently tested but more to come).
 
-The tests rely on `pytest`. To install it in your pip enviroment simply execute `pip install pytest`. To run the tests, execute the `pytest tests/` command from the root directory of the repository.
+The tests rely on `pytest`. To install it in your pip enviroment simply execute `pip install pytest`.
+
+Tests are performed for more functionalities than those needed to use `PySEMTools` in its minimal version. To run them, make sure that you use the "[all]" or "[test]" argument when installing the package to 
+get all the dependencies.
+
+To run the tests, execute the `pytest tests/` command from the root directory of the repository.
