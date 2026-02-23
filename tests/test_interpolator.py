@@ -10,8 +10,10 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 try: 
     import torch
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    have_torch = True
 except ImportError:
     print('could not import torch')
+    have_torch = False
 device = 'cpu'
 # Initialize MPI
 from mpi4py import MPI
@@ -279,7 +281,12 @@ def test_multiple_point_interpolator_numpy():
 
 #==============================================================================
 
+@pytest.mark.skipif(not have_torch, reason="Interpolation with torch back-end requires PyTorch to be installed")
 def test_multiple_point_interpolator_torch():
+
+    if not have_torch:
+        print("PyTorch is not available, skipping multiple point interpolator torch test.")
+        return
 
     # Read the original mesh data
     fname = 'examples/data/rbc0.f00001'
