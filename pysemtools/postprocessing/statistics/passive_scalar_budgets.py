@@ -1201,37 +1201,24 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     #                 point_interpolator_type="multiple_point_legendre_numpy", \
     #                 global_tree_type="domain_binning" , \
     #                 max_pts = 256 )
+
+    probe_kwargs = {
+        "comm": comm,
+        "msh": msh,
+        "point_interpolator_type": "multiple_point_legendre_numpy",
+        "max_pts": 128,
+        "output_fname": interpolation_output_fname,
+    } 
+    if find_points_tol is not None:
+        probe_kwargs["find_points_tol"] = find_points_tol
+  
     if not if_pass_points_to_rank0_only:
-        probes = Probes(
-            comm,
-            probes=xyz,
-            msh=msh,
-            point_interpolator_type="multiple_point_legendre_numpy",
-            max_pts=128,
-            output_fname=interpolation_output_fname,
-            find_points_tol=find_points_tol,
-        )
+        probes = Probes(probes=xyz, **probe_kwargs)
     else:
         if comm.Get_rank() == 0:
-            probes = Probes(
-                comm,
-                probes=xyz,
-                msh=msh,
-                point_interpolator_type="multiple_point_legendre_numpy",
-                max_pts=128,
-                output_fname=interpolation_output_fname,
-                find_points_tol=find_points_tol,
-            )
+            probes = Probes(probes=xyz, **probe_kwargs)
         else:
-            probes = Probes(
-                comm,
-                probes=None,
-                msh=msh,
-                point_interpolator_type="multiple_point_legendre_numpy",
-                max_pts=128,
-                output_fname=interpolation_output_fname,
-                find_points_tol=find_points_tol,
-            )
+            probes = Probes(probes=None, **probe_kwargs)
 
     ###########################################################################################
     for fname in these_names:
