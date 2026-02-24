@@ -40,15 +40,15 @@ pip install --editable .[all]
 ```
 This will allow you to explore all the examples in the repository. 
 
-You can choose to replace the `git clone` commnad and simply install from `PyPI` with:
+You can choose to replace the `git clone` command and simply install from `PyPI` with:
 ```bash
 pip install extremeflow-pysemtools[all]
 ```
 
 ## For minimal functionality
 
-To avoid cluttering clusters with many modules, the following instructions install the minimun working version of pySEMTools. 
-This allows to read files and perform operations with numpy in parallel.
+To avoid cluttering clusters with many modules, the following instructions install the minimum working version of pySEMTools. 
+This allows us to read files and perform operations with numpy in parallel.
 
 ### For developers, 
 
@@ -89,12 +89,12 @@ pip install extremeflow-pysemtools[all]
 pip install mpi4py
 ```
 
-In some instances, such as in supercomputers, it is typically necesary that the mpi of the system is used. If `mpi4py` is not available as a module, we have found (so far) that installing it as follows works:
+In some instances, such as in supercomputers, it is typically necessary that the mpi of the system is used. If `mpi4py` is not available as a module, we have found (so far) that installing it as follows works:
 ```bash
 export MPICC=$(which cc)
 pip install mpi4py --no-cache-dir
 ```
-where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need mpicc or so). It is always a good idea to contact support or check the specific documentation if things do not work.
+where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need pic or so). It is always a good idea to contact support or check the specific documentation if things do not work.
 
 ### Optional
 
@@ -115,15 +115,30 @@ The process of installing pytorch in supercomputers is more intricate. In this c
 
 # Use
 
-To get an idea on how the codes are used, feel free to check the examples we have provided. Please note that most of the routines included here work in prallalel. In fact, python scripts are encouraged rather than notebooks to take advantage of this capability.
+To get an idea on how the codes are used, feel free to check the examples we have provided. Please note that most of the routines included here work in parallel. In fact, python scripts are encouraged rather than notebooks to take advantage of this capability.
 
 # Tests
 
-You can use the provided tests to check if your installation is complete (Not all functionallities are currently tested but more to come).
+You can use the provided tests to check if your installation is complete (Not all functionalities are currently tested but more to come).
 
-The tests rely on `pytest`. To install it in your pip enviroment simply execute `pip install pytest`.
+The tests rely on `pytest`. To install it in your pip environment simply execute `pip install pytest`.
 
-Tests are performed for more functionalities than those needed to use `PySEMTools` in its minimal version. To run them, make sure that you use the "[all]" or "[test]" argument when installing the package to 
+Tests are performed for more functionalities than those needed to use `PySEMTools` in its minimal version. To run them, make sure that you use the `"[all]"` or `"[test]"` argument when installing the package to 
 get all the dependencies (this will also install pytest).
 
-To run the tests, execute the `pytest tests/` command from the root directory of the repository.
+To run the tests, execute the `pytest tests/` command from the root directory of the repository. As an example, the following chain of commands will allow you to run the tests from a fresh python environment:
+```bash
+# Install mpi4py (Assuming your mpi wrapper is mpicc)
+env MPICC=$(which mpicc) python -m pip install --no-cache-dir mpi4py
+
+# Install pytorch (Assuming you want PyTorch on CPUs)
+python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install PySEMTools and all dependencies
+git clone https://github.com/ExtremeFLOW/pySEMTools.git
+cd pySEMTools/
+pip install --editable .[test]
+
+# Run tests
+pytest tests/
+```
