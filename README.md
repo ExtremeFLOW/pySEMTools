@@ -27,16 +27,22 @@ Agreement number: 956748.
 
 There are multiple ways to install `PySEMTools` which are described below in more detail. For a quick-start, you can use:
 ```bash
-# Install mpi4py (Assuming your mpi wrapper is cc)
-env MPICC=$(which $cc) python -m pip install --no-cache-dir --no-binary=mpi4py mpi4py
+# Install mpi4py (Assuming your mpi wrapper is mpicc)
+env MPICC=$(which mpicc) python -m pip install --no-cache-dir mpi4py
 
-# Install pytorch (Assuming you have NVIDIA GPUs)
-python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+# Install pytorch (Assuming you want PyTorch on CPUs)
+python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # Install PySEMTools and all dependencies
 git clone https://github.com/ExtremeFLOW/pySEMTools.git
 cd pySEMTools/
 pip install --editable .[all]
+```
+This will allow you to explore all the examples in the repository. 
+
+You can choose to replace the `git clone` commnad and simply install from `PyPI` with:
+```bash
+pip install extremeflow-pysemtools[all]
 ```
 
 ## For minimal functionality
@@ -57,7 +63,7 @@ directly without reinstalling.
 
 ### For users, 
 
-the option to install from `PyPI` will be soon available, which will allow to use:
+the option to install from `PyPI` is available, which allows to use:
 ```bash
 pip install extremeflow-pysemtools
 ```
@@ -75,9 +81,7 @@ pip install extremeflow-pysemtools[all]
 ```
 
 
-## Dependencies
-
-### Mandatory
+## Dependencies of note
 
 #### mpi4py
 `mpi4py` is needed even when running in serial, as the library is built with communication in mind. It can typically be installed with: 
@@ -120,6 +124,6 @@ You can use the provided tests to check if your installation is complete (Not al
 The tests rely on `pytest`. To install it in your pip enviroment simply execute `pip install pytest`.
 
 Tests are performed for more functionalities than those needed to use `PySEMTools` in its minimal version. To run them, make sure that you use the "[all]" or "[test]" argument when installing the package to 
-get all the dependencies.
+get all the dependencies (this will also install pytest).
 
 To run the tests, execute the `pytest tests/` command from the root directory of the repository.
