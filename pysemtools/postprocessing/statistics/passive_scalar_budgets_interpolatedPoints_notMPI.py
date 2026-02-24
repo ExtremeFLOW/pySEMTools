@@ -417,7 +417,7 @@ def calculate_scalar_budgets_in_Cartesian(
             - S * dUidXj[..., [0, 1, 2, 3, 4, 5, 6, 7, 8]]
         )
 
-        S_turb_diffusion = -np.sum(dUiSdXj[:, 0:3], axis=-1)
+        S_turb_diffusion = -np.sum(dUiSdXj[..., [0, 4, 8]], axis=-1)
 
         output_file.create_dataset(
             "S_turb_diffusion", data=S_turb_diffusion, compression=None
@@ -486,27 +486,15 @@ def calculate_scalar_budgets_in_Cartesian(
 
         dUjS2dXj = np.array(input_scalar_file["dUjS2dxj_struct"])
 
-        dirac = [0, 4, 8]
-        dUjS2dXj = dUjS2dXj - np.sum(
-            Ui * dS2dXj
-            + S2 * dUidXj[..., dirac]
-            + 2 * UiS * dSdXj
-            + 2 * S * dUiSdXj[..., dirac]
-            + Ui * dS2dXj
-            + S2 * dUidXj[..., dirac],
-            axis=-1,
+        dUjS2dXj = (
+            dUjS2dXj[..., 0] 
+            - 2 * np.sum(Ui * dSdXj, axis=-1)
+            - S[..., 0]**2 * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
+            - 2 * np.sum(UiS * dSdXj, axis=-1)
+            - 2 * S[..., 0] * np.sum(dUiSdXj[..., [0, 4, 8]], axis=-1)
+            - np.sum(Ui * dS2dXj, axis=-1)
+            - S2[..., 0] * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
         )
-        # (
-        #     dUiS2dXj
-        #     - Ui[..., [0, 0, 0, 1, 1, 1, 2, 2, 2]]
-        #     * dS2dXj[..., [0, 1, 2, 0, 1, 2, 0, 1, 2]]
-        #     - S2 * dUidXj[..., [0, 1, 2, 3, 4, 5, 6, 7, 8]]
-        #     - 2 * UiS * dSdXj[..., [0, 1, 2, 0, 1, 2, 0, 1, 2]]
-        #     - 2 * S * dUiSdXj[..., [0, 1, 2, 3, 4, 5, 6, 7, 8]]
-        #     - Ui[..., [0, 0, 0, 1, 1, 1, 2, 2, 2]]
-        #     * dS2dXj[..., [0, 1, 2, 0, 1, 2, 0, 1, 2]]
-        #     - S2 * dUidXj[..., [0, 1, 2, 3, 4, 5, 6, 7, 8]]
-        # )
 
         S2_turb_diffusion = -dUjS2dXj
 
@@ -573,6 +561,7 @@ def calculate_scalar_budgets_in_Cartesian(
         print("--------------working on turbulent scalar flux eqn: convection...")
         start_time = time.time()
 
+
         UiS_convection = np.zeros((*Nxyz, 3))
         UiS_convection[..., 0] = np.sum(Ui * dUiSdXj[..., :3], axis=-1)
         UiS_convection[..., 1] = np.sum(Ui * dUiSdXj[..., 3:6], axis=-1)
@@ -594,13 +583,13 @@ def calculate_scalar_budgets_in_Cartesian(
 
         UiS_velocity_gradient_production = np.zeros((*Nxyz, 3))
         UiS_velocity_gradient_production[..., 0] = -np.sum(
-            UiS * dUidXj[..., [0, 3, 6]], axis=-1
+            UiS * dUidXj[..., :3], axis=-1
         )
         UiS_velocity_gradient_production[..., 1] = -np.sum(
-            UiS * dUidXj[..., [1, 4, 7]], axis=-1
+            UiS * dUidXj[..., 3:6], axis=-1
         )
         UiS_velocity_gradient_production[..., 2] = -np.sum(
-            UiS * dUidXj[..., [2, 5, 8]], axis=-1
+            UiS * dUidXj[..., 6:9], axis=-1
         )
 
         output_file.create_dataset(
@@ -670,31 +659,7 @@ def calculate_scalar_budgets_in_Cartesian(
             - np.sum(UiUj[..., [4, 5, 2]] * dSdXj, axis=-1)
         )
 
-        UiS_turb_diffusion = -np.sum(dUiUjSdXj, axis=-1)
-
-        # inds_i = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 1, 1, 1])
-        # inds_j = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 1, 1, 1, 2, 2, 2, 2, 2, 2])
-        # inds_k = np.array([0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2])
-        # inds_didk = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 0, 1, 2, 3, 4, 5])
-        # inds_djdk = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 3, 4, 5, 6, 7, 8, 6, 7, 8])
-        # inds_ij = np.array([0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5])
-        # dUiUjSdXk = (
-        #     dUiUjSdXk
-        #     - Ui[..., inds_i] * Ui[..., inds_j] * dSdXj[..., inds_k]
-        #     - Ui[..., inds_j] * S * dUidXj[..., inds_didk]
-        #     - Ui[..., inds_i] * S * dUidXj[..., inds_djdk]
-        #     - Ui[..., inds_j] * dUiSdXj[..., inds_didk]
-        #     - UiS[..., inds_i] * dUidXj[..., inds_djdk]
-        #     - Ui[..., inds_i] * dUiSdXj[..., inds_djdk]
-        #     - UiS[..., inds_j] * dUidXj[..., inds_didk]
-        #     - S * dUiUjdXk
-        #     - UiUj[..., inds_ij] * dSdXj[..., inds_k]
-        # )
-
-        # UiS_turb_diffusion = np.zeros((*Nxyz, 3))
-        # for i in range(3):
-        #     inds = np.where((inds_i == i) & (inds_j == inds_k))[0]
-        #     UiS_turb_diffusion[..., i] = -np.sum(dUiUjSdXk[..., inds], axis=-1)
+        UiS_turb_diffusion = -dUiUjSdXj
 
         output_file.create_dataset(
             "UiS_turb_diffusion", data=UiS_turb_diffusion, compression=None
@@ -788,6 +753,7 @@ def calculate_scalar_budgets_in_Cartesian(
             )
 
         UiS_dissipation = -((1 / Rer_here) + (1 / (Rer_here * Prt_here))) * UiSDiss
+
         output_file.create_dataset(
             "UiS_dissipation", data=UiS_dissipation, compression=None
         )

@@ -116,15 +116,15 @@ def write_file_3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
 ###########################################################################################
 
 
-# %% generic function to write the sum of a 3-component (vector) field (as a scalar)
-def write_file_sum3c(comm, msh, dU_dxi, fname_gradU, if_write_mesh):
+# %% generic function to write the trace of three 3-component (vector) fields (as a scalar)
+def write_file_trace3(comm, msh, dU_dxi, dV_dxi, dW_dxi, fname_gradU, if_write_mesh):
     from pysemtools.datatypes.field import FieldRegistry
     from pysemtools.io.ppymech.neksuite import pynekwrite
     import numpy as np
 
     gradU = FieldRegistry(comm)
 
-    gradU.add_field(comm, field_name="sum", field=dU_dxi.c1 + dU_dxi.c2 + dU_dxi.c3, dtype=np.single)
+    gradU.add_field(comm, field_name="sum", field=dU_dxi.c1 + dV_dxi.c2 + dW_dxi.c3, dtype=np.single)
 
     pynekwrite(fname_gradU, comm, msh=msh, fld=gradU, wdsz=4, write_mesh=if_write_mesh)
 
@@ -534,10 +534,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUjSSdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -591,10 +593,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUUjSdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -644,10 +648,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dVUjSdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -697,10 +703,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dWUjSdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -778,10 +786,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dUdSdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -831,10 +841,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dVdSdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -884,10 +896,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dWdSdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -941,10 +955,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdUdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -994,10 +1010,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdVdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
@@ -1047,10 +1065,12 @@ def compute_and_write_additional_sstat_fields(
         do_dssum_on_3comp_vector(dQ3_dxi, msh_conn, msh)
 
     this_file_name = which_dir + "/dSdWdxjdxj" + this_ext
-    write_file_sum3c(
+    write_file_trace3(
         comm,
         msh,
         dQ1_dxi,
+        dQ2_dxi,
+        dQ3_dxi,
         this_file_name,
         if_write_mesh=if_write_mesh,
     )
