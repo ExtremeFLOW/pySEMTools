@@ -59,7 +59,7 @@ directly without reinstalling.
 
 the option to install from `PyPI` will be soon available, which will allow to use:
 ```bash
-pip install pysemtools
+pip install extremeflow-pysemtools
 ```
 
 ## For full functionality
@@ -71,7 +71,7 @@ pip install --editable .[all]
 ```
 or 
 ```bash
-pip install pysemtools[all]
+pip install extremeflow-pysemtools[all]
 ```
 
 
