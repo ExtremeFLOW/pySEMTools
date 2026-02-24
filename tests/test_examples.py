@@ -4,6 +4,13 @@ import subprocess
 import pytest
 import glob
 
+try: 
+    import torch
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    have_torch = True
+except ImportError:
+    have_torch = False
+
 @pytest.fixture(scope="session")
 def sem_data_path():
     
@@ -50,9 +57,13 @@ def test_calculus():
 
 
     examples_path = "examples/3-calculus_in_sem_mesh/"
-    notebook_files = ["1-differentiation.ipynb", 
-                      "1.5-differentiation_torch.ipynb", 
-                      "2-integration.ipynb"]
+    if have_torch:
+        notebook_files = ["1-differentiation.ipynb", 
+                          "1.5-differentiation_torch.ipynb", 
+                          "2-integration.ipynb"]
+    else:
+        notebook_files = ["1-differentiation.ipynb", 
+                          "2-integration.ipynb"]
 
     passed = []
     for notebook in notebook_files:
@@ -141,10 +152,15 @@ def test_reduced_order_modelling():
 def test_statistics(sem_data_path):
 
     examples_path = "examples/6-statistics/"
-    notebook_files = ["1-post_processing_mean_fields.ipynb",
+    if have_torch:
+        notebook_files = ["1-post_processing_mean_fields.ipynb",
                       "4-Budgets.ipynb", 
                       "5-homogeneous_direction_averaging.ipynb",
                       "6-Stats_from_fld.ipynb"]
+    else:
+        notebook_files = ["1-post_processing_mean_fields.ipynb",
+                      "4-Budgets.ipynb", 
+                      "5-homogeneous_direction_averaging.ipynb",]
 
     passed = []
     for notebook in notebook_files:

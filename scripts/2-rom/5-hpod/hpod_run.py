@@ -178,6 +178,7 @@ if __name__ == "__main__":
 
     # Initialize coef to get the mass matrix
     bm = meshgrid["mass"]
+    bm[bm < 1e-8] = 1e-8 # Avoid zero mass entries
 
     # Instance io helper that will serve as buffer for the snapshots
     ioh = IoHelp(comm, number_of_fields = number_of_pod_fields, batch_size = pod_batch_size, field_size = bm.size, field_data_type=pod_dtype, mass_matrix_data_type=pod_dtype)

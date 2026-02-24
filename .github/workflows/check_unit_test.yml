@@ -52,30 +52,13 @@ jobs:
       - name: Install packages
         run: | 
           echo "Using MPICC: $MPICC"
-          pip install mpi4py --no-cache-dir
-          pip install numpy
-          pip install scipy
-          pip install pymech
-          pip install tdqm
-          pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install pytest
-          pip install pytest-json-report
-          pip install pympler
-          pip install memory_profiler
-          pip install h5py
-          pip install rtree
-
-          echo "Installing test-specific modules, required for notebooks to run"
-          pip install jupyter
-          pip install matplotlib
-          pip install pyevtk
-
-          echo "Installing PySEMTools"
-          pip install .
+          python3 -m pip install mpi4py --no-cache-dir
+          python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install .[test]
           
       - name: Run unit tests
         run: |
-          pytest --json-report -v tests/ | tee unit_tests.txt
+          python3 -m pytest --json-report -v tests/ | tee unit_tests.txt
       
       - name: Check results
         run: |

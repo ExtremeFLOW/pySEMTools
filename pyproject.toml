@@ -3,14 +3,45 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pysemtools"
-version = "0.1.0"
+name = "extremeflow-pysemtools"
+version = "1.2.0"
 requires-python = ">= 3.10"
 dependencies = [
     "numpy",
     "scipy",
-    "pre-commit",
     "pymech",
+    "tqdm",
+    "mpi4py",
+]
+
+[project.urls]
+Repository = "https://github.com/ExtremeFLOW/pySEMTools.git"
+Issues = "https://github.com/ExtremeFLOW/pySEMTools/issues"
+
+[project.optional-dependencies]
+test = [
+    "extremeflow-pysemtools[torch]",
+    "pytest",
+    "pytest-json-report",
+    "pympler",
+    "memory_profiler",
+    "h5py",
+    "rtree",
+    "jupyter", 
+    "matplotlib",
+    "pyevtk",
+]
+dev = [
+    "pre-commit",
+]
+torch = [
+    "torch",
+    "torchvision",
+    "torchaudio"
+]
+all = [
+    "extremeflow-pysemtools[test]",
+    "extremeflow-pysemtools[dev]"
 ]
 
 [project.scripts]

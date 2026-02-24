@@ -1,3 +1,11 @@
+try: 
+    import torch
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    have_torch = True
+except ImportError:
+    print('could not import torch')
+    have_torch = False
+
 from mpi4py import MPI #equivalent to the use of MPI_init() in C
 comm = MPI.COMM_WORLD
 
@@ -69,7 +77,10 @@ def test_probes_msh_single():
 
     # Create the probes object
     tlist = []
-    point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    if have_torch:
+        point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    else:
+        point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy"]
     global_tree_type_l = ["rank_bbox", "domain_binning"]
     local_data_structure_l = ["kdtree", "rtree", "hashtable"]
     find_points_iterative = [[False], [True, 1]]
@@ -173,8 +184,12 @@ def test_probes_msh_double():
 
     # Create the probes object
     tlist = []
-    point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
-    point_int_l = ["multiple_point_legendre_torch"]
+    #point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    if have_torch:
+        point_int_l = ["multiple_point_legendre_torch"]
+    else:
+        point_int_l = ["multiple_point_legendre_numpy"]
+
     global_tree_type_l = ["rank_bbox", "domain_binning"]
 
     for point_int in point_int_l:
