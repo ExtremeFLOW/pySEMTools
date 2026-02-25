@@ -459,6 +459,8 @@ def calculate_scalar_budgets_in_Cartesian(
         start_time = time.time()
 
         dS2dXj = np.array(input_scalar_file["dS2dxj_struct"])
+        dS2dXj = dS2dXj - 2 * S * dSdXj
+
         S2_convection = np.sum(Ui * dS2dXj, axis=-1)
 
         S2_convection = -S2_convection  # Put on RHS
@@ -487,9 +489,9 @@ def calculate_scalar_budgets_in_Cartesian(
         dUjS2dXj = np.array(input_scalar_file["dUjS2dxj_struct"])
 
         dUjS2dXj = (
-            dUjS2dXj[..., 0] 
-            - 2 * np.sum(Ui * dSdXj, axis=-1)
-            - S[..., 0]**2 * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
+            dUjS2dXj[..., 0]
+            - 2 * S[..., 0] * np.sum(Ui * dSdXj, axis=-1)
+            - S[..., 0] ** 2 * np.sum(dUidXj[..., [0, 4, 8]], axis=-1)
             - 2 * np.sum(UiS * dSdXj, axis=-1)
             - 2 * S[..., 0] * np.sum(dUiSdXj[..., [0, 4, 8]], axis=-1)
             - np.sum(Ui * dS2dXj, axis=-1)
@@ -560,7 +562,6 @@ def calculate_scalar_budgets_in_Cartesian(
         # %% Turbulent scalar flux eqn: convection
         print("--------------working on turbulent scalar flux eqn: convection...")
         start_time = time.time()
-
 
         UiS_convection = np.zeros((*Nxyz, 3))
         UiS_convection[..., 0] = np.sum(Ui * dUiSdXj[..., :3], axis=-1)
