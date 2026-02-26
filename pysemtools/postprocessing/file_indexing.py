@@ -13,6 +13,39 @@ from ..io.ppymech.neksuite import pynekread
 from mpi4py import MPI
 from os.path import join
 
+
+def check_overwrite(comm, fname):
+    """
+    Asks user on rank 0 whether they want to overwrite a given file.
+
+    Parameters
+    ----------
+    comm : MPI.COMM
+        MPI communicator
+    fname: str
+        Path to the file
+
+    Returns
+    -------
+    overwrite: bool
+        Whether or not to overwrite the file
+    """
+
+    logger = Logger(comm=comm, module_name="check_overwrite")
+
+    file_exists = os.path.exists(fname)
+    if file_exists:
+        if comm.Get_rank() == 0:
+            logger.write("warning", f"File {fname} exists. Overwrite?")
+            ans = input("input: [yes/no] ")
+            overwrite = ans in ['y', 'yes']
+        else:
+            overwrite = None
+
+        overwrite = comm.bcast(overwrite, root=0)
+        return overwrite
+
+
 def index_files_from_log(comm, logpath="", logname="", progress_reports=50):
     """
     Idenx files based on the outputs of a neko log file.
@@ -317,10 +350,10 @@ def index_files_from_folder(
     for ftype in added_files:
         index_fname = folder_path + os.path.basename(ftype).split('.')[0] + "_index.json"
         file_exists = os.path.exists(index_fname)
-        if file_exists and overwrite is None:
-            logger.write("warning", f"File {index_fname} exists. Overwrite?")
-            overwrite = input("input: [yes/no] ")
-            if overwrite == "no":
+        if file_exists:
+
+            if overwrite is False or \
+               (overwrite is None and not check_overwrite(comm, index_fname)): 
                 remove.append(ftype)
 
     added_files = [nm for nm in added_files if nm not in remove]
@@ -421,7 +454,7 @@ def index_files_from_folder(
     del logger
 
 
-def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False):
+def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, overwrite=None):
     """
     Merge index files into one.
 
@@ -442,6 +475,8 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False):
         And a default name "consolidated_index.json" is used.
     sort_by_time : bool
         Sort the index files by time. Default is False.
+    overwrite : bool, optional
+        Whether to overwrite existing file. If not provided, the user is prompted in case of file name collision.
 
     Returns
     -------
@@ -487,9 +522,10 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False):
                     consolidated_index["simulation_start_time"] = index[key]
                 continue
 
-            elif index[key]["path"] != "file_not_in_folder":
-                consolidated_index[consolidated_key] = index[key]
-                consolidated_key += 1
+            elif isinstance(index[key], dict):
+                if index[key]["path"] != "file_not_in_folder":
+                    consolidated_index[consolidated_key] = index[key]
+                    consolidated_key += 1
 
     if sort_by_time:
         logger.write("info", "Sorting index files by time")
@@ -527,10 +563,9 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False):
     write_index = True
     file_exists = os.path.exists(output_fname)
     if file_exists:
-        logger.write("warning", f"File {output_fname} exists. Overwrite?")
-        overwrite = input("[yes/no] ")
 
-        if overwrite == "no":
+        if overwrite is False or \
+           (overwrite is None and not check_overwrite(comm, output_fname)): 
             write_index = False
             logger.write("warning", f"Skipping writing index {output_fname}")
 
