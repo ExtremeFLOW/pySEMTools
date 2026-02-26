@@ -33,17 +33,15 @@ def check_overwrite(comm, fname):
 
     logger = Logger(comm=comm, module_name="check_overwrite")
 
-    file_exists = os.path.exists(fname)
-    if file_exists:
-        if comm.Get_rank() == 0:
-            logger.write("warning", f"File {fname} exists. Overwrite?")
-            ans = input("input: [yes/no] ")
-            overwrite = ans in ['y', 'yes']
-        else:
-            overwrite = None
+    if comm.Get_rank() == 0:
+        logger.write("warning", f"File {fname} exists. Overwrite?")
+        ans = input("input: [yes/no] ")
+        overwrite = ans in ['y', 'yes']
+    else:
+        overwrite = None
 
-        overwrite = comm.bcast(overwrite, root=0)
-        return overwrite
+    overwrite = comm.bcast(overwrite, root=0)
+    return overwrite
 
 
 def index_files_from_log(comm, logpath="", logname="", progress_reports=50):
