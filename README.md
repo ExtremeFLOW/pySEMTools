@@ -96,11 +96,15 @@ pip install mpi4py --no-cache-dir
 ```
 where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need pic or so). It is always a good idea to contact support or check the specific documentation if things do not work.
 
+Based on our experience on some cray systems such as [Dardel](https://www.pdc.kth.se/hpc-services/computing-systems/dardel-hpc-system/dardel-1.1043529) and [Lumi](https://csc.fi/en/our-expertise/high-performance-computing/lumi-supercomputer/), a Wiki was made available [here](https://github.com/ExtremeFLOW/pySEMTools/wiki/Setting-up-python3-and-mpi4py) to help setting up on clusters.
+
 ### Optional
 
 #### ADIOS2
 
-Some functionalities such as data streaming require the use of adios2. You can check how the installation is performed [here](https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html)
+Some functionalities such as data streaming require the use of adios2. You can check how the installation is performed [here](https://adios2.readthedocs.io/en/latest/setting_up/setting_up.html).
+
+We have also made a [Wiki page](https://github.com/ExtremeFLOW/pySEMTools/wiki/Installing-Adios2) that shows how we have been able to install adios2 in the supercomputers that we generally use.
 
 #### PyTorch
 
@@ -112,6 +116,7 @@ pip3 install torch torchvision torchaudio
 ```
 The process of installing pytorch in supercomputers is more intricate. In this case it is best to use the documentation of the specific cluster or contact support.
 
+Once pytorch is available, many of the PySEMTools can be used on GPUs. We prepared examples and a [Wiki page](https://github.com/ExtremeFLOW/pySEMTools/wiki/Running-on-GPU-nodes-(Lumi)) that showcases how devices can be exploited.
 
 # Use
 
