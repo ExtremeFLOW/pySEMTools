@@ -228,7 +228,7 @@ def read_data(comm, fname: str, keys: list[str], parallel_io: bool = False, dtyp
                 data = {}
                 for key in keys:
 
-                    global_array_shape = tuple(f["VTKHDF"]["PointData"][key].attrs["real_global_shape"])
+                    global_array_shape = tuple(f["VTKHDF"]["PointData"][key].attrs["global_shape"])
                     # Determine how many axis zero elements to get locally
                     # This corresponds to a linearly load balanced partitioning
                     i_rank = comm.Get_rank()
@@ -530,8 +530,7 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
                                 global_shape.append(-1)
                             else:
                                 global_shape.append(data_dict[key].shape[i])
-                        dset.attrs["global_shape"] = tuple(global_shape)
-                        dset.attrs["real_global_shape"] = (n_pts_x_global, n_pts_y, n_pts_z)
+                        dset.attrs["global_shape"] = (n_pts_x_global, n_pts_y, n_pts_z)
                      
         else:
 
@@ -586,8 +585,7 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
                 point_data = root.create_group("PointData")
                 for key in data_dict.keys():
                     dset = point_data.create_dataset(key, data=(data_dict[key].flatten()), dtype=data_dict[key].dtype)    
-                    dset.attrs["global_shape"] = data_dict[key].shape
-                    dset.attrs["real_global_shape"] = (n_pts_x, n_pts_y, n_pts_z)
+                    dset.attrs["global_shape"] = (n_pts_x, n_pts_y, n_pts_z)
 
         log.write("debug", "File written")
         log.toc()
