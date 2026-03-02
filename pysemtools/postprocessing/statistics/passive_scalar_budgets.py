@@ -1029,7 +1029,7 @@ def compute_and_write_additional_sstat_fields(
         field_name="SdWdx",
         file_type="fld",
         file_name=full_fname_stat,
-        file_key=file_keys_UidSdxj[6],
+        file_key=file_keys_SdUidxj[6],
         dtype=np.single,
     )
     stat_fields.add_field(
@@ -1037,7 +1037,7 @@ def compute_and_write_additional_sstat_fields(
         field_name="SdWdy",
         file_type="fld",
         file_name=full_fname_stat,
-        file_key=file_keys_UidSdxj[7],
+        file_key=file_keys_SdUidxj[7],
         dtype=np.single,
     )
     stat_fields.add_field(
@@ -1045,7 +1045,7 @@ def compute_and_write_additional_sstat_fields(
         field_name="SdWdz",
         file_type="fld",
         file_name=full_fname_stat,
-        file_key=file_keys_UidSdxj[8],
+        file_key=file_keys_SdUidxj[8],
         dtype=np.single,
     )
 
