@@ -38,6 +38,7 @@ class HDF5File:
         self.mode = None
         self.parallel = None
         self.file = None
+        self.active_group = None
         self.fname = None
 
         # Some temporary variables to store
@@ -92,7 +93,7 @@ class HDF5File:
         self.log.write("info", f"{self.fname} opened - mode {self.mode} - {parallel_str}")
 
         # Set the active group to the root group
-        self.active_group = self.set_active_group("/")
+        self.set_active_group("/")
 
     def close(self, clean: bool = False):
         """ Close the hdf5 file object """
@@ -118,7 +119,7 @@ class HDF5File:
         if self.parallel and distributed_axis is None:
             raise ValueError("Distributed axis must be specified for parallel reading")
                 
-        if slices is not None and len(slices) != self.file[dataset_name].ndim:
+        if slices is not None and len(slices) != self.active_group[dataset_name].ndim:
             raise ValueError("Number of slices must match the number of dimensions of the dataset")
 
         self.log.write("debug", f"Reading dataset {dataset_name} - dtype {dtype} - distributed_axis {distributed_axis}")
@@ -134,9 +135,9 @@ class HDF5File:
         # ===========
         if not self.parallel:
             if slices is None:
-                local_data = self.file[dataset_name][:]
+                local_data = self.active_group[dataset_name][:]
             else:
-                local_data = self.file[dataset_name][tuple(slices)]
+                local_data = self.active_group[dataset_name][tuple(slices)]
         
         # =============
         # Parallel read 
@@ -144,9 +145,9 @@ class HDF5File:
         else:
             # Set slices
             if slices is None:
-                self.set_read_slices_linear_lb(global_shape=self.file[dataset_name].shape, distributed_axis=distributed_axis, explicit_strides=False)
+                self.set_read_slices_linear_lb(global_shape=self.active_group[dataset_name].shape, distributed_axis=distributed_axis, explicit_strides=False)
             else:
-                self.set_read_slices_external(global_shape=self.file[dataset_name].shape, slices=slices)
+                self.set_read_slices_external(global_shape=self.active_group[dataset_name].shape, slices=slices)
             
             local_data = self.read_slices(dataset_name, dtype=dtype)
 
@@ -237,7 +238,7 @@ class HDF5File:
             raise ValueError("Local shape is not set")
 
         local_data = np.empty(self.local_alloc_shape, dtype=dtype)
-        local_data[:] = self.file[dataset_name][self.slices]
+        local_data[:] = self.active_group[dataset_name][self.slices]
 
         return local_data.reshape(self.local_shape)
 
@@ -263,7 +264,7 @@ class HDF5File:
         # Serial write 
         # ============
         if not self.parallel:
-            self.file.create_dataset(dataset_name, data=data, dtype=data.dtype)
+            self.active_group.create_dataset(dataset_name, data=data, dtype=data.dtype)
 
         # ==============
         # Parallel write 
@@ -313,6 +314,6 @@ class HDF5File:
         if self.global_shape is None:
             raise ValueError("Global shape is not set")
 
-        dset = self.file.create_dataset(dataset_name, shape=self.global_shape, dtype=data.dtype)
+        dset = self.active_group.create_dataset(dataset_name, shape=self.global_shape, dtype=data.dtype)
         dset[self.slices] = data
             
