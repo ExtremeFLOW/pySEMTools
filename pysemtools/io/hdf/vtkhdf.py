@@ -7,7 +7,7 @@ from mpi4py import MPI
 from ...monitoring.logger import Logger
 from .hdf5 import HDF5File
 
-class VTKHDF(HDF5File):
+class VTKHDFFile(HDF5File):
     """
     Class to write and read vtkhdf files in parallel using h5py.
     """
@@ -101,6 +101,31 @@ class VTKHDF(HDF5File):
         self.set_active_group("/VTKHDF/PointData")
         self.write_dataset(dataset_name, data.flatten(), distributed_axis=distributed_axis, shape_in_ram=self.shape)
 
+    def read_point_data(self, dataset_name : str, dtype : np.dtype = np.double, distributed_axis: int = 0):
+        """ Read point data from the hdf5 file
+        
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to read. This should be the name of the dataset in the hdf5 file.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. Should be 0 for now.
+        
+        Returns
+        -------
+        np.ndarray
+            The point data read from the hdf5 file. Will have the same shape as the mesh points.
+        """
+
+        if distributed_axis != 0:
+            raise NotImplementedError("Distributed axis other than 0 is not implemented for the read_point_data function")
+
+        # Read the point data
+        self.set_active_group("/VTKHDF/PointData")
+        data = self.read_dataset(dataset_name, dtype=dtype, distributed_axis=distributed_axis, as_1d_in_file=True)
+
+        return data
+
 def set_up_hex_vtk_mesh_serial(X : np.ndarray, Y: np.ndarray, Z: np.ndarray):
     """Set up the mesh in serial"""
 
@@ -143,8 +168,8 @@ def set_up_hex_vtk_mesh_serial(X : np.ndarray, Y: np.ndarray, Z: np.ndarray):
     NumberOfCells = (n_cell_local,)
     NumberOfConnectivityIds = (connectivity.size,)
 
-    return {"points": points, "connectivity": connectivity, 
-            "offsets": offsets, "types": types, 
+    return {"Points": points, "Connectivity": connectivity, 
+            "Offsets": offsets, "Types": types, 
             "NumberOfPoints": NumberOfPoints, 
             "NumberOfCells": NumberOfCells, 
             "NumberOfConnectivityIds": NumberOfConnectivityIds,
@@ -209,8 +234,8 @@ def set_up_hex_vtk_mesh_parallel(comm: MPI.Comm, X : np.ndarray, Y: np.ndarray, 
     NumberOfCells = (n_cell_global,)
     NumberOfConnectivityIds = (comm.allreduce(connectivity.size, op=MPI.SUM),)
 
-    return {"points": points, "connectivity": connectivity, 
-            "offsets": offsets, "types": types, 
+    return {"Points": points, "Connectivity": connectivity, 
+            "Offsets": offsets, "Types": types, 
             "NumberOfPoints": NumberOfPoints, 
             "NumberOfCells": NumberOfCells, 
             "NumberOfConnectivityIds": NumberOfConnectivityIds,

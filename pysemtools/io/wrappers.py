@@ -12,6 +12,7 @@ import numpy as np
 from mpi4py import MPI
 from ..monitoring.logger import Logger
 from .hdf.hdf5 import HDF5File
+from .hdf.vtkhdf import VTKHDFFile
 
 def ijk_to_id(i, j, k, ny, nz):
     return i*(ny*nz) + j*nz + k
@@ -153,73 +154,13 @@ def read_data(comm, fname: str, keys: list[str], parallel_io: bool = False, dtyp
                 fld.clear() 
 
     elif extension == 'vtkhdf':        
-        if parallel_io:
-            if distributed_axis != 0:
-                raise NotImplementedError("Parallel axis other than 0 is not implemented for reading vtkhdf files in parallel")
-            
-            with h5py.File(fname, 'r', driver='mpio', comm=comm) as f:
-                data = {}
-                for key in keys:
-
-                    global_array_shape = tuple(f["VTKHDF"]["PointData"][key].attrs["global_shape"])
-                    # Determine how many axis zero elements to get locally
-                    # This corresponds to a linearly load balanced partitioning
-                    i_rank = comm.Get_rank()
-                    m = global_array_shape[distributed_axis]
-                    pe_rank = i_rank
-                    pe_size = comm.Get_size()
-                    ip = np.floor(
-                        (
-                            np.double(m)
-                            + np.double(pe_size)
-                            - np.double(pe_rank)
-                            - np.double(1)
-                        )
-                        / np.double(pe_size)
-                    )
-                    local_axis_0_shape = int(ip)
-                    #determine the offset
-                    offset = comm.scan(local_axis_0_shape) - local_axis_0_shape
-
-                    # The offset is now in number of rows (or first axis). But it needs to be into the flattened array
-                    if distributed_axis == 0:
-                        offset = offset * (global_array_shape[1] * global_array_shape[2])
-                    else:
-                        raise NotImplementedError("Parallel axis other than 0 is not implemented for reading vtkhdf files in parallel")
-
-                    # Determine the local array shape
-                    temp = list(global_array_shape)
-                    temp[distributed_axis] = local_axis_0_shape
-                    local_array_shape = tuple(temp)
-                    
-                    # Get the slice of the data that should be read
-                    slices = [slice(None)]
-                    if distributed_axis == 0:
-                        slices[distributed_axis] = slice(offset, offset + local_array_shape[distributed_axis]*(global_array_shape[1] * global_array_shape[2]))
-                    else:
-                        raise NotImplementedError("Parallel axis other than 0 is not implemented for reading vtkhdf files in parallel")
-
-                    
-                    # Allocate the local data array
-                    local_data = np.empty(local_array_shape, dtype=dtype)
-                    local_data = local_data.reshape(-1)
-
-                    # Read the data
-                    local_data[:] = f["VTKHDF"]["PointData"][key][tuple(slices)] 
-                    
-                    # Store the data
-                    data[key] = local_data.reshape(local_array_shape)
-
-        else:
-            with h5py.File(fname, 'r') as f:
-                data = {}
-                for key in keys:
-                    temp_data = f["VTKHDF"]["PointData"][key][:]
-                    if "global_shape" in f["VTKHDF"]["PointData"][key].attrs:
-                        original_shape = f["VTKHDF"]["PointData"][key].attrs["global_shape"]
-                        temp_data = temp_data.reshape(original_shape)
-
-                    data[key] = temp_data
+        
+        file = VTKHDFFile(comm, fname, "r", parallel_io)
+        data = {}
+        for key in keys:
+            data[key] = file.read_point_data(key, dtype=dtype, distributed_axis=distributed_axis)
+            print(data[key].shape)
+        file.close()
 
 
     return data 
@@ -293,190 +234,16 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
     # Write the data
     elif (extension == 'vtkhdf'):
 
-        if parallel_io:
-            
-            # ===================
-            # Set up vtk
-            # ===================
+        if msh is None:
+            raise ValueError("A mesh object must be provided to write a vtkhdf file")
+        
+        file = VTKHDFFile(comm, fname, "w", parallel_io)
+        file.write_mesh_data({"x": msh[0], "y": msh[1], "z": msh[2]}, distributed_axis=distributed_axis)
 
-            # Set up points list 
-            if msh is None:
-                raise ValueError("A mesh object must be provided to write a vtkhdf file in parallel")
-            else:  
-                X = msh[0]
-                Y = msh[1]
-                Z = msh[2]
-                
-                if len(X.shape) != 3 or len(Y.shape) != 3 or len(Z.shape) != 3:
-                    raise ValueError("The mesh provided must be a structured mesh with 3D coordinates to write a vtkhdf file in parallel")
-                
-                points = np.array([X.flatten(), Y.flatten(), Z.flatten()]).T
+        for key in data_dict.keys():
+            file.write_point_data(key, data_dict[key].astype(dtype), distributed_axis=distributed_axis)
 
-            # Determine the number of points and cells locally 
-            n_pts_x = X.shape[0]
-            n_pts_y = X.shape[1]
-            n_pts_z = X.shape[2]
-            # For the distributed axis, the number of cells is n_pts_total - 1. The last rank is the one that "loses" one point
-            # This happenes because we do not have overlapping boundaries across ranks. That would make it easier.
-            if distributed_axis == 0:
-                n_cell_x = n_pts_x - 1 if comm.Get_rank() == comm.Get_size() - 1 else n_pts_x
-            else:
-                raise NotImplementedError("Parallel axis other than 0 is not implemented for writing vtkhdf files")
-            n_cell_y = n_pts_y - 1
-            n_cell_z = n_pts_z - 1
-            n_cell_local = n_cell_x * n_cell_y * n_cell_z
-
-            # Determine global and offsets for nells
-            if distributed_axis == 0: # Only for distirbuted axis 0 we get the same behaviour that flattens() do in the global array
-                n_pts_global = comm.allreduce(points.shape[0], op=MPI.SUM)
-                n_pts_offset = comm.scan(n_pts_x) - n_pts_x
-                n_pts_x_global = comm.allreduce(n_pts_x, op=MPI.SUM)
-            else:
-                raise NotImplementedError("Parallel axis other than 0 is not implemented for writing vtkhdf files")
-            n_cell_global = comm.allreduce(n_cell_local, op=MPI.SUM)
-
-            # Set up array with types of cells
-            VTK_HEXAHEDRON = 12
-            VTK_CELL_POINTS = 8
-            types = np.full(n_cell_local, VTK_HEXAHEDRON, dtype=np.uint8)
-
-            # Set up connectivity and offsets 
-            connectivity = []
-            for i in range(n_cell_x):
-                for j in range(n_cell_y):
-                    for k in range(n_cell_z):
-                        v0 = ijk_to_id_mpi(i,   j,   k,   n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v1 = ijk_to_id_mpi(i+1, j,   k,   n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v2 = ijk_to_id_mpi(i+1, j+1, k,   n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v3 = ijk_to_id_mpi(i,   j+1, k,   n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v4 = ijk_to_id_mpi(i,   j,   k+1, n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v5 = ijk_to_id_mpi(i+1, j,   k+1, n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v6 = ijk_to_id_mpi(i+1, j+1, k+1, n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        v7 = ijk_to_id_mpi(i,   j+1, k+1, n_pts_y, n_pts_z, distributed_axis, n_pts_offset)
-                        connectivity.extend([v0, v1, v2, v3, v4, v5, v6, v7])
-    
-            connectivity = np.asarray(connectivity, dtype=np.int64)   # length 8*ncells
-            conn_start = comm.scan(connectivity.size) - connectivity.size
-            offsets_local = (np.arange(0, VTK_CELL_POINTS*n_cell_local + 1, VTK_CELL_POINTS, dtype=np.int64) + conn_start)
-            offsets = offsets_local[:-1]   # length = n_cell_total - Total offsets need to be n_cell_total + 1, but we fix later
-
-            # ================
-            # Write data
-            # ================
-            with h5py.File(fname, 'w', driver='mpio', comm=comm) as f:
-                root = f.create_group("VTKHDF")
-                write_headers(root)
-
-                # Number of points, cells and conecitivity ids.                
-                root.create_dataset("NumberOfPoints", data=(n_pts_global,), dtype="i8")
-                root.create_dataset("NumberOfCells", data=(n_cell_global,), dtype="i8")
-                root.create_dataset("NumberOfConnectivityIds", data=(comm.allreduce(connectivity.size, op=MPI.SUM),), dtype="i8")
-
-                # Data to write is the actual data, plus vtk related data
-                keys = ["Connectivity", "Offsets", "Types", "Points"] + [key for key in data_dict.keys()]
-                dsets = [connectivity, offsets, types, points] + [data_dict[key].flatten() for key in data_dict.keys()]
-
-
-                point_data = root.create_group("PointData")                
-                # When writing in this format, we always allocate a list of (npts, 3) so we always distribute along axis 0
-                # Even if the data itself had a different distribution
-                distributed_axis = 0  
-                # Write
-                for key, data in zip(keys, dsets):
-                    
-                    # Determine local sizes
-                    local_array_shape = data.shape
-                    local_array_size = data.size
-
-                    # Obtain the total number of entries in the array    
-                    global_axis_0_shape = np.array(comm.allreduce(local_array_shape[distributed_axis], op=MPI.SUM))
-                    # Obtain the offset in the file
-                    offset = comm.scan(local_array_shape[distributed_axis]) - local_array_shape[distributed_axis]
-                    
-                    # Set the global size
-                    temp = list(local_array_shape)
-                    if key == "Offsets": 
-                        global_axis_0_shape += 1 # For offsets we need one more entry than the number of cells
-                    temp[distributed_axis] = global_axis_0_shape
-                    global_array_shape = tuple(temp)
-
-                    # Get the slice where the data should be written
-                    slices = [slice(None) for i in range(len(global_array_shape))]
-                    slices[distributed_axis] = slice(offset, offset + local_array_shape[distributed_axis])
- 
-                    # Create the data set and assign the data
-                    if key in ["Connectivity", "Offsets", "Types", "Points"]:
-                        dset = root.create_dataset(key, global_array_shape, dtype=data.dtype)
-                        dset[tuple(slices)] = data
-                        if key == "Offsets": # Offsets is n_cell_total + 1. The last rank writes the last entry (here we let them all write it)
-                            root["Offsets"][n_cell_global] = comm.allreduce(connectivity.size, op=MPI.SUM)
-                    else:
-                        dset = point_data.create_dataset(key, global_array_shape, dtype=data.dtype)
-                        dset[tuple(slices)] = data
-
-                        # Write out the original shape of the array    
-                        global_shape = []
-                        for i in range((len(data_dict[key].shape))):
-                            if i == distributed_axis:
-                                global_shape.append(-1)
-                            else:
-                                global_shape.append(data_dict[key].shape[i])
-                        dset.attrs["global_shape"] = (n_pts_x_global, n_pts_y, n_pts_z)
-                     
-        else:
-
-            X = msh[0]
-            Y = msh[1]
-            Z = msh[2]
-            points = np.array([X.flatten(), Y.flatten(), Z.flatten()]).T
-
-            n_pts_x = X.shape[0]
-            n_pts_y = X.shape[1]
-            n_pts_z = X.shape[2]
-            n_cell_x = n_pts_x - 1
-            n_cell_y = n_pts_y - 1
-            n_cell_z = n_pts_z - 1
-            n_cell_local = n_cell_x * n_cell_y * n_cell_z
-    
-            VTK_HEXAHEDRON = 12
-            VTK_CELL_POINTS = 8
-            types = np.full(n_cell_local, VTK_HEXAHEDRON, dtype=np.uint8)
-
-            connectivity = []
-            for i in range(n_cell_x):
-                for j in range(n_cell_y):
-                    for k in range(n_cell_z):
-                        v0 = ijk_to_id(i,   j,   k,   n_pts_y, n_pts_z)
-                        v1 = ijk_to_id(i+1, j,   k,   n_pts_y, n_pts_z)
-                        v2 = ijk_to_id(i+1, j+1, k,   n_pts_y, n_pts_z)
-                        v3 = ijk_to_id(i,   j+1, k,   n_pts_y, n_pts_z)
-                        v4 = ijk_to_id(i,   j,   k+1, n_pts_y, n_pts_z)
-                        v5 = ijk_to_id(i+1, j,   k+1, n_pts_y, n_pts_z)
-                        v6 = ijk_to_id(i+1, j+1, k+1, n_pts_y, n_pts_z)
-                        v7 = ijk_to_id(i,   j+1, k+1, n_pts_y, n_pts_z)
-                        connectivity.extend([v0, v1, v2, v3, v4, v5, v6, v7])
-    
-            connectivity = np.asarray(connectivity, dtype=np.int64)   # length 8*ncells
-            offsets = np.arange(0, VTK_CELL_POINTS*n_cell_local + 1, VTK_CELL_POINTS, dtype=np.int64)   # length ncells+1
-
-            with h5py.File(fname, "w") as file:
-                root = file.create_group("VTKHDF")
-                write_headers(root)
-
-                root.create_dataset("NumberOfPoints", data=(points.shape[0],), dtype="i8")
-                root.create_dataset("Points", data=points, dtype="f8")
-
-                root.create_dataset("NumberOfCells", data=(n_cell_local,), dtype="i8")
-                root.create_dataset("Types", data=types, dtype="uint8")
-
-                root.create_dataset("NumberOfConnectivityIds", data=(connectivity.size,), dtype="i8")
-                root.create_dataset("Connectivity", data=connectivity, dtype="i8")
-                root.create_dataset("Offsets", data=offsets, dtype="i8")
-
-                point_data = root.create_group("PointData")
-                for key in data_dict.keys():
-                    dset = point_data.create_dataset(key, data=(data_dict[key].flatten()), dtype=data_dict[key].dtype)    
-                    dset.attrs["global_shape"] = (n_pts_x, n_pts_y, n_pts_z)
+        file.close()
 
     else:
         raise ValueError("The file extension is not supported")

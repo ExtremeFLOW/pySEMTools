@@ -145,12 +145,18 @@ class HDF5File:
             self.set_active_group(group_name)
             dataset_name = dataset_name.split("/")[-1]
 
+        # Query the shape
+        if "shape" in self.active_group[dataset_name].attrs:
+            global_shape = self.active_group[dataset_name].attrs["shape"]
+        else:
+            global_shape = self.active_group[dataset_name].shape
+
         # ===========
         # Serial read 
         # ===========
         if not self.parallel:
             if slices is None:
-                local_data = self.active_group[dataset_name][:]
+                local_data = self.active_group[dataset_name][:].reshape(global_shape).astype(dtype)
             else:
                 local_data = self.active_group[dataset_name][tuple(slices)]
         
@@ -158,12 +164,6 @@ class HDF5File:
         # Parallel read 
         # =============
         else:
-
-            # Get the global shape from the file
-            if "shape" in self.active_group[dataset_name].attrs:
-                global_shape = self.active_group[dataset_name].attrs["shape"]
-            else:
-                global_shape = self.active_group[dataset_name].shape
 
             # Set slices
             if slices is None:
