@@ -4,6 +4,7 @@ import os
 import h5py
 import numpy as np
 from mpi4py import MPI
+from ...monitoring.logger import Logger
 
 class HDF5File:
     """
@@ -31,6 +32,7 @@ class HDF5File:
 
         # Assign the communicator and assign empty attributes        
         self.comm = comm
+        self.log = Logger(comm=comm, module_name="HDF5File")
         
         # Set attributes that are assigned when opening a file
         self.mode = None
@@ -48,21 +50,49 @@ class HDF5File:
 
         # Open a file
         self.open(fname, mode, parallel)
+ 
+    def set_active_group(self, group_name: str):
+        """ Set the active group to read or write data from. This is useful to avoid having to specify the group every time a dataset is read or written."""
+        
+        group_path = group_name.split("/")
+        group_path = [name for name in group_path if name != ""] # Remove empty strings
+        root = self.file["/"]
+                
+        for depth, name in enumerate(group_path):
+            if name not in root:
+                if self.mode == "w":
+                    root = root.create_group(name)
+                else:
+                    raise ValueError(f"Group {group_name} does not exist in the file")
+            else:
+                root = root[name]
+                
+        self.active_group = root
 
     def open(self, fname: str, mode: str, parallel: bool):
         """ Open an hdf5 file based on inputs. This can be used to open a new file after closing the previous one."""
-        
+
+        self.log.tic() 
         self.fname = fname
         if mode not in ["r", "w"]:
             raise ValueError("Mode should be 'read' or 'write'")
         else:
             self.mode = mode
+ 
         self.parallel = parallel
+        if self.comm.Get_size() < 2: 
+            self.parallel = False # Overwrite to serial if only one rank is used
 
         if self.parallel:
             self.file = h5py.File(self.fname, self.mode, driver='mpio', comm=self.comm)
         else:
             self.file = h5py.File(self.fname, self.mode)
+
+        parallel_str = "parallel" if self.parallel else "serial"
+        self.log.write("info", f"{self.fname} opened - mode {self.mode} - {parallel_str}")
+
+        # Set the active group to the root group
+        self.active_group = self.set_active_group("/")
 
     def close(self, clean: bool = False):
         """ Close the hdf5 file object """
@@ -76,6 +106,7 @@ class HDF5File:
             self.slices = None        
             self.local_alloc_shape = None
 
+        self.log.toc(message=f"{self.fname} closed")
 
     def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None):
         """ Read a dataset from the hdf5 file object 
@@ -90,14 +121,22 @@ class HDF5File:
         if slices is not None and len(slices) != self.file[dataset_name].ndim:
             raise ValueError("Number of slices must match the number of dimensions of the dataset")
 
+        self.log.write("debug", f"Reading dataset {dataset_name} - dtype {dtype} - distributed_axis {distributed_axis}")
+
+        # Set the active group based on the data set name
+        if len(dataset_name.split("/")) > 1:
+            group_name = "/".join(dataset_name.split("/")[:-1]) # Exclude the dataset name from the full path
+            self.set_active_group(group_name)
+            dataset_name = dataset_name.split("/")[-1]
+
         # ===========
         # Serial read 
         # ===========
         if not self.parallel:
             if slices is None:
-                data = self.file[dataset_name][:]
+                local_data = self.file[dataset_name][:]
             else:
-                data = self.file[dataset_name][tuple(slices)]
+                local_data = self.file[dataset_name][tuple(slices)]
         
         # =============
         # Parallel read 
@@ -211,6 +250,14 @@ class HDF5File:
 
         if self.parallel and distributed_axis is None:
             raise ValueError("Distributed axis must be specified for parallel writing")
+        
+        self.log.write("debug", f"Writing dataset {dataset_name} - dtype {data.dtype} - distributed_axis {distributed_axis}")
+        
+        # Set the active group based on the data set name
+        if len(dataset_name.split("/")) > 1:
+            group_name = "/".join(dataset_name.split("/")[:-1]) # Exclude the dataset name from the full path
+            self.set_active_group(group_name)
+            dataset_name = dataset_name.split("/")[-1]
 
         # ============
         # Serial write 
