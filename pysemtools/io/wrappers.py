@@ -14,20 +14,6 @@ from ..monitoring.logger import Logger
 from .hdf.hdf5 import HDF5File
 from .hdf.vtkhdf import VTKHDFFile
 
-def ijk_to_id(i, j, k, ny, nz):
-    return i*(ny*nz) + j*nz + k
-
-def ijk_to_id_mpi(i, j, k, ny, nz, parallel_axis, offset):
-    if parallel_axis == 0:
-        i = i + offset
-        return i*(ny*nz) + j*nz + k
-    else:
-        raise NotImplementedError("Parallel axis other than 0 is not implemented for the ijk_to_id_mpi function")
-
-def write_headers(root):
-    root.attrs["Version"] = (2, 3)
-    root.attrs["Type"] = "UnstructuredGrid"
-
 def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):
     """
     Generate partition information for hdf5 files. Useful if needing to read or write multiple files with the same partitioning, such that the
