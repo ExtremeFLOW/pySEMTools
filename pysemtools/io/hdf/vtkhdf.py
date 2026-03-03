@@ -25,12 +25,10 @@ class VTKHDFFile(HDF5File):
         fname : str
             Name of the hdf5 file to read or write.
         mode : str
-            Mode to open the file. Should be "read" for reading or "write" for
+            Mode to open the file. Should be "r" for reading or "w" for
             writing.
         parallel : bool
             Whether to use parallel I/O or not. 
-        mesh : dict
-            Dictionary containing the mesh information. Should contain the keys "x", "y", and "z" for the coordinates of the mesh points.
         """
         super().__init__(comm, fname, mode, parallel)
 
@@ -147,6 +145,8 @@ class VTKHDFFile(HDF5File):
         ----------
         dataset_name : str
             Name of the dataset to read. This should be the name of the dataset in the hdf5 file.
+        dtype : np.dtype
+            Data type to read the dataset as. Should be a floating point type.
         distributed_axis : int
             Axis along which the data is distributed in parallel. Should be 0 for now.
         
@@ -339,7 +339,7 @@ def set_up_hex_vtk_mesh_parallel(comm: MPI.Comm, X : np.ndarray, Y: np.ndarray, 
             "shape": (n_pts_x_global, n_pts_y, n_pts_z)}
 
 def set_up_hex_vtk_mesh_sem_parallel(comm: MPI.Comm, X: np.ndarray, Y: np.ndarray, Z: np.ndarray):
-    """Build vtk needed data for SEM-like meshes - serial"""
+    """Build vtk needed data for SEM-like meshes - Parallel"""
 
     if X.ndim != 4 or Y.ndim != 4 or Z.ndim != 4:
         raise ValueError("X, Y, and Z should be 4D arrays with shape (nelv, nz, ny, nx)")

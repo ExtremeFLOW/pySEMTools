@@ -24,7 +24,7 @@ class HDF5File:
         fname : str
             Name of the hdf5 file to read or write.
         mode : str
-            Mode to open the file. Should be "read" for reading or "write" for
+            Mode to open the file. Should be "r" for reading or "w" for
             writing.
         parallel : bool
             Whether to use parallel I/O or not. 
@@ -53,7 +53,16 @@ class HDF5File:
         self.open(fname, mode, parallel)
  
     def set_active_group(self, group_name: str):
-        """ Set the active group to read or write data from. This is useful to avoid having to specify the group every time a dataset is read or written."""
+        """ Set the active group to read or write data from. 
+        
+        This is useful to avoid having to specify the group every time a dataset is read or written.
+
+        Parameters
+        ----------
+        group_name : str
+            Name of the group to set as active. Can include the group path, e.g. "/group1/group2". 
+            If the group does not exist, it will be created if the file is opened in write mode, otherwise an error will be raised. 
+        """
         
         group_path = group_name.split("/")
         group_path = [name for name in group_path if name != ""] # Remove empty strings
@@ -71,12 +80,26 @@ class HDF5File:
         self.active_group = root
 
     def open(self, fname: str, mode: str, parallel: bool):
-        """ Open an hdf5 file based on inputs. This can be used to open a new file after closing the previous one."""
+        """ Open an hdf5 file based on inputs. 
+        
+        This can be used to open a new file after closing the previous one.
+        
+        Parameters
+        ----------
+        fname : str
+            Name of the hdf5 file to read or write.
+        mode : str
+            Mode to open the file. Should be "r" for reading or "w" for
+            writing.
+        parallel : bool
+            Whether to use parallel I/O or not. If True, the file will be opened using
+            the MPI-IO driver. If False, the file will be opened using the default driver.
+        """
 
         self.log.tic() 
         self.fname = fname
         if mode not in ["r", "w"]:
-            raise ValueError("Mode should be 'read' or 'write'")
+            raise ValueError("Mode should be 'r' or 'w'")
         else:
             self.mode = mode
  
@@ -96,7 +119,15 @@ class HDF5File:
         self.set_active_group("/")
 
     def close(self, clean: bool = False):
-        """ Close the hdf5 file object """
+        """ Close the hdf5 file object 
+        
+        Parameters
+        ----------
+        clean : bool
+            Whether to clean the attributes that are assigned when opening a file. This is useful if the
+            file object will be reused to open another file after closing the current one. Default is False.
+        
+        """
         self.file.close()
 
         if clean:
@@ -126,6 +157,12 @@ class HDF5File:
             Optional. default is False. Whether the data is stored as 1D in the file. This is useful if originally the data had a different shape
             but was flattened to 1d before writing. This will use the shape attribute stored in the file to do the partioning
             but will keep in mind that the data is stored as a 1d array to read properly.
+
+        Returns
+        -------
+        local_data : np.ndarray
+            Data read from the file. This will be a local array with the shape determined by the
+            global shape of the dataset and the parallel distribution. If slices are provided, the shape will be determined by the slices.
         """
 
         if self.mode != "r":
@@ -179,6 +216,18 @@ class HDF5File:
         """Set the slices that should be read from the file.
 
         Data is distributed in a linear load balanced way.
+
+        Parameters
+        ----------
+        global_shape : tuple
+            Shape of the global array to be read. This is required to determine the local shape and
+            the slices to read from the file.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. This is required to determine the local shape
+            and the slices to read from the file.
+        explicit_strides : bool
+            Whether to use explicit strides to read the data. This is useful if the data is stored
+            as 1D in the file but originally had a different shape.
         """
         # Perform a load balanced distribution
         i_rank = self.comm.Get_rank()
@@ -232,7 +281,17 @@ class HDF5File:
         self.local_alloc_shape = local_alloc_shape
     
     def set_read_slices_external(self, global_shape: tuple, slices: list):
-        """Set the slices that should be read from the file based on external input."""
+        """Set the slices that should be read from the file based on external input.
+
+        slices need to be precomputed in this case
+        
+        Parameters
+        ----------
+        global_shape : tuple
+            Shape of the global array to be read.
+        slices : list
+            List of slices to read from the data set.    
+        """
 
         # Local shape from slices
         local_array_shape = []
@@ -251,7 +310,21 @@ class HDF5File:
         self.local_alloc_shape = self.local_shape 
 
     def read_slices(self, dataset_name: str, dtype : np.dtype = np.double):
-        """Read the slices that should be read from the file. This is useful if the slices have been set using set_read_slices and we want to read the same slices again."""
+        """Read the slices hyperslabs from the file
+        
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to read. Can include the group path, e.g. "/group1/group2/dataset".
+        dtype : np.dtype
+            Data type to read the dataset in. Default is np.double.
+
+        Returns
+        -------
+        local_data : np.ndarray
+            Data read from the file. This will be a local array with the shape determined by the
+            global shape of the dataset and the parallel distribution. If slices are provided, the shape will be determined by the slices.
+        """
         if self.slices is None:
             raise ValueError("Slices have not been set")
         if self.local_alloc_shape is None:
@@ -320,7 +393,22 @@ class HDF5File:
             self.write_slices(dataset_name, data, shape_in_file=shape_in_ram)
  
     def set_write_slices(self, local_shape: tuple, distributed_axis: int, extra_global_entries: list[int] = None):
-        """Set the slices that should be written to the file."""
+        """Set the slices that should be written to the file.
+        
+        Obtain global shape from the local one
+
+        Parameters
+        ----------
+        local_shape : tuple
+            Shape of the local array to be written. This is required to determine the global shape
+            and the slices to write to the file.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel.
+        extra_global_entries : list[int], optional
+            List of extra entries to add to the global shape of the dataset. This is useful
+            if the ranks are writing a certain amount of data but the global array should be bigger than
+            what they collectively write. Default is None.
+        """
 
         # Set the local shape
         local_distributed_axis_shape = local_shape[distributed_axis]
@@ -351,7 +439,21 @@ class HDF5File:
         self.local_alloc_shape = None
         
     def write_slices(self, dataset_name: str, data: np.ndarray, shape_in_file: tuple = None):
-        """Write the slices that should be written to the file. This is useful if the slices have been set using set_write_slices and we want to write the same slices again."""
+        """Write the hyperslab to the file. 
+        
+        Perform the write operations
+
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to write. Can include the group path, e.g. "/group1/group2/dataset".
+        data : np.ndarray
+            Data to write to the file. This should have the same shape as the local shape determined
+            by the set_write_slices method.
+        shape_in_file : tuple, optional
+            Shape of the data to be stored in the file. This is useful if the data is
+            stored in a different shape in the file than it is in RAM.
+        """
         if self.slices is None:
             raise ValueError("Slices have not been set")
         if self.global_shape is None:
