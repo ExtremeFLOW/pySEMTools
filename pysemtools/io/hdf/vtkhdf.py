@@ -56,10 +56,19 @@ class VTKHDFFile(HDF5File):
         # =================
         # Serial vtk set up
         # =================
-        if not self.parallel:
-            vtk_data = set_up_hex_vtk_mesh_serial(mesh["x"], mesh["y"], mesh["z"])
+        if mesh["x"].ndim == 3:
+            if not self.parallel:
+                vtk_data = set_up_hex_vtk_mesh_serial(mesh["x"], mesh["y"], mesh["z"])
+            else:
+                vtk_data = set_up_hex_vtk_mesh_parallel(self.comm, mesh["x"], mesh["y"], mesh["z"], distributed_axis)
+        elif mesh["x"].ndim == 4:
+            if not self.parallel:
+                vtk_data = set_up_hex_vtk_mesh_sem_serial(mesh["x"], mesh["y"], mesh["z"])
+            else:
+                vtk_data = set_up_hex_vtk_mesh_sem_parallel(self.comm, mesh["x"], mesh["y"], mesh["z"])
+
         else:
-            vtk_data = set_up_hex_vtk_mesh_parallel(self.comm, mesh["x"], mesh["y"], mesh["z"], distributed_axis)
+            raise NotImplementedError("Only structured meshes with 3D coordinates are currently supported for the write_mesh_data function")
 
         # Write the mesh metadata
         self.set_active_group("/VTKHDF")
@@ -175,6 +184,64 @@ def set_up_hex_vtk_mesh_serial(X : np.ndarray, Y: np.ndarray, Z: np.ndarray):
             "NumberOfConnectivityIds": NumberOfConnectivityIds,
             "shape": (n_pts_x, n_pts_y, n_pts_z)}
 
+
+def set_up_hex_vtk_mesh_sem_serial(X: np.ndarray, Y: np.ndarray, Z: np.ndarray):
+    """Build vtk needed data for SEM-like meshes - serial"""
+
+    if X.ndim != 4 or Y.ndim != 4 or Z.ndim != 4:
+        raise ValueError("X, Y, and Z should be 4D arrays with shape (nelv, nz, ny, nx)")
+
+    nelv, nz, ny, nx = X.shape
+    if nx < 2 or ny < 2 or nz < 2:
+        raise ValueError("Each element must have at least 2 points in each direction")
+
+    # Get the point list        
+    points = np.array([X.flatten(), Y.flatten(), Z.flatten()]).T
+
+    # Determine the number of points and cells per element
+    n_cell_x = nx - 1
+    n_cell_y = ny - 1
+    n_cell_z = nz - 1
+    n_cell_per_elem = n_cell_x * n_cell_y * n_cell_z
+    n_cell_local = nelv * n_cell_per_elem
+
+    VTK_HEXAHEDRON = 12
+    VTK_CELL_POINTS = 8
+    types = np.full(n_cell_local, VTK_HEXAHEDRON, dtype=np.uint8)
+
+    connectivity = []
+    for e in range(nelv):
+        for kz in range(n_cell_z):
+            for jy in range(n_cell_y):
+                for ix in range(n_cell_x):
+                    v0 = elem_kji_to_id(e, ix,   jy,   kz,   nz, ny, nx)
+                    v1 = elem_kji_to_id(e, ix+1, jy,   kz,   nz, ny, nx)
+                    v2 = elem_kji_to_id(e, ix+1, jy+1, kz,   nz, ny, nx)
+                    v3 = elem_kji_to_id(e, ix,   jy+1, kz,   nz, ny, nx)
+                    v4 = elem_kji_to_id(e, ix,   jy,   kz+1, nz, ny, nx)
+                    v5 = elem_kji_to_id(e, ix+1, jy,   kz+1, nz, ny, nx)
+                    v6 = elem_kji_to_id(e, ix+1, jy+1, kz+1, nz, ny, nx)
+                    v7 = elem_kji_to_id(e, ix,   jy+1, kz+1, nz, ny, nx)
+                    connectivity.extend([v0, v1, v2, v3, v4, v5, v6, v7])
+
+    connectivity = np.asarray(connectivity, dtype=np.int64)   # length 8*ncells
+    offsets = np.arange(0, VTK_CELL_POINTS*n_cell_local + 1, VTK_CELL_POINTS, dtype=np.int64)   # length ncells+1
+    
+    NumberOfPoints = (points.shape[0],)
+    NumberOfCells = (n_cell_local,)
+    NumberOfConnectivityIds = (connectivity.size,)
+
+    return {
+        "Points": points,
+        "Connectivity": connectivity,
+        "Offsets": offsets,
+        "Types": types,
+        "NumberOfPoints": NumberOfPoints,
+        "NumberOfCells": NumberOfCells,
+        "NumberOfConnectivityIds": NumberOfConnectivityIds,
+        "shape": (nelv, nz, ny, nx),
+    }
+
 def set_up_hex_vtk_mesh_parallel(comm: MPI.Comm, X : np.ndarray, Y: np.ndarray, Z: np.ndarray, distributed_axis: int):
     """Set up the mesh in parallel"""
     
@@ -240,9 +307,78 @@ def set_up_hex_vtk_mesh_parallel(comm: MPI.Comm, X : np.ndarray, Y: np.ndarray, 
             "NumberOfCells": NumberOfCells, 
             "NumberOfConnectivityIds": NumberOfConnectivityIds,
             "shape": (n_pts_x_global, n_pts_y, n_pts_z)}
+
+def set_up_hex_vtk_mesh_sem_parallel(comm: MPI.Comm, X: np.ndarray, Y: np.ndarray, Z: np.ndarray):
+    """Build vtk needed data for SEM-like meshes - serial"""
+
+    if X.ndim != 4 or Y.ndim != 4 or Z.ndim != 4:
+        raise ValueError("X, Y, and Z should be 4D arrays with shape (nelv, nz, ny, nx)")
+
+    nelv, nz, ny, nx = X.shape
+    if nx < 2 or ny < 2 or nz < 2:
+        raise ValueError("Each element must have at least 2 points in each direction")
+
+    # Get the point list        
+    points = np.array([X.flatten(), Y.flatten(), Z.flatten()]).T
+
+    # Determine the number of points and cells per element
+    n_cell_x = nx - 1
+    n_cell_y = ny - 1
+    n_cell_z = nz - 1
+    n_cell_per_elem = n_cell_x * n_cell_y * n_cell_z
+    n_cell_local = nelv * n_cell_per_elem
+    nelv_offset = comm.scan(nelv) - nelv
+    
+    # Determine global and offsets for nells
+    n_pts_global = comm.allreduce(points.shape[0], op=MPI.SUM)
+    nelv_global = comm.allreduce(nelv, op=MPI.SUM)
+    n_cell_global = comm.allreduce(n_cell_local, op=MPI.SUM)
+
+    VTK_HEXAHEDRON = 12
+    VTK_CELL_POINTS = 8
+    types = np.full(n_cell_local, VTK_HEXAHEDRON, dtype=np.uint8)
+
+    connectivity = []
+    for e in range(nelv):
+        for kz in range(n_cell_z):
+            for jy in range(n_cell_y):
+                for ix in range(n_cell_x):
+                    v0 = elem_kji_to_id(e + nelv_offset, ix,   jy,   kz,   nz, ny, nx)
+                    v1 = elem_kji_to_id(e + nelv_offset, ix+1, jy,   kz,   nz, ny, nx)
+                    v2 = elem_kji_to_id(e + nelv_offset, ix+1, jy+1, kz,   nz, ny, nx)
+                    v3 = elem_kji_to_id(e + nelv_offset, ix,   jy+1, kz,   nz, ny, nx)
+                    v4 = elem_kji_to_id(e + nelv_offset, ix,   jy,   kz+1, nz, ny, nx)
+                    v5 = elem_kji_to_id(e + nelv_offset, ix+1, jy,   kz+1, nz, ny, nx)
+                    v6 = elem_kji_to_id(e + nelv_offset, ix+1, jy+1, kz+1, nz, ny, nx)
+                    v7 = elem_kji_to_id(e + nelv_offset, ix,   jy+1, kz+1, nz, ny, nx)
+                    connectivity.extend([v0, v1, v2, v3, v4, v5, v6, v7])
+
+    connectivity = np.asarray(connectivity, dtype=np.int64)   # length 8*ncells
+    conn_start = comm.scan(connectivity.size) - connectivity.size
+    offsets_local = (np.arange(0, VTK_CELL_POINTS*n_cell_local + 1, VTK_CELL_POINTS, dtype=np.int64) + conn_start)
+    offsets = offsets_local[:-1]   # length = n_cell_total - Total offsets need to be n_cell_total + 1, but we fix later
+    
+    NumberOfPoints = (n_pts_global,)
+    NumberOfCells = (n_cell_global,)
+    NumberOfConnectivityIds = (comm.allreduce(connectivity.size, op=MPI.SUM),)
+
+    return {
+        "Points": points,
+        "Connectivity": connectivity,
+        "Offsets": offsets,
+        "Types": types,
+        "NumberOfPoints": NumberOfPoints,
+        "NumberOfCells": NumberOfCells,
+        "NumberOfConnectivityIds": NumberOfConnectivityIds,
+        "shape": (nelv_global, nz, ny, nx),
+    }
+
     
 def ijk_to_id(i, j, k, ny, nz):
     return i*(ny*nz) + j*nz + k
+
+def elem_kji_to_id(e: int, ix: int, jy: int, kz: int, nz: int, ny: int, nx: int) -> int:
+    return e * (nz * ny * nx) + kz * (ny * nx) + jy * nx + ix
 
 def ijk_to_id_mpi(i, j, k, ny, nz, parallel_axis, offset):
     if parallel_axis == 0:
