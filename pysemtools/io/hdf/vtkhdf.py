@@ -41,6 +41,35 @@ class VTKHDFFile(HDF5File):
         if self.mode == "w":
             write_headers(self.active_group)
 
+    def read_mesh_data(self, dtype : np.dtype = np.double, distributed_axis: int = 0):
+        """ Read the mesh data from the hdf5 file
+        
+        Parameters
+        ----------
+        dtype : np.dtype
+            Data type to read the mesh data as. Should be a floating point type.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. Should be 0 for now.
+        
+        Returns
+        -------
+        x : np.ndarray
+            The x coordinates of the mesh points.
+        y : np.ndarray
+            The y coordinates of the mesh points.
+        z : np.ndarray
+            The z coordinates of the mesh points.
+        """
+
+        if distributed_axis != 0:
+            raise NotImplementedError("Distributed axis other than 0 is not implemented for the read_mesh_data function")
+
+        # Read the mesh data
+        self.set_active_group("/VTKHDF") 
+        points = self.read_dataset("Points", dtype=dtype, distributed_axis=distributed_axis)
+        
+        return points[...,0], points[...,1], points[...,2]
+
     def write_mesh_data(self, mesh: dict, distributed_axis: int = 0):
         """ Write the mesh data to the hdf5 file
         
@@ -81,7 +110,8 @@ class VTKHDFFile(HDF5File):
         self.shape = vtk_data.pop("shape")
 
         # Write the mesh data
-        self.write_dataset("Points", vtk_data.pop("Points"), distributed_axis=distributed_axis)
+        mesh_shape = [axs for axs in self.shape] + [3]
+        self.write_dataset("Points", vtk_data.pop("Points"), distributed_axis=distributed_axis, shape_in_ram=mesh_shape)
         self.write_dataset("Connectivity", vtk_data.pop("Connectivity"), distributed_axis=distributed_axis)
         self.write_dataset("Types", vtk_data.pop("Types"), distributed_axis=distributed_axis)
         extra_global_entries = [1] if self.parallel else [0]
