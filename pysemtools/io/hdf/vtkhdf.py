@@ -68,13 +68,19 @@ class VTKHDFFile(HDF5File):
         
         return points[...,0], points[...,1], points[...,2]
 
-    def write_mesh_data(self, mesh: dict, distributed_axis: int = 0):
+    def write_mesh_data(self, x: np.ndarray, y: np.ndarray, z: np.ndarray, distributed_axis: int = 0):
         """ Write the mesh data to the hdf5 file
         
         Parameters
         ----------
-        mesh : dict
-            Dictionary containing the mesh information. Should contain the keys "x", "y", and "z" for the coordinates of the mesh points.
+        x : np.ndarray
+            The x coordinates of the mesh points.
+        y : np.ndarray
+            The y coordinates of the mesh points.
+        z : np.ndarray
+            The z coordinates of the mesh points.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. Should be 0 for now.
         """
 
         if distributed_axis != 0:
@@ -83,19 +89,19 @@ class VTKHDFFile(HDF5File):
         # =================
         # Serial vtk set up
         # =================
-        if mesh["x"].ndim == 3:
+        if x.ndim == 3:
             if not self.parallel:
-                vtk_data = set_up_hex_vtk_mesh_serial(mesh["x"], mesh["y"], mesh["z"])
+                vtk_data = set_up_hex_vtk_mesh_serial(x, y, z)
             else:
-                vtk_data = set_up_hex_vtk_mesh_parallel(self.comm, mesh["x"], mesh["y"], mesh["z"], distributed_axis)
-        elif mesh["x"].ndim == 4:
+                vtk_data = set_up_hex_vtk_mesh_parallel(self.comm, x, y, z, distributed_axis)
+        elif x.ndim == 4:
             if not self.parallel:
-                vtk_data = set_up_hex_vtk_mesh_sem_serial(mesh["x"], mesh["y"], mesh["z"])
+                vtk_data = set_up_hex_vtk_mesh_sem_serial(x, y, z)
             else:
-                vtk_data = set_up_hex_vtk_mesh_sem_parallel(self.comm, mesh["x"], mesh["y"], mesh["z"])
+                vtk_data = set_up_hex_vtk_mesh_sem_parallel(self.comm, x, y, z)
 
         else:
-            raise NotImplementedError("Only structured meshes with 3D coordinates are currently supported for the write_mesh_data function")
+            raise NotImplementedError("Only structured meshes with 3D/4D coordinates are currently supported for the write_mesh_data function")
 
         # Write the mesh metadata
         self.set_active_group("/VTKHDF")

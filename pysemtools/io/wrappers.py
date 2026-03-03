@@ -238,7 +238,7 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
             raise ValueError("A mesh object must be provided to write a vtkhdf file")
         
         file = VTKHDFFile(comm, fname, "w", parallel_io)
-        file.write_mesh_data({"x": msh[0], "y": msh[1], "z": msh[2]}, distributed_axis=distributed_axis)
+        file.write_mesh_data(msh[0], msh[1], msh[2], distributed_axis=distributed_axis)
 
         for key in data_dict.keys():
             file.write_point_data(key, data_dict[key].astype(dtype), distributed_axis=distributed_axis)
