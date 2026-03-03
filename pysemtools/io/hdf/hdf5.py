@@ -109,8 +109,23 @@ class HDF5File:
 
         self.log.toc(message=f"{self.fname} closed")
 
-    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None):
-        """ Read a dataset from the hdf5 file object 
+    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_1d_in_file: bool = False):
+        """ Read a dataset from the hdf5 file object
+
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to read. Can include the group path, e.g. "/group1/group2/dataset".
+        dtype : np.dtype
+            Data type to read the dataset in. Default is np.double.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. This is required for parallel reading. Default is None.
+        slices : list
+            Optional. List of slices to read from the dataset. In case it is known
+        as_1d_in_file : bool
+            Optional. default is False. Whether the data is stored as 1D in the file. This is useful if originally the data had a different shape
+            but was flattened to 1d before writing. This will use the shape attribute stored in the file to do the partioning
+            but will keep in mind that the data is stored as a 1d array to read properly.
         """
 
         if self.mode != "r":
@@ -143,11 +158,18 @@ class HDF5File:
         # Parallel read 
         # =============
         else:
+
+            # Get the global shape from the file
+            if "shape" in self.active_group[dataset_name].attrs:
+                global_shape = self.active_group[dataset_name].attrs["shape"]
+            else:
+                global_shape = self.active_group[dataset_name].shape
+
             # Set slices
             if slices is None:
-                self.set_read_slices_linear_lb(global_shape=self.active_group[dataset_name].shape, distributed_axis=distributed_axis, explicit_strides=False)
+                self.set_read_slices_linear_lb(global_shape=global_shape, distributed_axis=distributed_axis, explicit_strides=as_1d_in_file)
             else:
-                self.set_read_slices_external(global_shape=self.active_group[dataset_name].shape, slices=slices)
+                self.set_read_slices_external(global_shape=global_shape, slices=slices)
             
             local_data = self.read_slices(dataset_name, dtype=dtype)
 
@@ -242,8 +264,25 @@ class HDF5File:
 
         return local_data.reshape(self.local_shape)
 
-    def write_dataset(self, dataset_name: str, data: np.ndarray, distributed_axis: int = None):
+    def write_dataset(self, dataset_name: str, data: np.ndarray, distributed_axis: int = None, extra_global_entries: list[int] = None, shape_in_ram: tuple = None):
         """ Write a dataset to the hdf5 file object 
+
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset to write. Can include the group path, e.g. "/group1/group2/dataset".
+        data : np.ndarray
+            Data to write to the file.
+        distributed_axis : int
+            Axis along which the data is distributed in parallel. This is required for parallel writing. Default is None.
+        extra_global_entries : list[int]
+            Optional. List of extra entries to add to the global shape of the dataset. This is useful
+            if the ranks are writing a certain amount of data but the global array should be bigger than 
+            what they collectively write.
+        shape_in_ram : tuple
+            Optional. Shape of the data in RAM. This is useful if the data is stored in a different shape that
+            it originally had, for example, if it is stored in a 1d array but originally it had a different shape.
+            this will be the shape that is stored in the file in the attribute "shape" and can be used to reshape the data when reading it.
         """
 
         if self.mode != "w":
@@ -264,17 +303,21 @@ class HDF5File:
         # Serial write 
         # ============
         if not self.parallel:
-            self.active_group.create_dataset(dataset_name, data=data, dtype=data.dtype)
+            dset = self.active_group.create_dataset(dataset_name, data=data, dtype=data.dtype)
+            if shape_in_ram is not None:
+                dset.attrs["shape"] = shape_in_ram
+            else:
+                dset.attrs["shape"] = data.shape
 
         # ==============
         # Parallel write 
         # ==============
         else:
             # Set slices 
-            self.set_write_slices(local_shape=data.shape, distributed_axis=distributed_axis, extra_global_entries=None)
+            self.set_write_slices(local_shape=data.shape, distributed_axis=distributed_axis, extra_global_entries=extra_global_entries)
     
             # Write the slices
-            self.write_slices(dataset_name, data)
+            self.write_slices(dataset_name, data, shape_in_file=shape_in_ram)
  
     def set_write_slices(self, local_shape: tuple, distributed_axis: int, extra_global_entries: list[int] = None):
         """Set the slices that should be written to the file."""
@@ -307,7 +350,7 @@ class HDF5File:
         self.local_shape = local_shape
         self.local_alloc_shape = None
         
-    def write_slices(self, dataset_name: str, data: np.ndarray):
+    def write_slices(self, dataset_name: str, data: np.ndarray, shape_in_file: tuple = None):
         """Write the slices that should be written to the file. This is useful if the slices have been set using set_write_slices and we want to write the same slices again."""
         if self.slices is None:
             raise ValueError("Slices have not been set")
@@ -316,4 +359,8 @@ class HDF5File:
 
         dset = self.active_group.create_dataset(dataset_name, shape=self.global_shape, dtype=data.dtype)
         dset[self.slices] = data
+        if shape_in_file is not None:
+            dset.attrs["shape"] = shape_in_file
+        else:
+            dset.attrs["shape"] = self.global_shape
             
