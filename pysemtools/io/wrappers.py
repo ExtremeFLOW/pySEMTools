@@ -1,5 +1,6 @@
 """Wrappers to ease IO"""
 
+import sys
 from typing import Union
 import os
 import h5py
@@ -10,6 +11,8 @@ from .ppymech.neksuite import pynekread, pynekwrite
 import numpy as np
 from mpi4py import MPI
 from ..monitoring.logger import Logger
+from .hdf.hdf5 import HDF5File
+from .hdf.vtkhdf import VTKHDFFile
 
 def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):
     """
@@ -103,81 +106,13 @@ def read_data(comm, fname: str, keys: list[str], parallel_io: bool = False, dtyp
 
     # Read the data
     if extension == 'hdf5':
-        if parallel_io:
-            #raise NotImplementedError("Parallel IO is not implemented for hdf5 files")
-            with h5py.File(fname, 'r', driver='mpio', comm=comm) as f:
-                data = {}
-                for key in keys:
-
-                    # If the slices are not provided, determine the local data to read
-                    if slices is None:
-
-                        # Get the global array shape and sizes
-                        global_array_shape = f[key].shape
-                        # Determine how many axis zero elements to get locally
-                        # This corresponds to a linearly load balanced partitioning
-                        i_rank = comm.Get_rank()
-                        m = global_array_shape[distributed_axis]
-                        pe_rank = i_rank
-                        pe_size = comm.Get_size()
-                        ip = np.floor(
-                            (
-                                np.double(m)
-                                + np.double(pe_size)
-                                - np.double(pe_rank)
-                                - np.double(1)
-                            )
-                            / np.double(pe_size)
-                        )
-                        local_axis_0_shape = int(ip)
-                        #determine the offset
-                        offset = comm.scan(local_axis_0_shape) - local_axis_0_shape
-
-                        # Determine the local array shape
-                        temp = list(global_array_shape)
-                        temp[distributed_axis] = local_axis_0_shape
-                        local_array_shape = tuple(temp)
-                        
-                        # Get the slice of the data that should be read
-                        slices = [slice(None) for i in range(len(global_array_shape))]
-                        slices[distributed_axis] = slice(offset, offset + local_array_shape[distributed_axis])                    
-
-                    # Otherwise, if the slices are provided, use them to read the data.
-                    else:
-
-                        # Get the global array shape and sizes
-                        global_array_shape = f[key].shape
-
-                        local_array_shape = []
-                        for i in range(len(global_array_shape)):
-                            if isinstance(slices[i], slice) and slices[i].start is not None and slices[i].stop is not None:
-                                local_array_shape.append(slices[i].stop - slices[i].start)
-                            elif isinstance(slices[i], slice) and slices[i].start is None and slices[i].stop is None:
-                                local_array_shape.append(global_array_shape[i])
-
-                        local_array_shape = tuple(local_array_shape)
-                    
-                    # Allocate the local data array
-                    local_data = np.empty(local_array_shape, dtype=dtype)
-
-                    # Read the data
-                    local_data[:] = f[key][tuple(slices)]
-
-                    # Store the data
-                    data[key] = local_data
-
-        else:
-            with h5py.File(fname, 'r') as f:
-                data = {}
-                for key in keys:
-                    if slices is None:
-                        data[key] = f[key][:]
-                    else:
-                        if not len(slices) == f[key].ndim:
-                            raise ValueError("The number of slices provided does not match the number of dimensions in the data.")
-                        else:
-                            data[key] = f[key][tuple(slices)]
-    
+        
+        file = HDF5File(comm, fname, "r", parallel_io)
+        data = {}
+        for key in keys:
+            data[key] = file.read_dataset(key, dtype=dtype, distributed_axis=distributed_axis)
+        file.close()
+ 
     elif extension[0] == 'f':
         
         data = {}
@@ -202,7 +137,17 @@ def read_data(comm, fname: str, keys: list[str], parallel_io: bool = False, dtyp
                 # Read the field
                 fld.add_field(comm, field_name=key, file_type="fld", file_name=fname, file_key=key, dtype=dtype)
                 data[key] = np.copy(fld.registry[key])
-                fld.clear()         
+                fld.clear() 
+
+    elif extension == 'vtkhdf':        
+        
+        file = VTKHDFFile(comm, fname, "r", parallel_io)
+        data = {}
+        for key in keys:
+            data[key] = file.read_point_data(key, dtype=dtype, distributed_axis=distributed_axis)
+            print(data[key].shape)
+        file.close()
+
 
     return data 
 
@@ -231,70 +176,28 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
         If True, the global shape of the data is assumed to be uniform, by default False
     """
 
+    if uniform_shape:
+        raise NotImplementedError("Uniform shape was deprecated for now.")
+
     # Check the file extension
     path = os.path.dirname(fname)
     prefix = os.path.basename(fname).split('.')[0]
     extension = os.path.basename(fname).split('.')[1]
 
-    log = Logger(comm=comm, module_name="write_data")
-    log.tic()
-    log.write("info", "Writing file: {}".format(fname))
-
     # Write the data
     if (extension == 'hdf5') or (extension == 'h5'):
 
+        file = HDF5File(comm, fname, "w", parallel_io)
+
         if write_mesh:
-            data_dict["x"] = msh[0]
-            data_dict["y"] = msh[1]
-            data_dict["z"] = msh[2]
+            file.write_dataset("x", msh[0], dtype=dtype, distributed_axis=distributed_axis)
+            file.write_dataset("y", msh[1], dtype=dtype, distributed_axis=distributed_axis)
+            file.write_dataset("z", msh[2], dtype=dtype, distributed_axis=distributed_axis)
 
-        if parallel_io:
-            # Create a new HDF5 file using the MPI communicator
-            with h5py.File(fname, 'w', driver='mpio', comm=comm) as f:
-
-                # Always set the global shape to be initialized
-                global_shape_init = False
-
-                for key in data_dict.keys():
-                    
-                    data = data_dict[key]
-
-                    # Find the global shape of the arrays
-                    if (not global_shape_init):
-
-                        # Determine local sizes
-                        local_array_shape = data.shape
-                        local_array_size = data.size
-
-                        # Obtain the total number of entries in the array    
-                        global_axis_0_shape = np.array(comm.allreduce(local_array_shape[distributed_axis], op=MPI.SUM))
-                        # Obtain the offset in the file
-                        offset = comm.scan(local_array_shape[distributed_axis]) - local_array_shape[distributed_axis]
-                        
-                        # Set the global size
-                        temp = list(local_array_shape)
-                        temp[distributed_axis] = global_axis_0_shape
-                        global_array_shape = tuple(temp)
-
-                        # Get the slice where the data should be written
-                        slices = [slice(None) for i in range(len(global_array_shape))]
-                        slices[distributed_axis] = slice(offset, offset + local_array_shape[distributed_axis])
-
-                        # If the data is uniform, lock this global shape.
-                        if uniform_shape:
-                            global_shape_init = True                    
-                    
-                    # Create the data set and assign the data
-                    dset = f.create_dataset(key, global_array_shape, dtype=data.dtype)
-                    dset[tuple(slices)] = data
-        else:
-            with h5py.File(fname, 'w') as f:
-                for key in data_dict.keys():
-                    data = data_dict[key]
-                    dset = f.create_dataset(key, data=data, dtype=data.dtype)
-
-        log.write("debug", "File written")
-        log.toc()
+        for key in data_dict.keys():
+            file.write_dataset(key, data_dict[key].astype(dtype), distributed_axis=distributed_axis)
+        
+        file.close()
 
     elif extension[0] == 'f':
         if msh is None:
@@ -313,6 +216,20 @@ def write_data(comm, fname: str, data_dict: dict[str, np.ndarray], parallel_io: 
             wdsz = 8
 
         pynekwrite(fname, comm, msh=msh, fld=fld, wdsz=wdsz, write_mesh=write_mesh)
+
+    # Write the data
+    elif (extension == 'vtkhdf'):
+
+        if msh is None:
+            raise ValueError("A mesh object must be provided to write a vtkhdf file")
+        
+        file = VTKHDFFile(comm, fname, "w", parallel_io)
+        file.write_mesh_data(msh[0], msh[1], msh[2], distributed_axis=distributed_axis)
+
+        for key in data_dict.keys():
+            file.write_point_data(key, data_dict[key].astype(dtype), distributed_axis=distributed_axis)
+
+        file.close()
 
     else:
         raise ValueError("The file extension is not supported")
