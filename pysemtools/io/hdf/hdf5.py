@@ -96,6 +96,9 @@ class HDF5File:
             the MPI-IO driver. If False, the file will be opened using the default driver.
         """
 
+        # Close the file if it is already open
+        self.close()
+
         self.log.tic() 
         self.fname = fname
         if mode not in ["r", "w"]:
@@ -128,7 +131,11 @@ class HDF5File:
             file object will be reused to open another file after closing the current one. Default is False.
         
         """
-        self.file.close()
+        if self.file is not None:
+            self.file.close()
+            self.file = None
+        else:
+            return
 
         if clean:
             self.global_shape = None
