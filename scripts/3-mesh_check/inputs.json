@@ -1,0 +1,10 @@
+{
+    "spectral_element_mesh_fname" : "/home/adperez/software/pySEMTools/examples/data/sem_data/instantaneous/channel_nelv_512/field0.f01601",
+    "spectral_element_mesh_type_in_memory" : "double",
+    "msh_check_output_fname" : "msh_check0.f00001",
+    "file_index" : "/home/adperez/software/pySEMTools/examples/data/sem_data/instantaneous/cylinder_rbc_nelv_600/field_index.json",
+    "calculate_dissipation": true,
+    "dissipation_keys": ["s11, s12"],
+    "pr" : 1,
+    "ra" : 1e9
+}

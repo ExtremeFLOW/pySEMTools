@@ -12,7 +12,7 @@ comm = MPI.COMM_WORLD
 if comm.Get_size() > 1:
     raise ValueError("This example is designed to run with one rank only")
 
-import pynektools.interpolation.pointclouds as pcs
+import pysemtools.interpolation.pointclouds as pcs
 
 def main():
 
@@ -39,9 +39,9 @@ def main():
     dz_1d  = pcs.generate_1d_diff(z_1d, periodic=inputs["dir_3"]["periodic"])
 
     # Generate a 3D mesh
-    r, th, z = np.meshgrid(r_1d, th_1d, z_1d, indexing='ij')
+    z, th, r = np.meshgrid(z_1d, th_1d, r_1d, indexing='ij')
     # Generate 3D differentials
-    dr, dth, dz = np.meshgrid(dr_1d, dth_1d, dz_1d, indexing='ij')
+    dz, dth, dr = np.meshgrid(dz_1d, dth_1d, dr_1d, indexing='ij')
 
     # Generate xy coordinates, which are needed for probes
     x = r*np.cos(th)

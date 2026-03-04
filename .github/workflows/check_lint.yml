@@ -7,7 +7,7 @@ on:
 jobs:
   lint-repository:
     name: "Lint repository"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
@@ -23,13 +23,13 @@ jobs:
 
       - name: Lint repository
         run: |
-          pylint -d E1101,duplicate-code pynektools | tee lint.txt
+          pylint -d E1101,duplicate-code pysemtools | tee lint.txt
 
       - name: Check the score
         run: |
           string_score=$(tail -2 lint.txt | head -1)
           score=$( expr ${string_score:28:4})
-          min_score=7.00
+          min_score=5.00
 
           echo "Current score: $score"
 

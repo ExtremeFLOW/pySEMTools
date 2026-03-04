@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'PyNekTools'
+project = 'PySEMTools'
 copyright = '2024, Neko authors'
 author = 'Neko authors'
 release = 'develop'
@@ -15,6 +15,9 @@ release = 'develop'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = ['numpydoc', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.githubpages', 'sphinx_rtd_theme', 'nbsphinx']
+
+autosummary_generate = True
+autosummary_ignore_module_all = False
 
 templates_path = ['_templates']
 exclude_patterns = []

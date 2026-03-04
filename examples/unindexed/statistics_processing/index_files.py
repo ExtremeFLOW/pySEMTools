@@ -1,6 +1,6 @@
 from mpi4py import MPI
 import os
-from pynektools.postprocessing.file_indexing import index_files_from_folder
+from pysemtools.postprocessing.file_indexing import index_files_from_folder
 
 # Get communicator
 comm = MPI.COMM_WORLD

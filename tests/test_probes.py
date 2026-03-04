@@ -1,18 +1,26 @@
+try: 
+    import torch
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    have_torch = True
+except ImportError:
+    print('could not import torch')
+    have_torch = False
+
 from mpi4py import MPI #equivalent to the use of MPI_init() in C
 comm = MPI.COMM_WORLD
 
 import numpy as np
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import pynekread, pynekwrite
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.field import Field
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.field import Field
 # Import types asociated with interpolation
-from pynektools.interpolation.probes import Probes
-import pynektools.interpolation.utils as interp_utils
-import pynektools.interpolation.pointclouds as pcs
-from pynektools.monitoring.logger import Logger
-from pynektools.monitoring.memory_monitor import MemoryMonitor
-from pynektools.interpolation.mesh_to_mesh import PRefiner
+from pysemtools.interpolation.probes import Probes
+import pysemtools.interpolation.utils as interp_utils
+import pysemtools.interpolation.pointclouds as pcs
+from pysemtools.monitoring.logger import Logger
+from pysemtools.monitoring.memory_monitor import MemoryMonitor
+from pysemtools.interpolation.mesh_to_mesh import PRefiner
 
 log = Logger(comm=comm, module_name="main")
 log.write("info", "Starting execution")
@@ -69,30 +77,36 @@ def test_probes_msh_single():
 
     # Create the probes object
     tlist = []
-    point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    if have_torch:
+        point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    else:
+        point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy"]
     global_tree_type_l = ["rank_bbox", "domain_binning"]
+    local_data_structure_l = ["kdtree", "rtree", "hashtable"]
     find_points_iterative = [[False], [True, 1]]
 
     for point_int in point_int_l:
         for global_tree_type in global_tree_type_l:
             for find_points_it in find_points_iterative:
-                # Create the probes object
-                log.write("warning", f"Creating probes with point_int = {point_int} and global_tree_type = {global_tree_type} and find_points_it = {find_points_it}")
-                log.tic()
-                probes = Probes(comm, probes=xyz, msh=msh, point_interpolator_type=point_int, find_points_comm_pattern="point_to_point", global_tree_type=global_tree_type, find_points_iterative=find_points_it)    
+                for local_data_structucture in local_data_structure_l:
+                    # Create the probes object
+                    log.write("warning", f"Creating probes with point_int = {point_int} and global_tree_type = {global_tree_type} and find_points_it = {find_points_it}")
+                    log.tic()
+                    probes = Probes(comm, probes=xyz, msh=msh, point_interpolator_type=point_int, find_points_comm_pattern="point_to_point", global_tree_type=global_tree_type,
+                                    global_tree_nbins=9, find_points_iterative=find_points_it, local_data_structure=local_data_structucture)    
 
-                # Interpolate the data
-                probes.interpolate_from_field_list(0, [msh.x, msh.y, msh.z], comm, write_data=False)
+                    # Interpolate the data
+                    probes.interpolate_from_field_list(0, [msh.x, msh.y, msh.z], comm, write_data=False)
 
-                passed = False
-                if comm.Get_rank() == 0: 
+                    passed = False
+                    if comm.Get_rank() == 0: 
 
-                    passed = np.allclose(probes.interpolated_fields[:,1:], xyz, atol=1e-7)
+                        passed = np.allclose(probes.interpolated_fields[:,1:], xyz, atol=1e-7)
 
-                log.write("warning", f"Test passed = {passed}")
-                log.toc()
-                tlist.append(passed)
-    
+                    log.write("warning", f"Test passed = {passed}")
+                    log.toc()
+                    tlist.append(passed)
+        
 
     passed = np.all(tlist)
 
@@ -170,8 +184,12 @@ def test_probes_msh_double():
 
     # Create the probes object
     tlist = []
-    point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
-    point_int_l = ["multiple_point_legendre_torch"]
+    #point_int_l = ["single_point_legendre", "multiple_point_legendre_numpy", "multiple_point_legendre_torch"]
+    if have_torch:
+        point_int_l = ["multiple_point_legendre_torch"]
+    else:
+        point_int_l = ["multiple_point_legendre_numpy"]
+
     global_tree_type_l = ["rank_bbox", "domain_binning"]
 
     for point_int in point_int_l:
@@ -179,7 +197,8 @@ def test_probes_msh_double():
             # Create the probes object
             log.write("warning", f"Creating probes with point_int = {point_int} and global_tree_type = {global_tree_type}")
             log.tic()
-            probes = Probes(comm, probes=xyz, msh=msh, point_interpolator_type=point_int, find_points_comm_pattern="point_to_point", global_tree_type=global_tree_type)    
+            probes = Probes(comm, probes=xyz, msh=msh, point_interpolator_type=point_int, find_points_comm_pattern="point_to_point", global_tree_type=global_tree_type,
+                            global_tree_nbins=9)    
 
             # Interpolate the data
             probes.interpolate_from_field_list(0, [msh.x, msh.y, msh.z], comm, write_data=False)

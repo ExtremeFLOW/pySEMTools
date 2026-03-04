@@ -7,7 +7,7 @@ For this case we do not provide notebooks, as the examples are meant to be run a
 
 We heavily comment the python notebook and provide here some take aways.
 
-1. In pyNekTools we have implemented the Router class
+1. In pySEMTools we have implemented the Router class
     - The router class contains wrappers for mpi all_to_all, Scatterv, GatherV, AllgatherV and a all_to_all implementation using isend/irecv
     - In all cases the data is returned as an array of 1 dimension, meaning that it is always necesary to reshape data upon recieveing it.
     - gathering and scattering operations accept data directly

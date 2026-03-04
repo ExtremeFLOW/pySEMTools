@@ -1,6 +1,6 @@
 from mpi4py import MPI
-from pynektools.postprocessing.statistics.time_averaging import average_field_files
-from pynektools.postprocessing.file_indexing import index_files_from_folder
+from pysemtools.postprocessing.statistics.time_averaging import average_field_files
+from pysemtools.postprocessing.file_indexing import index_files_from_folder
 
 # Get communicator
 comm = MPI.COMM_WORLD

@@ -23,6 +23,10 @@ comm = worldcomm.Split(col,worldrank)
 rank = comm.Get_rank()
 size = comm.Get_size()
 
+#=========================================
+# Define inputs
+#=========================================
+
 # Open input file to see path
 f = open ("inputs.json", "r")
 params_file = json.loads(f.read())
@@ -35,45 +39,58 @@ number_of_pod_fields = len(pod_fields)
 pod_batch_size = params_file["batch_size"]
 pod_keep_modes = params_file["keep_modes"]
 pod_write_modes = params_file["write_modes"]
+dtype_string = params_file.get("dtype", "double")
+backend = params_file.get("backend", "numpy")
+if dtype_string == "single":
+    dtype = np.float32
+else:
+    dtype = np.float64
 
 # Import IO helper functions
-from pynektools.io.utils import get_fld_from_ndarray, IoPathData
+from pysemtools.io.utils import get_fld_from_ndarray, IoPathData
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
 # Import the data types
-from pynektools.datatypes.msh import Mesh
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.field import Field
-from pynektools.datatypes.utils import create_hexadata_from_msh_fld
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.field import Field, FieldRegistry
+from pysemtools.datatypes.utils import create_hexadata_from_msh_fld
 # Import types asociated with POD
-from pynektools.rom.pod import POD
-from pynektools.rom.io_help import IoHelp
+from pysemtools.rom.pod import POD
+from pysemtools.rom.io_help import IoHelp
 
 # Start time
 start_time = MPI.Wtime()
+
+#=========================================
+# Get the mesh
+#=========================================
 
 # Read the data paths from the input file
 mesh_data = IoPathData(params_file["IO"]["mesh_data"])
 field_data = IoPathData(params_file["IO"]["field_data"])
 
+#=========================================
+# Initialize the POD
+#=========================================
+
 # Instance the POD object
-pod = POD(comm, number_of_modes_to_update = pod_keep_modes, global_updates = True, auto_expand = False)
+pod = POD(comm, number_of_modes_to_update = pod_keep_modes, global_updates = True, auto_expand = False, bckend = backend)
 
 # Initialize the mesh file
 path     = mesh_data.dataPath
 casename = mesh_data.casename
 index    = mesh_data.index
 fname    = path+casename+'0.f'+str(index).zfill(5)
-data     = preadnek(fname, comm)
-msh      = Mesh(comm, data = data)
-del data
+msh = Mesh(comm)
+pynekread(fname, comm, data_dtype=dtype, msh = msh)
 
 # Initialize coef to get the mass matrix
 coef = Coef(msh, comm)
 bm = coef.B
 
 # Instance io helper that will serve as buffer for the snapshots
-ioh = IoHelp(comm, number_of_fields = number_of_pod_fields, batch_size = pod_batch_size, field_size = bm.size)
+ioh = IoHelp(comm, number_of_fields = number_of_pod_fields, batch_size = pod_batch_size, field_size = bm.size, field_data_type=dtype, mass_matrix_data_type=dtype)
 
 # Put the mass matrix in the appropiate format (long 1d array)
 mass_list = []
@@ -81,6 +98,10 @@ for i in range(0, number_of_pod_fields):
     mass_list.append(np.copy(np.sqrt(bm)))
 ioh.copy_fieldlist_to_xi(mass_list)
 ioh.bm1sqrt[:,:] = np.copy(ioh.xi[:,:])
+
+#=========================================
+# Perform the streaming of data
+#=========================================
 
 j = 0
 while j < pod_number_of_snapshots:
@@ -90,15 +111,13 @@ while j < pod_number_of_snapshots:
     casename = field_data.casename
     index    = field_data.index
     fname=path+casename+'0.f'+str(index + j).zfill(5)
-    fld_data = preadnek(fname, comm)
-
-    # Get the data in field format
-    fld = Field(comm, data = fld_data)
+    fld = FieldRegistry(comm)
+    pynekread(fname, comm, data_dtype=dtype, fld = fld) 
 
     # Get the required fields
-    u = fld.fields["vel"][0]
-    v = fld.fields["vel"][1]
-    w = fld.fields["vel"][2]
+    u = fld.registry['u']
+    v = fld.registry['v']
+    w = fld.registry['w']
 
     # Put the snapshot data into a column array
     ioh.copy_fieldlist_to_xi([u, v, w])
@@ -112,6 +131,9 @@ while j < pod_number_of_snapshots:
 
     j += 1
 
+#=========================================
+# Perform post-stream operations
+#=========================================
 
 # Check if there is information in the buffer that should be taken in case the loop exit without flushing
 if ioh.buffer_index > ioh.buffer_max_index:
@@ -128,6 +150,10 @@ pod.scale_modes(comm, bm1sqrt = ioh.bm1sqrt, op = "div")
 # Rotate local modes back to global, This only enters in effect if global_update = false
 pod.rotate_local_modes_to_global(comm)
 
+#=========================================
+# Write out the modes
+#=========================================
+
 # Write the data out
 for j in range(0, pod_write_modes):
 
@@ -135,24 +161,21 @@ for j in range(0, pod_write_modes):
 
         ## Split the snapshots into the proper fields
         field_list1d = ioh.split_narray_to_1dfields(pod.u_1t[:,j])
-        u_mode = get_fld_from_ndarray(field_list1d[0], msh.lx, msh.ly, msh.lz, msh.nelv)
-        v_mode = get_fld_from_ndarray(field_list1d[1], msh.lx, msh.ly, msh.lz, msh.nelv)
-        w_mode = get_fld_from_ndarray(field_list1d[2], msh.lx, msh.ly, msh.lz, msh.nelv)
+        u_mode = get_fld_from_ndarray(field_list1d[0], msh.lx, msh.ly, msh.lz, msh.nelv) 
+        v_mode = get_fld_from_ndarray(field_list1d[1], msh.lx, msh.ly, msh.lz, msh.nelv) 
+        w_mode = get_fld_from_ndarray(field_list1d[2], msh.lx, msh.ly, msh.lz, msh.nelv) 
 
-        ## Create an empty field and update its metadata
-        out_fld = Field(comm)
-        out_fld.fields["scal"].append(u_mode)
-        out_fld.fields["scal"].append(v_mode)
-        out_fld.fields["scal"].append(w_mode)
-        out_fld.update_vars()
-
-        ## Create the hexadata to write out
-        out_data = create_hexadata_from_msh_fld(msh = msh, fld = out_fld)
-
-        ## Write out a file
-        fname = "modes0.f"+str(j).zfill(5)
-        pwritenek("./"+fname,out_data, comm)
-        if comm.Get_rank() == 0: print("Wrote file: " + fname)
+        # write the data
+        fld = FieldRegistry(comm)        
+        fld.add_field(comm, field_name = "u", field = u_mode, dtype = dtype)
+        fld.add_field(comm, field_name = "v", field = v_mode, dtype = dtype)
+        fld.add_field(comm, field_name = "w", field = w_mode, dtype = dtype)
+        pynekwrite(f"./modes0.f{str(j).zfill(5)}", comm=comm, msh=msh, fld=fld, wdsz=4, istep = j) 
+        
+#=========================================
+# Write out singular values and right 
+# singular vectors
+#=========================================
 
 # Write the singular values and vectors
 if comm.Get_rank() == 0:

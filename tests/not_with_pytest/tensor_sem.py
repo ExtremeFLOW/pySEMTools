@@ -17,10 +17,10 @@ comm = MPI.COMM_WORLD
 import numpy as np
 
 # Import relevant modules
-from pynektools.interpolation.mesh_to_mesh import PRefiner
-from pynektools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
-from pynektools.io.ppymech.neksuite import preadnek
-from pynektools.datatypes.msh import Mesh as msh_c
+from pysemtools.interpolation.mesh_to_mesh import PRefiner
+from pysemtools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
+from pysemtools.io.ppymech.neksuite import preadnek
+from pysemtools.datatypes.msh import Mesh as msh_c
 
 def test_sem_and_tensor_sem(n_new = 8, elem = 1, max_pts = 1, use_torch = False, verbose = False):
 
@@ -126,8 +126,8 @@ def test_sem_and_tensor_sem(n_new = 8, elem = 1, max_pts = 1, use_torch = False,
         print('=====================')
         print('Now testing: tensor_sem.py: element_interpolator_c')
 
-        from pynektools.interpolation.point_interpolator.multiple_point_interpolator_legendre_numpy import LegendreInterpolator as numpy_tensor_element_interpolator_c
-        from pynektools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator as torch_tensor_element_interpolator_c
+        from pysemtools.interpolation.point_interpolator.multiple_point_interpolator_legendre_numpy import LegendreInterpolator as numpy_tensor_element_interpolator_c
+        from pysemtools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator as torch_tensor_element_interpolator_c
 
         # Instance the tensor interpolator
         max_pts   = max_pts

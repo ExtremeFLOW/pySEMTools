@@ -6,8 +6,15 @@ on:
 
 jobs:
   unit_testing:
-    name: "Unit testing"
+    name: "Unit testing (Python ${{ matrix.python-version }} - ${{ matrix.mpi }})"
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+        mpi: ['mpich', 'openmpi']
+
+      fail-fast: false
 
     steps:
       - name: Checkout
@@ -20,36 +27,38 @@ jobs:
           sudo apt-get update
           
       - name: Setup MPI
-        uses: mpi4py/setup-mpi@v1
-        
+        uses: mpi4py/setup-mpi@v1.2.0
+        with:
+          mpi: ${{ matrix.mpi }}
+
+      - name: Show MPI info
+        run:  mpichversion
+        if:   ${{ matrix.mpi == 'mpich' }}
+
+      - name: Show MPI info
+        run:  ompi_info
+        if:   ${{ matrix.mpi == 'openmpi' }}
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' 
-
-      - name: Upgrade pip
-        run:  python -m pip install -U pip
+          python-version: ${{ matrix.python-version }}
+ 
+      - name: Upgrade pip and set MPICC
+        run: |
+          python -m pip install -U pip
+          echo "MPICC=$(which mpicc)" >> $GITHUB_ENV
           
       - name: Install packages
-        env:
-          MPICC : $(which mpicc)
-        run: |
-          pip install mpi4py==3.1.6 --no-cache-dir
-          pip install numpy
-          pip install scipy
-          pip install pymech==1.5.0
-          pip install tdqm
-          pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install pytest
-          pip install pytest-json-report
-          pip install pympler
-          pip install memory_profiler
-          pip install h5py
-          pip install .
+        run: | 
+          echo "Using MPICC: $MPICC"
+          python3 -m pip install mpi4py --no-cache-dir
+          python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+          python3 -m pip install .[test]
           
       - name: Run unit tests
         run: |
-          pytest --json-report -v tests/ | tee unit_tests.txt
+          python3 -m pytest --json-report -v tests/ | tee unit_tests.txt
       
       - name: Check results
         run: |
@@ -58,6 +67,6 @@ jobs:
       - name: Archive test report
         uses: actions/upload-artifact@v4
         with:
-          name: test-report
+          name: test-report-py${{ matrix.python-version }}_${{ matrix.mpi }}
           path: unit_tests.txt
           retention-days: 5

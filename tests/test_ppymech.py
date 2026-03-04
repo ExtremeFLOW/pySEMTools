@@ -12,7 +12,7 @@ comm = MPI.COMM_WORLD
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.io.ppymech.neksuite import preadnek, pwritenek
+from pysemtools.io.ppymech.neksuite import preadnek, pwritenek
 from pymech.neksuite import readnek, writenek
 
 NoneType = type(None)

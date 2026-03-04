@@ -1,21 +1,35 @@
+try: 
+    import torch
+    have_torch = True
+except ImportError:
+    have_torch = False
+
 from mpi4py import MPI
-import torch
 import math
 import sys
+import pytest
 
-from pynektools.io.ppymech.neksuite import preadnek
-from pynektools.datatypes.msh import Mesh
-from pynektools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator
-from pynektools.interpolation.point_interpolator.multiple_point_helper_functions_torch import legendre_basis_at_xtest, legendre_basis_derivative_at_xtest
-from pynektools.interpolation.point_interpolator.multiple_point_helper_functions_torch import apply_operators_3d
+from pysemtools.io.ppymech.neksuite import preadnek
+from pysemtools.datatypes.msh import Mesh
+if have_torch: 
+    from pysemtools.interpolation.point_interpolator.multiple_point_interpolator_legendre_torch import LegendreInterpolator
+    from pysemtools.interpolation.point_interpolator.multiple_point_helper_functions_torch import legendre_basis_at_xtest, legendre_basis_derivative_at_xtest
+    from pysemtools.interpolation.point_interpolator.multiple_point_helper_functions_torch import apply_operators_3d
 import numpy as np
 
 comm = MPI.COMM_WORLD
-dtype = torch.float
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-if device == 'cuda:0': 
-    torch.cuda.set_device(device)
+
+@pytest.mark.skipif(not have_torch, reason="Only test autograd if PyTorch is available")
 def test_autograd():
+
+    if not have_torch:
+        print("PyTorch is not available, skipping autograd test.")
+        return
+
+    dtype = torch.float64
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if device == 'cuda:0': 
+        torch.cuda.set_device(device)
 
     fname = "examples/data/rbc0.f00001"
     data = preadnek(fname, comm)
@@ -132,3 +146,5 @@ def test_autograd():
     passed = torch.allclose(j_autograd, j_polynomial)
 
     assert passed
+
+test_autograd()

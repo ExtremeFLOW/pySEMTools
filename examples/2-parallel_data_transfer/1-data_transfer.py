@@ -1,5 +1,5 @@
 from mpi4py import MPI
-from pynektools.comm.router import Router
+from pysemtools.comm.router import Router
 import numpy as np
 
 comm = MPI.COMM_WORLD

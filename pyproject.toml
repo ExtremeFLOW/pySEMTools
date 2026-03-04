@@ -3,15 +3,49 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pynektools"
-version = "0.1.0"
+name = "extremeflow-pysemtools"
+version = "1.2.1.dev0"
+readme = "README.md"
 requires-python = ">= 3.10"
 dependencies = [
     "numpy",
     "scipy",
+    "pymech",
+    "tqdm",
+    "mpi4py",
+]
+
+[project.urls]
+Repository = "https://github.com/ExtremeFLOW/pySEMTools.git"
+Issues = "https://github.com/ExtremeFLOW/pySEMTools/issues"
+
+[project.optional-dependencies]
+test = [
+    "extremeflow-pysemtools[torch]",
+    "pytest",
+    "pytest-json-report",
+    "pympler",
+    "memory_profiler",
+    "h5py",
+    "rtree",
+    "jupyter", 
+    "matplotlib",
+    "pyevtk",
+]
+dev = [
     "pre-commit",
-    "pymech <= 1.5.0",
+]
+torch = [
+    "torch",
+    "torchvision",
+    "torchaudio"
+]
+all = [
+    "extremeflow-pysemtools[test]",
+    "extremeflow-pysemtools[dev]"
 ]
 
 [project.scripts]
-pynektools_index-files = "pynektools.cli.index_files:main"
+pysemtools_index-files = "pysemtools.cli.index_files:main"
+pysemtools_visnek = "pysemtools.cli.visnek:main"
+pysemtools_extract_subdomain = "pysemtools.cli.extract_subdomain:main"

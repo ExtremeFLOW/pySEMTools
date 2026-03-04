@@ -7,15 +7,15 @@ import os
 # Import general modules
 import numpy as np
 # Import relevant modules
-from pynektools.io.ppymech.neksuite import pynekread, pynekwrite
-from pynektools.postprocessing.statistics.time_averaging import average_field_files
-from pynektools.postprocessing.file_indexing import index_files_from_folder
-from pynektools.datatypes.field import FieldRegistry, Field
-from pynektools.datatypes.coef import Coef
-from pynektools.datatypes.msh import Mesh
-from pynektools.postprocessing.statistics.space_averaging import *
-from pynektools.comm.router import Router
-from pynektools.monitoring.logger import Logger
+from pysemtools.io.ppymech.neksuite import pynekread, pynekwrite
+from pysemtools.postprocessing.statistics.time_averaging import average_field_files
+from pysemtools.postprocessing.file_indexing import index_files_from_folder
+from pysemtools.datatypes.field import FieldRegistry, Field
+from pysemtools.datatypes.coef import Coef
+from pysemtools.datatypes.msh import Mesh
+from pysemtools.postprocessing.statistics.space_averaging import *
+from pysemtools.comm.router import Router
+from pysemtools.monitoring.logger import Logger
 
 rt = Router(comm)
 logger = Logger(comm=comm, module_name="space_average_field_files")

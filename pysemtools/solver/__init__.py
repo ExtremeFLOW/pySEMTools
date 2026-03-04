@@ -1,0 +1,1 @@
+"""Routines and classes for educational solvers"""

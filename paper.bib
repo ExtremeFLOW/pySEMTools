@@ -6,7 +6,7 @@ number = {3},
 pages = {468-488},
 year = {1984},
 issn = {0021-9991},
-doi = {https://doi.org/10.1016/0021-9991(84)90128-1},
+doi = {10.1016/0021-9991(84)90128-1},
 author = {Anthony T Patera},
 abstract = {A spectral element method that combines the generality of the finite element method with the accuracy of spectral techniques is proposed for the numerical solution of the incompressible Navier-Stokes equations. In the spectral element discretization, the computational domain is broken into a series of elements, and the velocity in each element is represented as a high-order Lagrangian interpolant through Chebyshev collocation points. The hyperbolic piece of the governing equations is then treated with an explicit collocation scheme, while the pressure and viscous contributions are treated implicitly with a projection operator derived from a variational principle. The implementation of the technique is demonstrated on a one-dimensional inflow-outflow advection-diffusion equation, and the method is then applied to laminar two-dimensional (separated) flow in a channel expansion. Comparisons are made with experiment and previous numerical work.}
 }
@@ -16,23 +16,34 @@ abstract = {A spectral element method that combines the generality of the finite
   note   = {\url{http://nek5000.mcs.anl.gov}},
   title  = {{Nek5000} {w}eb page},
   year   = {2008},
+  url  = {http://nek5000.mcs.anl.gov},
 }
 
-
-@Misc{pymech,
-  author = {Mohanan, Ashwin Vishnu and Chauvat, Guillaume and Kleine, Vitor Gabriel and Fabbiane, Nicolò and Canton, Jacopo},
-  title  = {Pymech: A Python software suite for Nek5000 and SIMSON},
-  year   = {2022},
-  doi = {10.5281/zenodo.7358961},
-  publisher = {GitHub},
-  journal = {GitHub repository},
+@software{pymech,
+  author       = {Mohanan, Ashwin Vishnu and
+                  Chauvat, Guillaume and
+                  Kleine, Vitor Gabriel and
+                  Fabbiane, Nicolò and
+                  Canton, Jacopo},
+  title        = {Pymech: A Python software suite for Nek5000 and SIMSON},
+  month        = 11,
+  year         = 2024,
+  publisher    = {Zenodo},
+  version      = {2.0.1},
+  doi          = {10.5281/zenodo.14194101}
 }
 
 @article{fischer2021nekrs,
-  title={NekRS, a GPU-Accelerated Spectral Element Navier-Stokes Solver},
-  author={Fischer, Paul and Kerkemeier, Stefan and Min, Misun and Lan, Yu-Hsiang and Phillips, Malachi and Rathnayake, Thilina and Merzari, Elia and Tomboulides, Ananias and Karakus, Ali and Chalmers, Noel and others},
-  journal={arXiv preprint arXiv:2104.05829},
-  year={2021}
+title = {NekRS, a GPU-accelerated spectral element Navier–Stokes solver},
+journal = {Parallel Computing},
+volume = {114},
+pages = {102982},
+year = {2022},
+issn = {0167-8191},
+doi = {doi.org/10.1016/j.parco.2022.102982},
+author = {Paul Fischer and Stefan Kerkemeier and Misun Min and Yu-Hsiang Lan and Malachi Phillips and Thilina Rathnayake and Elia Merzari and Ananias Tomboulides and Ali Karakus and Noel Chalmers and Tim Warburton},
+keywords = {NekRS, Nek5000, LibParanumal, OCCA, GPU, Scalability, Performance, Spectral element method, Incompressible Navier–Stokes, Exascale applications},
+abstract = {The development of NekRS, a GPU-oriented thermal-fluids simulation code based on the spectral element method (SEM) is described. For performance portability, the code is based on the open concurrent compute abstraction and leverages scalable developments in the SEM code Nek5000 and in libParanumal, which is a library of high-performance kernels for high-order discretizations and PDE-based miniapps. Critical performance sections of the Navier–Stokes time advancement are addressed. Performance results on several platforms are presented, including scaling to 27,648 V100s on OLCF Summit, for calculations of up to 60B grid points (240B degrees-of-freedom).}
 }
 
 @article{jansson2024,
@@ -42,7 +53,7 @@ volume = {275},
 pages = {106243},
 year = {2024},
 issn = {0045-7930},
-doi = {https://doi.org/10.1016/j.compfluid.2024.106243},
+doi = {10.1016/j.compfluid.2024.106243},
 author = {Niclas Jansson and Martin Karp and Artur Podobas and Stefano Markidis and Philipp Schlatter},
 keywords = {Computational fluid dynamics, Spectral element method, Turbulence, Direct numerical simulation}
 }
@@ -72,7 +83,7 @@ number = {9},
 pages = {1108-1115},
 year = {2005},
 issn = {0743-7315},
-doi = {https://doi.org/10.1016/j.jpdc.2005.03.010},
+doi = {10.1016/j.jpdc.2005.03.010},
 author = {Lisandro Dalcín and Rodrigo Paz and Mario Storti},
 keywords = {Message passing, MPI, High level languages, Parallel Python},
 abstract = {MPI for Python provides bindings of the Message Passing Interface (MPI) standard for the Python programming language and allows any Python program to exploit multiple processors. This package is constructed on top of the MPI-1 specification and defines an object-oriented interface which closely follows MPI-2 C++bindings. It supports point-to-point (sends, receives) and collective (broadcasts, scatters, gathers) communications of general Python objects. Efficiency has been tested in a Beowulf class cluster and satisfying results were obtained. MPI for Python is open source and available for download on the web (http://www.cimec.org.ar/python).}
@@ -85,6 +96,7 @@ abstract = {MPI for Python provides bindings of the Message Passing Interface (M
   volume={12},
   pages={100561},
   year={2020},
+  doi = {10.1016/j.softx.2020.100561},
   publisher={Elsevier}
 }
 
@@ -112,7 +124,7 @@ abstract = {MPI for Python provides bindings of the Message Passing Interface (M
 }
 
 @incollection{fischer2006,
-title = { - Parallel Simulation of High Reynolds Number Vascular Flows},
+title = {Parallel Simulation of High Reynolds Number Vascular Flows},
 editor = {Anil Deane and Akin Ecer and James McDonough and Nobuyuki Satofuka and Gunther Brenner and David R. Emerson and Jacques Periaux and Damien Tromeur-Dervout},
 booktitle = {Parallel Computational Fluid Dynamics 2005},
 publisher = {Elsevier},
@@ -120,7 +132,7 @@ address = {Amsterdam},
 pages = {219-226},
 year = {2006},
 isbn = {978-0-444-52206-1},
-doi = {https://doi.org/10.1016/B978-044452206-1/50026-4},
+doi = {10.1016/B978-044452206-1/50026-4},
 url = {https://www.sciencedirect.com/science/article/pii/B9780444522061500264},
 author = {Paul Fischer and Francis Loth and Sang-Wook Lee and David Smith and Henry Tufo and Hisham Bassiouny},
 abstract = {Publisher Summary
@@ -155,7 +167,7 @@ volume = {110},
 pages = {109590},
 year = {2024},
 issn = {0142-727X},
-doi = {https://doi.org/10.1016/j.ijheatfluidflow.2024.109590},
+doi = {10.1016/j.ijheatfluidflow.2024.109590},
 url = {https://www.sciencedirect.com/science/article/pii/S0142727X24003151},
 author = {Fermin Mallor and Ricardo Vinuesa and Ramis Örlü and Philipp Schlatter},
 keywords = {Large-eddy simulation, Turbulent boundary layers, Wings, Adverse-pressure gradient, Flow separation},
@@ -163,7 +175,7 @@ abstract = {This study uses high-resolution large-eddy simulations (LES) to inve
 }
 
 @article{merzari2020,
-author = {Elia Merzari, Paul Fischer, Misun Min, Stefan Kerkemeier, Aleksandr Obabko, Dillon Shaver, Haomin Yuan, Yiqi Yu, Javier Martinez, Landon Brockmeyer, Lambert Fick, Giacomo Busco, Alper Yildiz and Yassin Hassan},
+author = {Elia Merzari and Paul Fischer and Misun Min and Stefan Kerkemeier and Aleksandr Obabko and Dillon Shaver and Haomin Yuan and Yiqi Yu and Javier Martinez and Landon Brockmeyer and Lambert Fick and Giacomo Busco and Alper Yildiz and Yassin Hassan},
 title = {Toward Exascale: Overview of Large Eddy Simulations and Direct Numerical Simulations of Nuclear Reactor Flows with the Spectral Element Method in Nek5000},
 journal = {Nuclear Technology},
 volume = {206},

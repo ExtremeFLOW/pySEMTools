@@ -6,12 +6,12 @@ comm = MPI.COMM_WORLD
 import numpy as np
 
 # Import relevant modules
-from pynektools.interpolation.mesh_to_mesh import PRefiner
-from pynektools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
-from pynektools.io.ppymech.neksuite import preadnek
-from pynektools.datatypes.msh import Mesh as msh_c
-from pynektools.datatypes.coef import Coef as coef_c
-from pynektools.datatypes.field import Field as field_c
+from pysemtools.interpolation.mesh_to_mesh import PRefiner
+from pysemtools.interpolation.point_interpolator.single_point_legendre_interpolator import LegendreInterpolator as element_interpolator_c
+from pysemtools.io.ppymech.neksuite import preadnek
+from pysemtools.datatypes.msh import Mesh as msh_c
+from pysemtools.datatypes.coef import Coef as coef_c
+from pysemtools.datatypes.field import Field as field_c
 
 # Read the original mesh data
 fname = '../examples/data/rbc0.f00001'

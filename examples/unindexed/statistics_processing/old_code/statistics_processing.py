@@ -16,15 +16,15 @@ import matplotlib.pyplot as plt
 # Import MPI
 from mpi4py import MPI #equivalent to the use of MPI_init() in C
 # Import IO helper functions
-from pynektools.io.utils import IoPathData as io_path_data
+from pysemtools.io.utils import IoPathData as io_path_data
 # Import modules for reading and writing
-from pynektools.io.ppymech.neksuite import preadnek
+from pysemtools.io.ppymech.neksuite import preadnek
 # Import the data types
-from pynektools.datatypes.msh import Mesh as msh_c
-from pynektools.datatypes.field import Field as field_c
-from pynektools.datatypes.utils import write_fld_file_from_list
+from pysemtools.datatypes.msh import Mesh as msh_c
+from pysemtools.datatypes.field import Field as field_c
+from pysemtools.datatypes.utils import write_fld_file_from_list
 # Import types asociated with interpolation
-from pynektools.interpolation.interpolator import get_bbox_from_coordinates, get_bbox_centroids_and_max_dist
+from pysemtools.interpolation.interpolator import get_bbox_from_coordinates, get_bbox_centroids_and_max_dist
 
 # Split communicator for MPI - MPMD
 worldcomm = MPI.COMM_WORLD
