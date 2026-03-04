@@ -736,7 +736,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
     ):
-        """Public method to dins points across ranks and elements"""
+        """Public method to find points across ranks and elements"""
         self.log.write(
             "debug",
             "using communication pattern: {}".format(find_points_comm_pattern),
@@ -749,6 +749,10 @@ class Interpolator:
         elif len(find_points_iterative) != 2:
             raise ValueError("find_points_iterative must be a list or tuple of length 2")
 
+        if tol < np.finfo(self.x.dtype).eps:
+            tol = np.finfo(self.x.dtype).eps * 2
+            self.log.write("warning", f"tol is too small for the mesh data type, using {tol} instead")
+            
         if find_points_comm_pattern == "broadcast":
             self.find_points_broadcast(
                 comm,
