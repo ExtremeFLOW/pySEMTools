@@ -140,7 +140,7 @@ class HDF5File:
 
         self.log.toc(message=f"{self.fname} closed")
 
-    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_1d_in_file: bool = False):
+    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_array_list_in_file: bool = False):
         """ Read a dataset from the hdf5 file object
 
         Parameters
@@ -153,8 +153,8 @@ class HDF5File:
             Axis along which the data is distributed in parallel. This is required for parallel reading. Default is None.
         slices : list
             Optional. List of slices to read from the dataset. In case it is known
-        as_1d_in_file : bool
-            Optional. default is False. Whether the data is stored as 1D in the file. This is useful if originally the data had a different shape
+        as_array_list_in_file : bool
+            Optional. default is False. Whether the data is stored as an array list in the file. This is useful if originally the data had a different shape
             but was flattened to 1d before writing. This will use the shape attribute stored in the file to do the partioning
             but will keep in mind that the data is stored as a 1d array to read properly.
 
@@ -185,8 +185,10 @@ class HDF5File:
         # Query the shape
         if "shape" in self.active_group[dataset_name].attrs:
             global_shape = self.active_group[dataset_name].attrs["shape"]
+            shape_in_file = self.active_group[dataset_name].shape
         else:
             global_shape = self.active_group[dataset_name].shape
+            shape_in_file = self.active_group[dataset_name].shape
 
         # ===========
         # Serial read 
@@ -204,7 +206,7 @@ class HDF5File:
 
             # Set slices
             if slices is None:
-                self.set_read_slices_linear_lb(global_shape=global_shape, distributed_axis=distributed_axis, explicit_strides=as_1d_in_file)
+                self.set_read_slices_linear_lb(global_shape=global_shape, distributed_axis=distributed_axis, explicit_strides=as_array_list_in_file, shape_in_file=shape_in_file)
             else:
                 self.set_read_slices_external(global_shape=global_shape, slices=slices)
             
@@ -212,7 +214,7 @@ class HDF5File:
 
         return local_data
     
-    def set_read_slices_linear_lb(self, global_shape: tuple, distributed_axis: int, explicit_strides: bool = False):
+    def set_read_slices_linear_lb(self, global_shape: tuple, distributed_axis: int, explicit_strides: bool = False, shape_in_file: list = None):
         """Set the slices that should be read from the file.
 
         Data is distributed in a linear load balanced way.
@@ -250,9 +252,14 @@ class HDF5File:
 
         # Update the offset and count to traverse the non distributed axes if explicit strides are used
         if explicit_strides:
+            if shape_in_file is None:
+                raise ValueError("Shape in file must be provided if explicit strides are used")
+            # Determine which axes were merged
+            merged_axes = find_merged_axes(global_shape, shape_in_file) 
+            # This really only works relliably if distributed axis is 0 and is part of the merge
             stride = 1
             for i in range(len(global_shape)):
-                if i  != distributed_axis:
+                if i  != distributed_axis and merged_axes[i]:
                     stride = stride * global_shape[i]
             offset = offset * stride
             count = count * stride
@@ -264,9 +271,11 @@ class HDF5File:
 
         # build the slices to read
         if explicit_strides:
-            slices = [slice(None)]
+            slices = [slice(None)] * len(shape_in_file)
             slices[distributed_axis] = slice(offset, offset + count)
-            local_alloc_shape = (count,)
+            local_alloc_shape = list(shape_in_file)
+            local_alloc_shape[distributed_axis] = count
+            local_alloc_shape = tuple(local_alloc_shape)
         else:
             slices = [slice(None)] * len(global_shape)
             slices[distributed_axis] = slice(offset, offset + count)
@@ -465,4 +474,51 @@ class HDF5File:
             dset.attrs["shape"] = shape_in_file
         else:
             dset.attrs["shape"] = self.global_shape
-            
+
+def find_merged_axes(global_shape, shape_in_file):
+    """ Hleper function to determine which axis were merged
+    between two shapes"""
+    global_shape = tuple(global_shape)
+    shape_in_file = tuple(shape_in_file)
+
+    merged = [False] * len(global_shape)
+
+    i = 0  # index in global_shape
+    j = 0  # index in shape_in_file
+
+    while i < len(global_shape) and j < len(shape_in_file):
+        # Direct match: no merge
+        if global_shape[i] == shape_in_file[j]:
+            i += 1
+            j += 1
+            continue
+
+        # Otherwise try merging consecutive global axes
+        acc = global_shape[i]
+        start = i
+        i += 1
+
+        while i < len(global_shape) and acc < shape_in_file[j]:
+            acc *= global_shape[i]
+            i += 1
+
+        if acc != shape_in_file[j]:
+            raise ValueError(
+                f"Could not match global_shape={global_shape} "
+                f"to shape_in_file={shape_in_file}"
+            )
+
+        # Mark all axes in this merged block as merged
+        if i - start > 1:
+            for k in range(start, i):
+                merged[k] = True
+
+        j += 1
+
+    if i != len(global_shape) or j != len(shape_in_file):
+        raise ValueError(
+            f"Did not fully consume shapes: "
+            f"global_shape={global_shape}, shape_in_file={shape_in_file}"
+        )
+
+    return merged
