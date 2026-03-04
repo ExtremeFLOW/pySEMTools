@@ -147,7 +147,7 @@ class HDF5File:
 
         self.log.toc(message=f"{self.fname} closed")
 
-    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_array_list_in_file: bool = False):
+    def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_array_list_in_file: bool = False, ignore_metadata: bool = False):
         """ Read a dataset from the hdf5 file object
 
         Parameters
@@ -164,6 +164,9 @@ class HDF5File:
             Optional. default is False. Whether the data is stored as an array list in the file. This is useful if originally the data had a different shape
             but was flattened to 1d before writing. This will use the shape attribute stored in the file to do the partioning
             but will keep in mind that the data is stored as a 1d array to read properly.
+        ignore_metadata : bool
+            Optional. default is False. Force to read the data ingnoring any shape metadata.
+            This will just read the arrays as stored and will not try to assume an original shape
 
         Returns
         -------
@@ -190,7 +193,7 @@ class HDF5File:
             dataset_name = dataset_name.split("/")[-1]
 
         # Query the shape
-        if "shape" in self.active_group[dataset_name].attrs:
+        if "shape" in self.active_group[dataset_name].attrs and not ignore_metadata:
             global_shape = self.active_group[dataset_name].attrs["shape"]
             shape_in_file = self.active_group[dataset_name].shape
         else:
