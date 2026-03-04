@@ -79,8 +79,8 @@ class Coef:
         self.log = Logger(comm=comm, module_name="Coef")
         self.log.tic()
 
-        self.log.write("info", "Initializing Coef object")
-        self.log.write("info", "Getting derivative matrices")
+        self.log.write("debug", "Initializing Coef object")
+        self.log.write("debug", "Getting derivative matrices")
 
         self.gdim = msh.gdim
         self.dtype = msh.x.dtype
@@ -127,7 +127,7 @@ class Coef:
                 self.dt = torch.as_tensor(self.dt, dtype=self.dtype_d, device=self.device)
             self.dn = torch.as_tensor(self.dn, dtype=self.dtype_d, device=self.device)
 
-        self.log.write("info", "Calculating the components of the jacobian")
+        self.log.write("debug", "Calculating the components of the jacobian")
 
         # Find the components of the jacobian per point
         # jac(x,y,z) = [dxdr, dxds, dxdt ; dydr, dyds, dydt; dzdr, dzds, dzdt]
@@ -180,7 +180,7 @@ class Coef:
         # Find the jacobian determinant, its inverse inverse and mass matrix (3D)
         # jac maps domain from xyz to rst -> dxyz =  jac * drst during integration
         self.log.write(
-            "info",
+            "debug",
             "Calculating the jacobian determinant and inverse of the jacobian matrix",
         )
         calculate_jacobian_inverse_and_determinant(self)
@@ -189,7 +189,7 @@ class Coef:
         # self.jac_inv = 1 / self.jac # This is not really used in the way we have it
 
         # Compute the mass matrix
-        self.log.write("info", "Calculating the mass matrix")
+        self.log.write("debug", "Calculating the mass matrix")
         self.B = self.jac * self.w3.reshape((msh.lz, msh.ly, msh.lx))
 
         # Get area stuff only if mesh is 3D
@@ -204,7 +204,7 @@ class Coef:
             if self.bckend == 'torch':
                 raise ValueError("The torch backend does not support facet area calculation yet.")
             
-            self.log.write("info", "Calculating area weights and normal vectors")
+            self.log.write("debug", "Calculating area weights and normal vectors")
 
             self.area = np.zeros((msh.nelv, 6, msh.ly, msh.lx), dtype=self.dtype)
             self.nx = np.zeros((msh.nelv, 6, msh.ly, msh.lx), dtype=self.dtype)
@@ -351,9 +351,9 @@ class Coef:
             self.ny[:, 5, :, :] = -cross[..., 1] / norm
             self.nz[:, 5, :, :] = -cross[..., 2] / norm
 
-        self.log.write("info", "Coef object initialized")
-        self.log.write("info", f"Coef data is of type: {self.B.dtype}")
-        self.log.toc()
+        self.log.write("debug", "Coef object initialized")
+        self.log.write("debug", f"Coef data is of type: {self.B.dtype}")
+        self.log.toc(message= f"Coef object initialized - dtype: {self.B.dtype}")
 
     def dudrst(self, field, direction="r"):
         """
