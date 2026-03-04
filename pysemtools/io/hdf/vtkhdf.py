@@ -63,8 +63,8 @@ class VTKHDFFile(HDF5File):
             raise NotImplementedError("Distributed axis other than 0 is not implemented for the read_mesh_data function")
 
         # Read the mesh data
-        self.set_active_group("/VTKHDF") 
-        points = self.read_dataset("Points", dtype=dtype, distributed_axis=distributed_axis)
+        self.set_active_group("/VTKHDF")
+        points = self.read_dataset("Points", dtype=dtype, distributed_axis=distributed_axis, as_array_list_in_file=True)
         
         return points[...,0], points[...,1], points[...,2]
 
@@ -167,7 +167,7 @@ class VTKHDFFile(HDF5File):
 
         # Read the point data
         self.set_active_group("/VTKHDF/PointData")
-        data = self.read_dataset(dataset_name, dtype=dtype, distributed_axis=distributed_axis, as_1d_in_file=True)
+        data = self.read_dataset(dataset_name, dtype=dtype, distributed_axis=distributed_axis, as_array_list_in_file=True)
 
         return data
 
