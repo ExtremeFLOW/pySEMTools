@@ -3,7 +3,7 @@ title: 'PySEMTools: A library for post-processing hexahedral spectral element da
 tags:
   - Python
   - Computational fluid dynamics
-  - Message passing interdace (MPI)
+  - Message passing interface (MPI)
   - High performance computing
 authors:
   - name: Adalberto Perez
@@ -58,8 +58,8 @@ The motivation behind using the solvers themselves with the data in its raw form
 `PySEMTools` relies heavily on MPI for Python by @mpi4py, given that it has been designed from the beginning to work on distributed settings. For computations, we rely on NumPy [@numpy]. It has been extensively tested on data produced by Nek5000 and Neko but, as mentioned before, the implemented methods and routines are consistent with any SEM-like data structure with hexahedral elements. Among its most relevant features are the following:
 
 * **Parallel IO**: A set of routines to perform distributed IO on Nek5000/Neko field files and directly keep the data in memory on NumPy arrays or PyMech data objects.
-* **Parallel data interfaces**: A set of objects that aim to facilitate the transfer of messages among processors. Done to ease the use of MPI functions for more inexperienced users.
-* **Calculus**:  Objects to calculate the derivation and integration matrices based on the geometry, which allows to perform calculus operations on the spectral element mesh.
+* **Parallel data interfaces**: A set of objects that aim to facilitate the transfer of messages among processors. This is designed to ease the use of MPI functions for more inexperienced users.
+* **Calculus**:  Objects to calculate the derivation and integration matrices based on the geometry, which allows users to perform calculus operations on the spectral element mesh.
 * **Mesh connectivity and partitioning**: Objects to determine the connectivity based on the geometry and mesh repartitioning tools for tasks such as global summation, among others.
 * **Interpolation**: Routines to perform high-order interpolation from an SEM mesh into any arbitrary query point. A crucial functionality when performing post-processing.
 * **Reduced-order modeling**: Objects to perform parallel and streaming proper orthogonal decomposition (POD).
