@@ -29,6 +29,11 @@ class VTKMesh:
         Whether to use global connectivity or local connectivity in parallel. By default True, but if only one rank is used, it is set to False since the connectivity is already global in that case.
     distributed_axis : int, optional
         The axis along which the mesh is distributed, by default 0 (Only zero allowed now) 
+    
+    Notes
+    -----
+    Offsets is n_cells + 1 to work on VTKHDF. This might need to be reduced to n_cells for other use cases like Catalyst.
+    
     """
 
     def __init__(self, comm: MPI.Comm, x: np.ndarray, y: np.ndarray, z: np.ndarray, cell_type: str = "hex", global_connectivity: bool = True, distributed_axis: int = 0):
