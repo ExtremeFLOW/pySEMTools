@@ -1,0 +1,622 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HDF &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">HDF</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pages/hdf.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="hdf">
+<h1>HDF<a class="headerlink" href="#hdf" title="Link to this heading"></a></h1>
+<p>The HDF module contains classes to aid in Parallel IO of HDF files.</p>
+<p>It includes HDF5 support and extends it to write VTKHDF files that can be
+shown in Paraview.</p>
+<section id="module-pysemtools.io.hdf.hdf5">
+<span id="hdf5"></span><h2>HDF5<a class="headerlink" href="#module-pysemtools.io.hdf.hdf5" title="Link to this heading"></a></h2>
+<p>Module that defines the hdf5 object to be used in pysemtools</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.hdf.hdf5.</span></span><span class="sig-name descname"><span class="pre">HDF5File</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File" title="Link to this definition"></a></dt>
+<dd><p>Class to write and read hdf5 files in parallel using h5py.</p>
+<p>Open an hdf5 file based on inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI.Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the hdf5 file to read or write.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>Mode to open the file. Should be “r” for reading or “w” for
+writing.</p>
+</dd>
+<dt><strong>parallel</strong><span class="classifier">bool</span></dt><dd><p>Whether to use parallel I/O or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.close" title="pysemtools.io.hdf.hdf5.HDF5File.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a>([clean])</p></td>
+<td><p>Close the hdf5 file object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.open" title="pysemtools.io.hdf.hdf5.HDF5File.open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code></a>(fname, mode, parallel)</p></td>
+<td><p>Open an hdf5 file based on inputs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.read_dataset" title="pysemtools.io.hdf.hdf5.HDF5File.read_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_dataset</span></code></a>(dataset_name[, dtype, ...])</p></td>
+<td><p>Read a dataset from the hdf5 file object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.read_slices" title="pysemtools.io.hdf.hdf5.HDF5File.read_slices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_slices</span></code></a>(dataset_name[, dtype])</p></td>
+<td><p>Read the slices hyperslabs from the file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.set_active_group" title="pysemtools.io.hdf.hdf5.HDF5File.set_active_group"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_active_group</span></code></a>(group_name)</p></td>
+<td><p>Set the active group to read or write data from.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_external" title="pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_external"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_read_slices_external</span></code></a>(global_shape, slices)</p></td>
+<td><p>Set the slices that should be read from the file based on external input.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_linear_lb" title="pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_linear_lb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_read_slices_linear_lb</span></code></a>(global_shape, ...)</p></td>
+<td><p>Set the slices that should be read from the file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.set_write_slices" title="pysemtools.io.hdf.hdf5.HDF5File.set_write_slices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_write_slices</span></code></a>(local_shape, distributed_axis)</p></td>
+<td><p>Set the slices that should be written to the file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.write_dataset" title="pysemtools.io.hdf.hdf5.HDF5File.write_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_dataset</span></code></a>(dataset_name, data[, ...])</p></td>
+<td><p>Write a dataset to the hdf5 file object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.hdf5.HDF5File.write_slices" title="pysemtools.io.hdf.hdf5.HDF5File.write_slices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_slices</span></code></a>(dataset_name, data[, shape_in_file])</p></td>
+<td><p>Write the hyperslab to the file.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.close" title="Link to this definition"></a></dt>
+<dd><p>Close the hdf5 file object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>clean</strong><span class="classifier">bool</span></dt><dd><p>Whether to clean the attributes that are assigned when opening a file. This is useful if the
+file object will be reused to open another file after closing the current one. Default is False.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.open">
+<span class="sig-name descname"><span class="pre">open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.open" title="Link to this definition"></a></dt>
+<dd><p>Open an hdf5 file based on inputs.</p>
+<p>This can be used to open a new file after closing the previous one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the hdf5 file to read or write.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>Mode to open the file. Should be “r” for reading or “w” for
+writing.</p>
+</dd>
+<dt><strong>parallel</strong><span class="classifier">bool</span></dt><dd><p>Whether to use parallel I/O or not. If True, the file will be opened using
+the MPI-IO driver. If False, the file will be opened using the default driver.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.read_dataset">
+<span class="sig-name descname"><span class="pre">read_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices:</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_array_list_in_file:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_metadata:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.read_dataset" title="Link to this definition"></a></dt>
+<dd><p>Read a dataset from the hdf5 file object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to read. Can include the group path, e.g. “/group1/group2/dataset”.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>Data type to read the dataset in. Default is np.double.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. This is required for parallel reading. Default is None.</p>
+</dd>
+<dt><strong>slices</strong><span class="classifier">list</span></dt><dd><p>Optional. List of slices to read from the dataset. In case it is known</p>
+</dd>
+<dt><strong>as_array_list_in_file</strong><span class="classifier">bool</span></dt><dd><p>Optional. default is False. Whether the data is stored as an array list in the file. This is useful if originally the data had a different shape
+but was flattened to 1d before writing. This will use the shape attribute stored in the file to do the partioning
+but will keep in mind that the data is stored as a 1d array to read properly.</p>
+</dd>
+<dt><strong>ignore_metadata</strong><span class="classifier">bool</span></dt><dd><p>Optional. default is False. Force to read the data ingnoring any shape metadata.
+This will just read the arrays as stored and will not try to assume an original shape</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>local_data</strong><span class="classifier">np.ndarray</span></dt><dd><p>Data read from the file. This will be a local array with the shape determined by the
+global shape of the dataset and the parallel distribution. If slices are provided, the shape will be determined by the slices.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.read_slices">
+<span class="sig-name descname"><span class="pre">read_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.read_slices" title="Link to this definition"></a></dt>
+<dd><p>Read the slices hyperslabs from the file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to read. Can include the group path, e.g. “/group1/group2/dataset”.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>Data type to read the dataset in. Default is np.double.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>local_data</strong><span class="classifier">np.ndarray</span></dt><dd><p>Data read from the file. This will be a local array with the shape determined by the
+global shape of the dataset and the parallel distribution. If slices are provided, the shape will be determined by the slices.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.set_active_group">
+<span class="sig-name descname"><span class="pre">set_active_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.set_active_group" title="Link to this definition"></a></dt>
+<dd><p>Set the active group to read or write data from.</p>
+<p>This is useful to avoid having to specify the group every time a dataset is read or written.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>group_name</strong><span class="classifier">str</span></dt><dd><p>Name of the group to set as active. Can include the group path, e.g. “/group1/group2”. 
+If the group does not exist, it will be created if the file is opened in write mode, otherwise an error will be raised.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_external">
+<span class="sig-name descname"><span class="pre">set_read_slices_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_external" title="Link to this definition"></a></dt>
+<dd><p>Set the slices that should be read from the file based on external input.</p>
+<p>slices need to be precomputed in this case</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>global_shape</strong><span class="classifier">tuple</span></dt><dd><p>Shape of the global array to be read.</p>
+</dd>
+<dt><strong>slices</strong><span class="classifier">list</span></dt><dd><p>List of slices to read from the data set.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_linear_lb">
+<span class="sig-name descname"><span class="pre">set_read_slices_linear_lb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explicit_strides</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_in_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_linear_lb" title="Link to this definition"></a></dt>
+<dd><p>Set the slices that should be read from the file.</p>
+<p>Data is distributed in a linear load balanced way.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>global_shape</strong><span class="classifier">tuple</span></dt><dd><p>Shape of the global array to be read. This is required to determine the local shape and
+the slices to read from the file.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. This is required to determine the local shape
+and the slices to read from the file.</p>
+</dd>
+<dt><strong>explicit_strides</strong><span class="classifier">bool</span></dt><dd><p>Whether to use explicit strides to read the data. This is useful if the data is stored
+as 1D in the file but originally had a different shape.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.set_write_slices">
+<span class="sig-name descname"><span class="pre">set_write_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">local_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_global_entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.set_write_slices" title="Link to this definition"></a></dt>
+<dd><p>Set the slices that should be written to the file.</p>
+<p>Obtain global shape from the local one</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>local_shape</strong><span class="classifier">tuple</span></dt><dd><p>Shape of the local array to be written. This is required to determine the global shape
+and the slices to write to the file.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel.</p>
+</dd>
+<dt><strong>extra_global_entries</strong><span class="classifier">list[int], optional</span></dt><dd><p>List of extra entries to add to the global shape of the dataset. This is useful
+if the ranks are writing a certain amount of data but the global array should be bigger than
+what they collectively write. Default is None.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.write_dataset">
+<span class="sig-name descname"><span class="pre">write_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_global_entries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_in_ram</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.write_dataset" title="Link to this definition"></a></dt>
+<dd><p>Write a dataset to the hdf5 file object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to write. Can include the group path, e.g. “/group1/group2/dataset”.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">np.ndarray</span></dt><dd><p>Data to write to the file.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. This is required for parallel writing. Default is None.</p>
+</dd>
+<dt><strong>extra_global_entries</strong><span class="classifier">list[int]</span></dt><dd><p>Optional. List of extra entries to add to the global shape of the dataset. This is useful
+if the ranks are writing a certain amount of data but the global array should be bigger than 
+what they collectively write.</p>
+</dd>
+<dt><strong>shape_in_ram</strong><span class="classifier">tuple</span></dt><dd><p>Optional. Shape of the data in RAM. This is useful if the data is stored in a different shape that
+it originally had, for example, if it is stored in a 1d array but originally it had a different shape.
+this will be the shape that is stored in the file in the attribute “shape” and can be used to reshape the data when reading it.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.HDF5File.write_slices">
+<span class="sig-name descname"><span class="pre">write_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_in_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.HDF5File.write_slices" title="Link to this definition"></a></dt>
+<dd><p>Write the hyperslab to the file.</p>
+<p>Perform the write operations</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to write. Can include the group path, e.g. “/group1/group2/dataset”.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">np.ndarray</span></dt><dd><p>Data to write to the file. This should have the same shape as the local shape determined
+by the set_write_slices method.</p>
+</dd>
+<dt><strong>shape_in_file</strong><span class="classifier">tuple, optional</span></dt><dd><p>Shape of the data to be stored in the file. This is useful if the data is
+stored in a different shape in the file than it is in RAM.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.hdf5.find_merged_axes">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.hdf.hdf5.</span></span><span class="sig-name descname"><span class="pre">find_merged_axes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape_in_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.hdf5.find_merged_axes" title="Link to this definition"></a></dt>
+<dd><p>Hleper function to determine which axis were merged
+between two shapes</p>
+</dd></dl>
+
+</section>
+<section id="module-pysemtools.io.hdf.vtkhdf">
+<span id="vtkhdf"></span><h2>VTKHDF<a class="headerlink" href="#module-pysemtools.io.hdf.vtkhdf" title="Link to this heading"></a></h2>
+<p>Module that defines the hdf5 object to be used in pysemtools</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.hdf.vtkhdf.</span></span><span class="sig-name descname"><span class="pre">VTKHDFFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parallel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile" title="Link to this definition"></a></dt>
+<dd><p>Class to write and read vtkhdf files in parallel using h5py.
+Open an hdf5 file based on inputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI.Comm</span></dt><dd><p>MPI communicator.</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of the hdf5 file to read or write.</p>
+</dd>
+<dt><strong>mode</strong><span class="classifier">str</span></dt><dd><p>Mode to open the file. Should be “r” for reading or “w” for
+writing.</p>
+</dd>
+<dt><strong>parallel</strong><span class="classifier">bool</span></dt><dd><p>Whether to use parallel I/O or not.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.close" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a>([clean])</p></td>
+<td><p>Close the hdf5 file object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.link_to_existing_mesh" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.link_to_existing_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">link_to_existing_mesh</span></code></a>(mesh_name)</p></td>
+<td><p>Link to an existing mesh</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">open</span></code>(fname, mode, parallel)</p></td>
+<td><p>Open an hdf5 file based on inputs.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_dataset</span></code>(dataset_name[, dtype, ...])</p></td>
+<td><p>Read a dataset from the hdf5 file object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_mesh_data" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_mesh_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_mesh_data</span></code></a>([dtype, distributed_axis])</p></td>
+<td><p>Read the mesh data from the hdf5 file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_point_data" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_point_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_point_data</span></code></a>(dataset_name[, dtype, ...])</p></td>
+<td><p>Read point data from the hdf5 file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_slices</span></code>(dataset_name[, dtype])</p></td>
+<td><p>Read the slices hyperslabs from the file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_active_group</span></code>(group_name)</p></td>
+<td><p>Set the active group to read or write data from.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_read_slices_external</span></code>(global_shape, slices)</p></td>
+<td><p>Set the slices that should be read from the file based on external input.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_read_slices_linear_lb</span></code>(global_shape, ...)</p></td>
+<td><p>Set the slices that should be read from the file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_write_slices</span></code>(local_shape, distributed_axis)</p></td>
+<td><p>Set the slices that should be written to the file.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_dataset</span></code>(dataset_name, data[, ...])</p></td>
+<td><p>Write a dataset to the hdf5 file object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_mesh_data" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_mesh_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_mesh_data</span></code></a>(x, y, z[, distributed_axis])</p></td>
+<td><p>Write the mesh data to the hdf5 file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_point_data" title="pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_point_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_point_data</span></code></a>(dataset_name, data[, ...])</p></td>
+<td><p>Write point data to the hdf5 file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_slices</span></code>(dataset_name, data[, shape_in_file])</p></td>
+<td><p>Write the hyperslab to the file.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.close" title="Link to this definition"></a></dt>
+<dd><p>Close the hdf5 file object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>clean</strong><span class="classifier">bool</span></dt><dd><p>Whether to clean up the file after closing. This will delete the file from disk. Should only be used for testing.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.link_to_existing_mesh">
+<span class="sig-name descname"><span class="pre">link_to_existing_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.link_to_existing_mesh" title="Link to this definition"></a></dt>
+<dd><p>Link to an existing mesh</p>
+<p>Avoid rewriting mesh data if not necessary. It can be quite costly in storage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>mesh_name</strong><span class="classifier">str</span></dt><dd><p>Name of the hdf5 file to link to.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_mesh_data">
+<span class="sig-name descname"><span class="pre">read_mesh_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_mesh_data" title="Link to this definition"></a></dt>
+<dd><p>Read the mesh data from the hdf5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>Data type to read the mesh data as. Should be a floating point type.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. Should be 0 for now.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">np.ndarray</span></dt><dd><p>The x coordinates of the mesh points.</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">np.ndarray</span></dt><dd><p>The y coordinates of the mesh points.</p>
+</dd>
+<dt><strong>z</strong><span class="classifier">np.ndarray</span></dt><dd><p>The z coordinates of the mesh points.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_point_data">
+<span class="sig-name descname"><span class="pre">read_point_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_point_data" title="Link to this definition"></a></dt>
+<dd><p>Read point data from the hdf5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to read. This should be the name of the dataset in the hdf5 file.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype</span></dt><dd><p>Data type to read the dataset as. Should be a floating point type.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. Should be 0 for now.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The point data read from the hdf5 file. Will have the same shape as the mesh points.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_mesh_data">
+<span class="sig-name descname"><span class="pre">write_mesh_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_mesh_data" title="Link to this definition"></a></dt>
+<dd><p>Write the mesh data to the hdf5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x</strong><span class="classifier">np.ndarray</span></dt><dd><p>The x coordinates of the mesh points.</p>
+</dd>
+<dt><strong>y</strong><span class="classifier">np.ndarray</span></dt><dd><p>The y coordinates of the mesh points.</p>
+</dd>
+<dt><strong>z</strong><span class="classifier">np.ndarray</span></dt><dd><p>The z coordinates of the mesh points.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. Should be 0 for now.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_point_data">
+<span class="sig-name descname"><span class="pre">write_point_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_point_data" title="Link to this definition"></a></dt>
+<dd><p>Write point data to the hdf5 file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>dataset_name</strong><span class="classifier">str</span></dt><dd><p>Name of the dataset to write. This will be used as the name of the dataset in the hdf5 file.</p>
+</dd>
+<dt><strong>data</strong><span class="classifier">np.ndarray</span></dt><dd><p>Data to write. Should have the same number of points as the mesh.</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int</span></dt><dd><p>Axis along which the data is distributed in parallel. Should be 0 for now.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

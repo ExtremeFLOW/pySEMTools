@@ -1,0 +1,14 @@
+﻿pysemtools.cli
+==============
+
+.. automodule:: pysemtools.cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      extract_subdomain
+      index_files
+      visnek
+   

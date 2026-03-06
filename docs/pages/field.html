@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Field &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -47,6 +47,9 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
@@ -77,8 +80,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -237,7 +238,10 @@ if a ndarray u is created with shape (nelv, lz, ly, lx) it can be added to the f
 <tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.rename_registry_key" title="pysemtools.datatypes.field.FieldRegistry.rename_registry_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rename_registry_key</span></code></a>([old_key, new_key])</p></td>
 <td><p>Rename a key in the registry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.update_vars" title="pysemtools.datatypes.field.FieldRegistry.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.to" title="pysemtools.datatypes.field.FieldRegistry.to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to</span></code></a>([comm, bckend])</p></td>
+<td><p>Move all fields to cpu in numpy to write out</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.field.FieldRegistry.update_vars" title="pysemtools.datatypes.field.FieldRegistry.update_vars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_vars</span></code></a>()</p></td>
 <td><p>Update the registry with the fields that are present in the fields dictionary.</p></td>
 </tr>
 </tbody>
@@ -296,6 +300,12 @@ Only for “vel” we read the 2/3 components at the same time</p>
 </dl>
 <p class="rubric">Notes</p>
 <p>If you update the registry, some keys might be overwritten or multiple keys might reference the same data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.field.FieldRegistry.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.field.FieldRegistry.to" title="Link to this definition"></a></dt>
+<dd><p>Move all fields to cpu in numpy to write out</p>
 </dd></dl>
 
 <dl class="py method">

@@ -1,0 +1,16 @@
+﻿pysemtools.io.ppymech
+=====================
+
+.. automodule:: pysemtools.io.ppymech
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      preadnek
+      pynekread
+      pynekread_field
+      pwritenek
+      pynekwrite
+   

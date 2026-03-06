@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mesh &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -47,6 +47,9 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
@@ -77,8 +80,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -110,7 +111,7 @@
 <p>Descriptions of the contents of the Mesh class, which contains the coordinates of the domain and aditional suporting data.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh.</span></span><span class="sig-name descname"><span class="pre">Mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_connectivity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh" title="Link to this definition"></a></dt>
 <dd><p>Class that contains coordinate and partitioning data of the domain.</p>
 <p>This class needs to be used generaly as it contains the coordinates of the domain and
 some information about the partitioning of the domain.</p>
@@ -127,7 +128,11 @@ some information about the partitioning of the domain.</p>
 </dd>
 <dt><strong>z</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Z coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
 </dd>
+<dt><strong>elmap</strong><span class="classifier">ndarray, optional</span></dt><dd><p>1D ndarray of global element ids. shape is (nelv,).</p>
+</dd>
 <dt><strong>create_connectivity</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, the connectivity of the domain will be created. (Memory intensive).</p>
+</dd>
+<dt><strong>bckend</strong><span class="classifier">str, optional</span></dt><dd><p>Backend to use for the data. Options are ‘numpy’ and ‘torch’. Default is ‘numpy’.</p>
 </dd>
 </dl>
 </dd>
@@ -159,30 +164,29 @@ some information about the partitioning of the domain.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_edge_centers" title="pysemtools.datatypes.msh.Mesh.get_edge_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edge_centers</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.create_connectivity" title="pysemtools.datatypes.msh.Mesh.create_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_connectivity</span></code></a>()</p></td>
+<td><p>Create connectivity with the information from one processor</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_edge_centers" title="pysemtools.datatypes.msh.Mesh.get_edge_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_edge_centers</span></code></a>()</p></td>
 <td><p>Get the edge centers of the domain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_facet_centers" title="pysemtools.datatypes.msh.Mesh.get_facet_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_facet_centers</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_facet_centers" title="pysemtools.datatypes.msh.Mesh.get_facet_centers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_facet_centers</span></code></a>()</p></td>
 <td><p>Get the centroid of each facet</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_vertices" title="pysemtools.datatypes.msh.Mesh.get_vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vertices</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.get_vertices" title="pysemtools.datatypes.msh.Mesh.get_vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_vertices</span></code></a>()</p></td>
 <td><p>Get the vertices of the domain.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_common" title="pysemtools.datatypes.msh.Mesh.init_common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_common</span></code></a>(comm)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_common" title="pysemtools.datatypes.msh.Mesh.init_common"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_common</span></code></a>(comm)</p></td>
 <td><p>Initialize common attributes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="pysemtools.datatypes.msh.Mesh.init_from_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_coords</span></code></a>(comm, x, y, z)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="pysemtools.datatypes.msh.Mesh.init_from_coords"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_coords</span></code></a>(comm, x, y, z[, elmap])</p></td>
 <td><p>Initialize from coordinates.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_data" title="pysemtools.datatypes.msh.Mesh.init_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_data</span></code></a>(comm, data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.init_from_data" title="pysemtools.datatypes.msh.Mesh.init_from_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_from_data</span></code></a>(comm, data)</p></td>
 <td><p>Initialize form data.</p></td>
 </tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>create_connectivity</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh.to" title="pysemtools.datatypes.msh.Mesh.to"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to</span></code></a>([comm, bckend])</p></td>
+<td><p>Transfer the Mesh object to the desired backend.</p></td>
 </tr>
 </tbody>
 </table>
@@ -202,6 +206,15 @@ some information about the partitioning of the domain.</p>
 </pre></div>
 </div>
 <p>This is useful in situations where the coordinates are generated in the code or streamed into python from another source.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.create_connectivity">
+<span class="sig-name descname"><span class="pre">create_connectivity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.create_connectivity" title="Link to this definition"></a></dt>
+<dd><p>Create connectivity with the information from one processor</p>
+<p class="rubric">Notes</p>
+<p>This function creates a map that contains the connectivity of the domain. This is not the recomended way to perform connectivity in large domains.
+For this, it is better to use the dedicated connecitivty object that performs the operations in parallel.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.get_edge_centers">
 <span class="sig-name descname"><span class="pre">get_edge_centers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.get_edge_centers" title="Link to this definition"></a></dt>
@@ -255,7 +268,7 @@ we store 3 coordinates for each vertex.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.init_from_coords">
-<span class="sig-name descname"><span class="pre">init_from_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">init_from_coords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.init_from_coords" title="Link to this definition"></a></dt>
 <dd><p>Initialize from coordinates.</p>
 <p>This function is used to initialize the mesh object from x, y, z ndarrays.</p>
 <dl class="field-list simple">
@@ -268,6 +281,8 @@ we store 3 coordinates for each vertex.</p>
 <dt><strong>y</strong><span class="classifier">ndarray</span></dt><dd><p>Y coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
 </dd>
 <dt><strong>z</strong><span class="classifier">ndarray</span></dt><dd><p>Z coordinates of the domain. shape is (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>elmap</strong><span class="classifier">ndarray, optional</span></dt><dd><p>1D ndarray of global element ids. shape is (nelv,). If not provided, it will be set to None.</p>
 </dd>
 </dl>
 </dd>
@@ -303,6 +318,28 @@ we store 3 coordinates for each vertex.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh.Mesh.to">
+<span class="sig-name descname"><span class="pre">to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bckend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'numpy'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh.Mesh.to" title="Link to this definition"></a></dt>
+<dd><p>Transfer the Mesh object to the desired backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">Comm</span></dt><dd><p>MPI communicator object.</p>
+</dd>
+<dt><strong>bckend</strong><span class="classifier">str</span></dt><dd><p>Backend to use for the data. Options are ‘numpy’ and ‘torch’. Default is ‘numpy’.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>msh_cpu</strong><span class="classifier">Mesh</span></dt><dd><p>Mesh object in the desired backend.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -311,7 +348,7 @@ we store 3 coordinates for each vertex.</p>
 <p>Descriptions of the contents of the MeshConnectivity class. This class determines the connectivity from the geometry and can be used to perform parallel operations like dssum.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh_connectivity.</span></span><span class="sig-name descname"><span class="pre">MeshConnectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hashtable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_simultaneous_sends</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_face</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.datatypes.msh_connectivity.</span></span><span class="sig-name descname"><span class="pre">MeshConnectivity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pysemtools.datatypes.msh.Mesh" title="pysemtools.datatypes.msh.Mesh"><span class="pre">Mesh</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_hashtable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_simultaneous_sends</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_vertex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_edge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_elem_per_face</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity" title="Link to this definition"></a></dt>
 <dd><p>Class to compute the connectivity of the mesh</p>
 <p>Uses facets and vertices to determine which elements are connected to each other</p>
 <dl class="field-list simple">
@@ -352,13 +389,16 @@ The default value is selected if this input is left as None</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum_local</span></code></a>([field, msh])</p></td>
 <td><p>Computes the local dssum of the field</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_multiplicity</span></code></a>(msh)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_boundary_node_indices_2d" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_boundary_node_indices_2d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_boundary_node_indices_2d</span></code></a>(msh[, ...])</p></td>
+<td><p>Return list of (e, k, j, i) indices of GLL nodes lying on boundary edges in a 2D mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_multiplicity</span></code></a>(msh)</p></td>
 <td><p>Computes the multiplicity of the elements in the mesh</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_connectivity</span></code></a>(msh)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">global_connectivity</span></code></a>(msh)</p></td>
 <td><p>Computes the global connectivity of the mesh</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_connectivity</span></code></a>(msh)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity" title="pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_connectivity</span></code></a>(msh)</p></td>
 <td><p>Computes the local connectivity of the mesh</p></td>
 </tr>
 </tbody>
@@ -427,6 +467,29 @@ The default value is selected if this input is left as None</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>np.ndarray</dt><dd><p>The local dssum of the field</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_boundary_node_indices_2d">
+<span class="sig-name descname"><span class="pre">get_boundary_node_indices_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">masking_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_boundary_node_indices_2d" title="Link to this definition"></a></dt>
+<dd><p>Return list of (e, k, j, i) indices of GLL nodes lying on boundary edges in a 2D mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>The mesh associated with this connectivity object.</p>
+</dd>
+<dt><strong>masking_function</strong><span class="classifier">callable or None</span></dt><dd><p>Optional function with signature (msh, e, k, j, i) → bool.
+If provided, only nodes for which this returns True are included.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>boundary_node_indices</strong><span class="classifier">list of tuple</span></dt><dd><p>Indices in the form (element, z=0, j, i) for all GLL nodes on boundary edges.</p>
 </dd>
 </dl>
 </dd>

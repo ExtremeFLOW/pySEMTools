@@ -1,0 +1,18 @@
+﻿pysemtools.datatypes
+====================
+
+.. automodule:: pysemtools.datatypes
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Coef
+      Field
+      FieldRegistry
+      Mesh
+      MeshConnectivity
+      MeshPartitioner
+      VTKMesh
+   

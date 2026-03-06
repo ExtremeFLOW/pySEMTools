@@ -1,0 +1,12 @@
+﻿pysemtools.io.catalyst
+======================
+
+.. automodule:: pysemtools.io.catalyst
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CatalystSession
+   

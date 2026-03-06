@@ -1,0 +1,12 @@
+﻿pysemtools.monitoring
+=====================
+
+.. automodule:: pysemtools.monitoring
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Logger
+   

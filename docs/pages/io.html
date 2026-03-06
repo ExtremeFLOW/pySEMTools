@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>InputOutput (I/O) &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -20,7 +20,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Data types and IO" href="../_notebooks/1-datatypes_io.html" />
+    <link rel="next" title="API" href="api.html" />
     <link rel="prev" title="Interpolation" href="interpolation.html" /> 
 </head>
 
@@ -48,11 +48,15 @@
 <li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">InputOutput (I/O)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pysemtools.io.wrappers.partition_read_data"><code class="docutils literal notranslate"><span class="pre">partition_read_data()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pysemtools.io.wrappers.read_data"><code class="docutils literal notranslate"><span class="pre">read_data()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pysemtools.io.wrappers.write_data"><code class="docutils literal notranslate"><span class="pre">write_data()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pysemtools.io.read_probes.ProbesReader"><code class="docutils literal notranslate"><span class="pre">ProbesReader</span></code></a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
@@ -84,8 +88,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -120,14 +122,41 @@
 <div><ul class="simple">
 <li><p><a class="reference internal" href="ppymech.html"><span class="doc">ppymech</span></a></p></li>
 <li><p><a class="reference internal" href="adios2.html"><span class="doc">adios2</span></a></p></li>
+<li><p><a class="reference internal" href="hdf.html"><span class="doc">HDF</span></a></p></li>
+<li><p><a class="reference internal" href="catalyst.html"><span class="doc">Catalyst</span></a></p></li>
 </ul>
 </div></blockquote>
 <p>We have developed wrapper functions that can be used to read and write data in a more user-friendly way. Here we show them:</p>
 <hr class="docutils" />
 <p id="module-pysemtools.io.wrappers">Wrappers to ease IO</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="pysemtools.io.wrappers.partition_read_data">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">partition_read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distributed_axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.wrappers.partition_read_data" title="Link to this definition"></a></dt>
+<dd><p>Generate partition information for hdf5 files. Useful if needing to read or write multiple files with the same partitioning, such that the
+read/write functions does not need to do the same every time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI.Comm</span></dt><dd><p>The MPI communicator</p>
+</dd>
+<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>The name of the file to read</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int, optional</span></dt><dd><p>The axis along which the data is distributed, by default 0. This is used to determine how many elements to read from the file in parallel.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>A list of slices corresponding to the local data to be read by each process</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="pysemtools.io.wrappers.read_data">
-<span class="sig-prename descclassname"><span class="pre">pysemtools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">keys:</span> <span class="pre">list[str],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.wrappers.read_data" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">read_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">keys:</span> <span class="pre">list[str],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;,</span> <span class="pre">distributed_axis:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">slices:</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.wrappers.read_data" title="Link to this definition"></a></dt>
 <dd><p>Read data from a file and return a dictionary with the names of the files and keys</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -139,6 +168,14 @@
 <dt><strong>keys</strong><span class="classifier">list[str]</span></dt><dd><p>The keys to read from the file</p>
 </dd>
 <dt><strong>parallel_io</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, read the file in parallel, by default False. This is aimed for hdf5 files, and currently it does not work if True</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">np.dtype, optional</span></dt><dd><p>The data type of the data to read, by default np.single</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int, optional</span></dt><dd><p>The axis along which the data is distributed, by default 0. This is used to determine how many elements to read from the file in parallel.</p>
+</dd>
+<dt><strong>slices</strong><span class="classifier">list, optional</span></dt><dd><p>A list of slices to read from the file. If None, the local data will be read based on the distributed_axis and the communicator. If provided, it should match the number of dimensions in the data.
+Note that if you are reading in parallel, the slices should be provided in such a way that they correspond to the local data on each process, otherwise the data will be replicated.
+If in doubt, do not provide slices, and the local data will be determined automatically.</p>
 </dd>
 </dl>
 </dd>
@@ -153,7 +190,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pysemtools.io.wrappers.write_data">
-<span class="sig-prename descclassname"><span class="pre">pysemtools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">write_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">data_dict:</span> <span class="pre">dict[str,</span> <span class="pre">~numpy.ndarray],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;,</span> <span class="pre">msh:</span> <span class="pre">~pysemtools.datatypes.msh.Mesh</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">write_mesh:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.wrappers.write_data" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.wrappers.</span></span><span class="sig-name descname"><span class="pre">write_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">comm,</span> <span class="pre">fname:</span> <span class="pre">str,</span> <span class="pre">data_dict:</span> <span class="pre">dict[str,</span> <span class="pre">~numpy.ndarray],</span> <span class="pre">parallel_io:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.float32'&gt;,</span> <span class="pre">msh:</span> <span class="pre">~pysemtools.datatypes.msh.Mesh</span> <span class="pre">|</span> <span class="pre">list[~numpy.ndarray]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">write_mesh:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False,</span> <span class="pre">distributed_axis:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0,</span> <span class="pre">uniform_shape:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.wrappers.write_data" title="Link to this definition"></a></dt>
 <dd><p>Write data to a file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -170,6 +207,10 @@
 <dt><strong>msh</strong><span class="classifier">Mesh, optional</span></dt><dd><p>The mesh object to write to a fld file, by default None</p>
 </dd>
 <dt><strong>write_mesh</strong><span class="classifier">bool, optional</span></dt><dd><p>Only valid for writing fld files</p>
+</dd>
+<dt><strong>distributed_axis</strong><span class="classifier">int, optional</span></dt><dd><p>The axis along which the data is distributed, by default 0</p>
+</dd>
+<dt><strong>uniform_shape</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, the global shape of the data is assumed to be uniform, by default False</p>
 </dd>
 </dl>
 </dd>
@@ -204,7 +245,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="interpolation.html" class="btn btn-neutral float-left" title="Interpolation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../_notebooks/1-datatypes_io.html" class="btn btn-neutral float-right" title="Data types and IO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

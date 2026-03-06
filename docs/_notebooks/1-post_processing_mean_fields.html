@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
@@ -23,7 +23,6 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="UQ of velocity fields" href="2-UQ_of_velocity.html" />
     <link rel="prev" title="POD and fft from pointclouds" href="2-POD_fft_from_pointclouds.html" /> 
 </head>
 
@@ -51,6 +50,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
@@ -97,8 +99,6 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -128,9 +128,10 @@
   <section id="Processing-statistics-files">
 <h1>Processing statistics files<a class="headerlink" href="#Processing-statistics-files" title="Link to this heading"></a></h1>
 <p>In this example we show how one can use pysemtools to process statistics</p>
+<p>Please note that to run this example, you need to have a set of files. For this one, we use the files produced from example 4-interpolation/6-interpolating_file_sequences.ipynb</p>
 <section id="Import-general-modules">
 <h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
@@ -145,8 +146,26 @@
 <span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;true&#39;</span>
-<br/></pre></div>
+
+<span class="c1"># Download the data if it does not exist</span>
+<span class="n">sem_data_path</span> <span class="o">=</span> <span class="s2">&quot;../data/sem_data/&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sem_data_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data not found, cloning repository...&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git </span><span class="si">{</span><span class="n">sem_data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data found.&quot;</span><span class="p">)</span>
+
+<span class="n">visualize</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Sem data found.
+</pre></div></div>
 </div>
 <section id="Index-the-files">
 <h3>Index the files<a class="headerlink" href="#Index-the-files" title="Link to this heading"></a></h3>
@@ -216,7 +235,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index_files_from_folder</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;low_order_stats.fld&quot;</span><span class="p">,</span> <span class="s2">&quot;high_order_stats.fld&quot;</span><span class="p">],</span> <span class="n">include_file_contents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_time_interval</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index_files_from_folder</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">folder_path</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">output_folder</span><span class="o">=</span><span class="s2">&quot;./&quot;</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;low_order_stats.fld&quot;</span><span class="p">,</span> <span class="s2">&quot;high_order_stats.fld&quot;</span><span class="p">],</span> <span class="n">include_file_contents</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_time_interval</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -266,67 +285,61 @@
 <section id="Visualize-the-data-in-the-cylindrical-mesh">
 <h3>Visualize the data in the cylindrical mesh<a class="headerlink" href="#Visualize-the-data-in-the-cylindrical-mesh" title="Link to this heading"></a></h3>
 <p>We can now load the data and check it out.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="k">if</span> <span class="n">visualize</span><span class="p">:</span>
 
+    <span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
 
-<span class="c1"># Load the mesh</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+    <span class="c1"># Load the mesh</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
 
-<span class="c1"># Load the interpolated data</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./low_order_stats_interpolated00001.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">][:]</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">][:]</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">][:]</span>
+    <span class="c1"># Load the interpolated data</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./low_order_stats_interpolated00001.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">][:]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">][:]</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">][:]</span>
 
-<span class="c1"># Create a structured mesh</span>
-<span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="c1"># Create a structured mesh</span>
+    <span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
 
-<span class="c1"># Plot</span>
-<span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
-<span class="c1"># plot first row</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="c1"># Plot</span>
+    <span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
+    <span class="c1"># plot first row</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="c1">#pl.show()</span>
+    <span class="c1">#pl.show()</span>
 
-<span class="c1"># Capture the plot as an image and show it</span>
-<span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
+    <span class="c1"># Capture the plot as an image and show it</span>
+    <span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
 </pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/_notebooks_1-post_processing_mean_fields_12_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_12_0.png" />
 </div>
 </div>
 </section>
@@ -386,62 +399,57 @@ u
 <section id="Visualize-the-rotated-mean">
 <h1>Visualize the rotated mean<a class="headerlink" href="#Visualize-the-rotated-mean" title="Link to this heading"></a></h1>
 <p>Now check out how the rotated quantities look</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the mesh</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
-    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="k">if</span> <span class="n">visualize</span><span class="p">:</span>
 
-<span class="c1"># Load the interpolated data</span>
-<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">][:]</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_th&quot;</span><span class="p">][:]</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_z&quot;</span><span class="p">][:]</span>
+    <span class="c1"># Load the mesh</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
 
-<span class="c1"># Create a structured mesh</span>
-<span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-<span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="c1"># Load the interpolated data</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s2">&quot;./rotated_mean_fields.hdf5&quot;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_r&quot;</span><span class="p">][:]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_th&quot;</span><span class="p">][:]</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;U_z&quot;</span><span class="p">][:]</span>
 
-<span class="c1"># Plot</span>
-<span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
-<span class="c1"># plot first row</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="c1"># Create a structured mesh</span>
+    <span class="n">mesh_1</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">StructuredGrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;v&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">mesh_1</span><span class="o">.</span><span class="n">point_data</span><span class="p">[</span><span class="s2">&quot;w&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">ravel</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
 
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="c1"># Plot</span>
+    <span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">window_size</span><span class="o">=</span><span class="p">[</span><span class="mi">1920</span><span class="p">,</span><span class="mi">1080</span><span class="p">])</span> <span class="c1"># Size in pixels</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_axes</span><span class="p">()</span>
+    <span class="c1"># plot first row</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;v&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.007</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="c1">#pl.show()</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">isos</span> <span class="o">=</span> <span class="n">mesh_1</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">scalars</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">isosurfaces</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">0.015</span><span class="p">,</span> <span class="mf">0.015</span><span class="p">])</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">mesh_1</span><span class="o">.</span><span class="n">outline</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">add_mesh</span><span class="p">(</span><span class="n">isos</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;coolwarm&quot;</span><span class="p">)</span>
 
-<span class="c1"># Capture the plot as an image and show it</span>
-<span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
-<span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
+    <span class="c1">#pl.show()</span>
+
+    <span class="c1"># Capture the plot as an image and show it</span>
+    <span class="n">image_path</span> <span class="o">=</span> <span class="s2">&quot;static_plot.png&quot;</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">image_path</span><span class="p">))</span>
 </pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../_images/_notebooks_1-post_processing_mean_fields_19_0.png" src="../_images/_notebooks_1-post_processing_mean_fields_19_0.png" />
 </div>
 </div>
 <p>In this case, we can average in the azimuthal direction.</p>
@@ -498,7 +506,13 @@ u
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load mass matrix</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load the mesh</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][:]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][:]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">][:]</span>
+
+<span class="c1"># Load mass matrix</span>
 <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">query_points_fname</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">bm</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">][:]</span>
 <span class="n">bm</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">bm</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1e-12</span>
@@ -568,7 +582,6 @@ u
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="2-POD_fft_from_pointclouds.html" class="btn btn-neutral float-left" title="POD and fft from pointclouds" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="2-UQ_of_velocity.html" class="btn btn-neutral float-right" title="UQ of velocity fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

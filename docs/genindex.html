@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -46,6 +46,9 @@
 <li class="toctree-l1"><a class="reference internal" href="pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pages/io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pages/api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_notebooks/1-datatypes_io.html">Data types and IO</a></li>
@@ -76,8 +79,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -108,18 +109,24 @@
 
 <div class="genindex-jumpbox">
  <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
@@ -127,61 +134,179 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry.add_field">add_field() (pysemtools.datatypes.field.FieldRegistry method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry.add_field">(pysemtools.datatypes.FieldRegistry method)</a>
 </li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.comm.Router.all_gather">all_gather() (pysemtools.comm.Router method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.comm.Router.all_to_all">all_to_all() (pysemtools.comm.Router method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.apply_spatial_filter">apply_spatial_filter() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.apply_spatial_filter">(pysemtools.datatypes.coef.Coef method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.build_spatial_filter">build_spatial_filter() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.build_spatial_filter">(pysemtools.datatypes.coef.Coef method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.io.catalyst.CatalystSession">CatalystSession (class in pysemtools.io.catalyst)</a>, <a href="pages/catalyst.html#pysemtools.io.catalyst.CatalystSession">[1]</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.POD.check_snapshot_orthogonality">check_snapshot_orthogonality() (pysemtools.rom.POD method)</a>
+</li>
       <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry.clear">clear() (pysemtools.datatypes.field.FieldRegistry method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry.clear">(pysemtools.datatypes.FieldRegistry method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef">Coef (class in pysemtools.datatypes.coef)</a>
+      </ul></li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.close">close() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.close">(pysemtools.io.hdf.HDF5File method)</a>
 </li>
+        <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.close">(pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+</li>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.close">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field">create_partitioned_field() (pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef">Coef (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef">(class in pysemtools.datatypes.coef)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh">create_partitioned_mesh() (pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.rom.IoHelp.copy_fieldlist_to_xi">copy_fieldlist_to_xi() (pysemtools.rom.IoHelp method)</a>
 </li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.create_connectivity">create_connectivity() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.create_connectivity">(pysemtools.datatypes.msh.Mesh method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshPartitioner.create_partitioned_field">create_partitioned_field() (pysemtools.datatypes.MeshPartitioner method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_field">(pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshPartitioner.create_partitioned_mesh">create_partitioned_mesh() (pysemtools.datatypes.MeshPartitioner method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.create_partitioned_mesh">(pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.DataCompressor">DataCompressor (class in pysemtools.io.adios2.compress)</a>
-</li>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer">DataStreamer (class in pysemtools.io.adios2.stream)</a>
-</li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dssum">dssum() (pysemtools.datatypes.coef.Coef method)</a>
+      <li><a href="pages/api.html#pysemtools.io.adios2.DataCompressor">DataCompressor (class in pysemtools.io.adios2)</a>
 
       <ul>
+        <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.DataCompressor">(class in pysemtools.io.adios2.compress)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.adios2.DataStreamer">DataStreamer (class in pysemtools.io.adios2)</a>
+
+      <ul>
+        <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer">(class in pysemtools.io.adios2.stream)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dssum">dssum() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dssum">(pysemtools.datatypes.coef.Coef method)</a>
+</li>
+        <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.dssum">(pysemtools.datatypes.MeshConnectivity method)</a>
+</li>
         <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
 </li>
       </ul></li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global">dssum_global() (pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.dssum_global">dssum_global() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_global">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
 </li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.dssum_local">dssum_local() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.dssum_local">dssum_local() (pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudrst">dudrst() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst">dudrst() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudrst_1d_operator">dudrst_1d_operator() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_1d_operator">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_1d_operator">dudrst_1d_operator() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudrst_1d_operator_torch">dudrst_1d_operator_torch() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_1d_operator_torch">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_1d_operator_torch">dudrst_1d_operator_torch() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudrst_3d_operator">dudrst_3d_operator() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_3d_operator">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_3d_operator">dudrst_3d_operator() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudrst_transposed">dudrst_transposed() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudrst_transposed">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudxyz">dudxyz() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.dudxyz">dudxyz() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.dudxyz">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.io.catalyst.CatalystSession.execute">execute() (pysemtools.io.catalyst.CatalystSession method)</a>, <a href="pages/catalyst.html#pysemtools.io.catalyst.CatalystSession.execute">[1]</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.cli.extract_subdomain">extract_subdomain() (in module pysemtools.cli)</a>
+</li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.extrude_2d_sem_mesh">extrude_2d_sem_mesh() (in module pysemtools.datatypes.utils)</a>
 </li>
   </ul></td>
@@ -190,13 +315,29 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/field.html#pysemtools.datatypes.field.Field">Field (class in pysemtools.datatypes.field)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Field">Field (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/field.html#pysemtools.datatypes.field.Field">(class in pysemtools.datatypes.field)</a>
 </li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry">FieldRegistry (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry">(class in pysemtools.datatypes.field)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry">FieldRegistry (class in pysemtools.datatypes.field)</a>
+      <li><a href="pages/api.html#pysemtools.io.adios2.DataStreamer.finalize">finalize() (pysemtools.io.adios2.DataStreamer method)</a>
+
+      <ul>
+        <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.finalize">(pysemtools.io.adios2.stream.DataStreamer method)</a>
 </li>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.finalize">finalize() (pysemtools.io.adios2.stream.DataStreamer method)</a>
+        <li><a href="pages/api.html#pysemtools.io.catalyst.CatalystSession.finalize">(pysemtools.io.catalyst.CatalystSession method)</a>, <a href="pages/catalyst.html#pysemtools.io.catalyst.CatalystSession.finalize">[1]</a>
+</li>
+      </ul></li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.find_merged_axes">find_merged_axes() (in module pysemtools.io.hdf.hdf5)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -204,41 +345,121 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.comm.Router.gather_in_root">gather_in_root() (pysemtools.comm.Router method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_svd">gbl_svd() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_svd_numpy">gbl_svd_numpy() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_svd_torch">gbl_svd_torch() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_update">gbl_update() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_update_numpy">gbl_update_numpy() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.gbl_update_torch">gbl_update_torch() (pysemtools.rom.SVD method)</a>
+</li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.get_angular_rotation_tensor">get_angular_rotation_tensor() (in module pysemtools.datatypes.utils)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_edge_centers">get_edge_centers() (pysemtools.datatypes.msh.Mesh method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.get_boundary_node_indices_2d">get_boundary_node_indices_2d() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_boundary_node_indices_2d">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_facet_centers">get_facet_centers() (pysemtools.datatypes.msh.Mesh method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.get_edge_centers">get_edge_centers() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_edge_centers">(pysemtools.datatypes.msh.Mesh method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.get_facet_centers">get_facet_centers() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_facet_centers">(pysemtools.datatypes.msh.Mesh method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.get_file_time">get_file_time() (in module pysemtools.io.ppymech.neksuite)</a>
 </li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.get_gradient">get_gradient() (in module pysemtools.datatypes.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity">get_multiplicity() (pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.get_multiplicity">get_multiplicity() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.get_multiplicity">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
 </li>
+      </ul></li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.get_strain_tensor">get_strain_tensor() (in module pysemtools.datatypes.utils)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_vertices">get_vertices() (pysemtools.datatypes.msh.Mesh method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.get_vertices">get_vertices() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.get_vertices">(pysemtools.datatypes.msh.Mesh method)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity">global_connectivity() (pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.global_connectivity">global_connectivity() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.global_connectivity">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
 </li>
-      <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.glsum">glsum() (pysemtools.datatypes.coef.Coef method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Coef.glsum">glsum() (pysemtools.datatypes.Coef method)</a>
+
+      <ul>
+        <li><a href="pages/coef.html#pysemtools.datatypes.coef.Coef.glsum">(pysemtools.datatypes.coef.Coef method)</a>
 </li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File">HDF5File (class in pysemtools.io.hdf)</a>
+
+      <ul>
+        <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File">(class in pysemtools.io.hdf.hdf5)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_common">init_common() (pysemtools.datatypes.msh.Mesh method)</a>
+      <li><a href="pages/api.html#pysemtools.cli.index_files">index_files() (in module pysemtools.cli)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_from_coords">init_from_coords() (pysemtools.datatypes.msh.Mesh method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.init_common">init_common() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_common">(pysemtools.datatypes.msh.Mesh method)</a>
 </li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.init_from_coords">init_from_coords() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_from_coords">(pysemtools.datatypes.msh.Mesh method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_from_data">init_from_data() (pysemtools.datatypes.msh.Mesh method)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh.init_from_data">init_from_data() (pysemtools.datatypes.Mesh method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.init_from_data">(pysemtools.datatypes.msh.Mesh method)</a>
 </li>
-      <li><a href="pages/probes.html#pysemtools.interpolation.probes.Probes.interpolate_from_field_list">interpolate_from_field_list() (pysemtools.interpolation.probes.Probes method)</a>
+      </ul></li>
+      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.NekHeader.init_from_string">init_from_string() (pysemtools.io.ppymech.neksuite.NekHeader method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.interpolation.Probes.interpolate_from_field_list">interpolate_from_field_list() (pysemtools.interpolation.Probes method)</a>
+
+      <ul>
+        <li><a href="pages/probes.html#pysemtools.interpolation.probes.Probes.interpolate_from_field_list">(pysemtools.interpolation.probes.Probes method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.rom.IoHelp">IoHelp (class in pysemtools.rom)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -246,7 +467,27 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity">local_connectivity() (pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.lcl_to_gbl_svd">lcl_to_gbl_svd() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD.lcl_update">lcl_update() (pysemtools.rom.SVD method)</a>
+</li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.link_to_existing_mesh">link_to_existing_mesh() (pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.link_to_existing_mesh">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.rom.IoHelp.load_buffer">load_buffer() (pysemtools.rom.IoHelp method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity.local_connectivity">local_connectivity() (pysemtools.datatypes.MeshConnectivity method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity.local_connectivity">(pysemtools.datatypes.msh_connectivity.MeshConnectivity method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.monitoring.Logger">Logger (class in pysemtools.monitoring)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -254,23 +495,77 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh">Mesh (class in pysemtools.datatypes.msh)</a>
+      <li><a href="pages/api.html#pysemtools.datatypes.Mesh">Mesh (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh">(class in pysemtools.datatypes.msh)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity">MeshConnectivity (class in pysemtools.datatypes.msh_connectivity)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshConnectivity">MeshConnectivity (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_connectivity.MeshConnectivity">(class in pysemtools.datatypes.msh_connectivity)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner">MeshPartitioner (class in pysemtools.datatypes.msh_partitioning)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshPartitioner">MeshPartitioner (class in pysemtools.datatypes)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner">(class in pysemtools.datatypes.msh_partitioning)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      </ul></li>
       <li>
     module
 
       <ul>
+        <li><a href="pages/api.html#module-pysemtools.cli">pysemtools.cli</a>, <a href="pages/generated/pysemtools.cli.html#module-pysemtools.cli">[1]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.comm">pysemtools.comm</a>, <a href="pages/generated/pysemtools.comm.html#module-pysemtools.comm">[1]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.datatypes">pysemtools.datatypes</a>, <a href="pages/generated/pysemtools.datatypes.html#module-pysemtools.datatypes">[1]</a>
+</li>
         <li><a href="pages/datatypes.html#module-pysemtools.datatypes.utils">pysemtools.datatypes.utils</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.interpolation">pysemtools.interpolation</a>, <a href="pages/generated/pysemtools.interpolation.html#module-pysemtools.interpolation">[1]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.io.adios2">pysemtools.io.adios2</a>, <a href="pages/generated/pysemtools.io.adios2.html#module-pysemtools.io.adios2">[1]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.io.catalyst">pysemtools.io.catalyst</a>, <a href="pages/catalyst.html#module-pysemtools.io.catalyst">[1]</a>, <a href="pages/generated/pysemtools.io.catalyst.html#module-pysemtools.io.catalyst">[2]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.io.hdf">pysemtools.io.hdf</a>, <a href="pages/generated/pysemtools.io.hdf.html#module-pysemtools.io.hdf">[1]</a>
+</li>
+        <li><a href="pages/hdf.html#module-pysemtools.io.hdf.hdf5">pysemtools.io.hdf.hdf5</a>
+</li>
+        <li><a href="pages/hdf.html#module-pysemtools.io.hdf.vtkhdf">pysemtools.io.hdf.vtkhdf</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.io.ppymech">pysemtools.io.ppymech</a>, <a href="pages/generated/pysemtools.io.ppymech.html#module-pysemtools.io.ppymech">[1]</a>
 </li>
         <li><a href="pages/ppymech.html#module-pysemtools.io.ppymech.neksuite">pysemtools.io.ppymech.neksuite</a>
 </li>
-        <li><a href="pages/io.html#module-pysemtools.io.wrappers">pysemtools.io.wrappers</a>
+        <li><a href="pages/api.html#module-pysemtools.io.wrappers">pysemtools.io.wrappers</a>, <a href="pages/generated/pysemtools.io.wrappers.html#module-pysemtools.io.wrappers">[1]</a>, <a href="pages/io.html#module-pysemtools.io.wrappers">[2]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.monitoring">pysemtools.monitoring</a>, <a href="pages/generated/pysemtools.monitoring.html#module-pysemtools.monitoring">[1]</a>
+</li>
+        <li><a href="pages/api.html#module-pysemtools.rom">pysemtools.rom</a>, <a href="pages/generated/pysemtools.rom.html#module-pysemtools.rom">[1]</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.NekHeader">NekHeader (class in pysemtools.io.ppymech.neksuite)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.open">open() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.open">(pysemtools.io.hdf.HDF5File method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -279,27 +574,125 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.preadnek">preadnek() (in module pysemtools.io.ppymech.neksuite)</a>
+      <li><a href="pages/api.html#pysemtools.io.wrappers.partition_read_data">partition_read_data() (in module pysemtools.io.wrappers)</a>, <a href="pages/io.html#pysemtools.io.wrappers.partition_read_data">[1]</a>
 </li>
-      <li><a href="pages/probes.html#pysemtools.interpolation.probes.Probes">Probes (class in pysemtools.interpolation.probes)</a>
+      <li><a href="pages/api.html#pysemtools.rom.POD">POD (class in pysemtools.rom)</a>
 </li>
+      <li><a href="pages/api.html#pysemtools.io.ppymech.preadnek">preadnek() (in module pysemtools.io.ppymech)</a>
+
+      <ul>
+        <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.preadnek">(in module pysemtools.io.ppymech.neksuite)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.interpolation.Probes">Probes (class in pysemtools.interpolation)</a>
+
+      <ul>
+        <li><a href="pages/probes.html#pysemtools.interpolation.probes.Probes">(class in pysemtools.interpolation.probes)</a>
+</li>
+      </ul></li>
       <li><a href="pages/io.html#pysemtools.io.read_probes.ProbesReader">ProbesReader (class in pysemtools.io.read_probes)</a>
 </li>
-      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pwritenek">pwritenek() (in module pysemtools.io.ppymech.neksuite)</a>
+      <li><a href="pages/api.html#pysemtools.io.ppymech.pwritenek">pwritenek() (in module pysemtools.io.ppymech)</a>
+
+      <ul>
+        <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pwritenek">(in module pysemtools.io.ppymech.neksuite)</a>
 </li>
-      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekread">pynekread() (in module pysemtools.io.ppymech.neksuite)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.ppymech.pynekread">pynekread() (in module pysemtools.io.ppymech)</a>
+
+      <ul>
+        <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekread">(in module pysemtools.io.ppymech.neksuite)</a>
 </li>
-      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekread_field">pynekread_field() (in module pysemtools.io.ppymech.neksuite)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.ppymech.pynekread_field">pynekread_field() (in module pysemtools.io.ppymech)</a>
+
+      <ul>
+        <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekread_field">(in module pysemtools.io.ppymech.neksuite)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekwrite">pynekwrite() (in module pysemtools.io.ppymech.neksuite)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.ppymech.pynekwrite">pynekwrite() (in module pysemtools.io.ppymech)</a>
+
+      <ul>
+        <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.pynekwrite">(in module pysemtools.io.ppymech.neksuite)</a>
 </li>
+      </ul></li>
+      <li>
+    pysemtools.cli
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.cli">module</a>, <a href="pages/generated/pysemtools.cli.html#module-pysemtools.cli">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.comm
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.comm">module</a>, <a href="pages/generated/pysemtools.comm.html#module-pysemtools.comm">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.datatypes
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.datatypes">module</a>, <a href="pages/generated/pysemtools.datatypes.html#module-pysemtools.datatypes">[1]</a>
+</li>
+      </ul></li>
       <li>
     pysemtools.datatypes.utils
 
       <ul>
         <li><a href="pages/datatypes.html#module-pysemtools.datatypes.utils">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    pysemtools.interpolation
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.interpolation">module</a>, <a href="pages/generated/pysemtools.interpolation.html#module-pysemtools.interpolation">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.adios2
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.io.adios2">module</a>, <a href="pages/generated/pysemtools.io.adios2.html#module-pysemtools.io.adios2">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.catalyst
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.io.catalyst">module</a>, <a href="pages/catalyst.html#module-pysemtools.io.catalyst">[1]</a>, <a href="pages/generated/pysemtools.io.catalyst.html#module-pysemtools.io.catalyst">[2]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.hdf
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.io.hdf">module</a>, <a href="pages/generated/pysemtools.io.hdf.html#module-pysemtools.io.hdf">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.hdf.hdf5
+
+      <ul>
+        <li><a href="pages/hdf.html#module-pysemtools.io.hdf.hdf5">module</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.hdf.vtkhdf
+
+      <ul>
+        <li><a href="pages/hdf.html#module-pysemtools.io.hdf.vtkhdf">module</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.io.ppymech
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.io.ppymech">module</a>, <a href="pages/generated/pysemtools.io.ppymech.html#module-pysemtools.io.ppymech">[1]</a>
 </li>
       </ul></li>
       <li>
@@ -313,7 +706,21 @@
     pysemtools.io.wrappers
 
       <ul>
-        <li><a href="pages/io.html#module-pysemtools.io.wrappers">module</a>
+        <li><a href="pages/api.html#module-pysemtools.io.wrappers">module</a>, <a href="pages/generated/pysemtools.io.wrappers.html#module-pysemtools.io.wrappers">[1]</a>, <a href="pages/io.html#module-pysemtools.io.wrappers">[2]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.monitoring
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.monitoring">module</a>, <a href="pages/generated/pysemtools.monitoring.html#module-pysemtools.monitoring">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    pysemtools.rom
+
+      <ul>
+        <li><a href="pages/api.html#module-pysemtools.rom">module</a>, <a href="pages/generated/pysemtools.rom.html#module-pysemtools.rom">[1]</a>
 </li>
       </ul></li>
   </ul></td>
@@ -323,18 +730,64 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.DataCompressor.read">read() (pysemtools.io.adios2.compress.DataCompressor method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.adios2.DataCompressor.read">(pysemtools.io.adios2.DataCompressor method)</a>
 </li>
-      <li><a href="pages/io.html#pysemtools.io.wrappers.read_data">read_data() (in module pysemtools.io.wrappers)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.wrappers.read_data">read_data() (in module pysemtools.io.wrappers)</a>, <a href="pages/io.html#pysemtools.io.wrappers.read_data">[1]</a>
 </li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.read_dataset">read_dataset() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.read_dataset">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
       <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.read_field">read_field() (in module pysemtools.io.adios2.compress)</a>
 </li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_mesh_data">read_mesh_data() (pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.read_mesh_data">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/ppymech.html#pysemtools.io.ppymech.neksuite.read_nekheader">read_nekheader() (in module pysemtools.io.ppymech.neksuite)</a>
+</li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.read_point_data">read_point_data() (pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.read_point_data">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.recieve">recieve() (pysemtools.io.adios2.stream.DataStreamer method)</a>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.read_slices">read_slices() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.read_slices">(pysemtools.io.hdf.HDF5File method)</a>
 </li>
-      <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements">redistribute_field_elements() (pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.adios2.DataStreamer.recieve">recieve() (pysemtools.io.adios2.DataStreamer method)</a>
+
+      <ul>
+        <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.recieve">(pysemtools.io.adios2.stream.DataStreamer method)</a>
 </li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.datatypes.MeshPartitioner.redistribute_field_elements">redistribute_field_elements() (pysemtools.datatypes.MeshPartitioner method)</a>
+
+      <ul>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh_partitioning.MeshPartitioner.redistribute_field_elements">(pysemtools.datatypes.msh_partitioning.MeshPartitioner method)</a>
+</li>
+      </ul></li>
       <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry.rename_registry_key">rename_registry_key() (pysemtools.datatypes.field.FieldRegistry method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry.rename_registry_key">(pysemtools.datatypes.FieldRegistry method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.rom.POD.rotate_local_modes_to_global">rotate_local_modes_to_global() (pysemtools.rom.POD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.comm.Router">Router (class in pysemtools.comm)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -342,7 +795,79 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.stream">stream() (pysemtools.io.adios2.stream.DataStreamer method)</a>
+      <li><a href="pages/api.html#pysemtools.rom.POD.scale_modes">scale_modes() (pysemtools.rom.POD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.comm.Router.scatter_from_root">scatter_from_root() (pysemtools.comm.Router method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.comm.Router.send_recv">send_recv() (pysemtools.comm.Router method)</a>
+</li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.set_active_group">set_active_group() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.set_active_group">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.catalyst.CatalystSession.set_field">set_field() (pysemtools.io.catalyst.CatalystSession method)</a>, <a href="pages/catalyst.html#pysemtools.io.catalyst.CatalystSession.set_field">[1]</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.io.catalyst.CatalystSession.set_mesh">set_mesh() (pysemtools.io.catalyst.CatalystSession method)</a>, <a href="pages/catalyst.html#pysemtools.io.catalyst.CatalystSession.set_mesh">[1]</a>
+</li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_external">set_read_slices_external() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.set_read_slices_external">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.set_read_slices_linear_lb">set_read_slices_linear_lb() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.set_read_slices_linear_lb">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.set_write_slices">set_write_slices() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.set_write_slices">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.rom.IoHelp.split_narray_to_1dfields">split_narray_to_1dfields() (pysemtools.rom.IoHelp method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.io.adios2.DataStreamer.stream">stream() (pysemtools.io.adios2.DataStreamer method)</a>
+
+      <ul>
+        <li><a href="pages/adios2.html#pysemtools.io.adios2.stream.DataStreamer.stream">(pysemtools.io.adios2.stream.DataStreamer method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.rom.SVD">SVD (class in pysemtools.rom)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.monitoring.Logger.sync_tic">sync_tic() (pysemtools.monitoring.Logger method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.monitoring.Logger.sync_toc">sync_toc() (pysemtools.monitoring.Logger method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.monitoring.Logger.tic">tic() (pysemtools.monitoring.Logger method)</a>
+</li>
+      <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry.to">to() (pysemtools.datatypes.field.FieldRegistry method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry.to">(pysemtools.datatypes.FieldRegistry method)</a>
+</li>
+        <li><a href="pages/api.html#pysemtools.datatypes.Mesh.to">(pysemtools.datatypes.Mesh method)</a>
+</li>
+        <li><a href="pages/msh.html#pysemtools.datatypes.msh.Mesh.to">(pysemtools.datatypes.msh.Mesh method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.monitoring.Logger.toc">toc() (pysemtools.monitoring.Logger method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.comm.Router.transfer_data">transfer_data() (pysemtools.comm.Router method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -350,12 +875,36 @@
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/field.html#pysemtools.datatypes.field.Field.update_vars">update_vars() (pysemtools.datatypes.field.Field method)</a>
+      <li><a href="pages/api.html#pysemtools.rom.POD.update">update() (pysemtools.rom.POD method)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.datatypes.Field.update_vars">update_vars() (pysemtools.datatypes.Field method)</a>
 
       <ul>
+        <li><a href="pages/field.html#pysemtools.datatypes.field.Field.update_vars">(pysemtools.datatypes.field.Field method)</a>
+</li>
         <li><a href="pages/field.html#pysemtools.datatypes.field.FieldRegistry.update_vars">(pysemtools.datatypes.field.FieldRegistry method)</a>
 </li>
+        <li><a href="pages/api.html#pysemtools.datatypes.FieldRegistry.update_vars">(pysemtools.datatypes.FieldRegistry method)</a>
+</li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.cli.visnek">visnek() (in module pysemtools.cli)</a>
+</li>
+      <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile">VTKHDFFile (class in pysemtools.io.hdf)</a>
+
+      <ul>
+        <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile">(class in pysemtools.io.hdf.vtkhdf)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="pages/api.html#pysemtools.datatypes.VTKMesh">VTKMesh (class in pysemtools.datatypes)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -363,17 +912,47 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.DataCompressor.write">write() (pysemtools.io.adios2.compress.DataCompressor method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.adios2.DataCompressor.write">(pysemtools.io.adios2.DataCompressor method)</a>
 </li>
-      <li><a href="pages/io.html#pysemtools.io.wrappers.write_data">write_data() (in module pysemtools.io.wrappers)</a>
+        <li><a href="pages/api.html#pysemtools.monitoring.Logger.write">(pysemtools.monitoring.Logger method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/api.html#pysemtools.io.wrappers.write_data">write_data() (in module pysemtools.io.wrappers)</a>, <a href="pages/io.html#pysemtools.io.wrappers.write_data">[1]</a>
+</li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.write_dataset">write_dataset() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.write_dataset">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.write_field">write_field() (in module pysemtools.io.adios2.compress)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="pages/adios2.html#pysemtools.io.adios2.compress.write_field">write_field() (in module pysemtools.io.adios2.compress)</a>
-</li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.write_fld_file_from_list">write_fld_file_from_list() (in module pysemtools.datatypes.utils)</a>
 </li>
       <li><a href="pages/datatypes.html#pysemtools.datatypes.utils.write_fld_subdomain_from_list">write_fld_subdomain_from_list() (in module pysemtools.datatypes.utils)</a>
 </li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_mesh_data">write_mesh_data() (pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.write_mesh_data">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.vtkhdf.VTKHDFFile.write_point_data">write_point_data() (pysemtools.io.hdf.vtkhdf.VTKHDFFile method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.VTKHDFFile.write_point_data">(pysemtools.io.hdf.VTKHDFFile method)</a>
+</li>
+      </ul></li>
+      <li><a href="pages/hdf.html#pysemtools.io.hdf.hdf5.HDF5File.write_slices">write_slices() (pysemtools.io.hdf.hdf5.HDF5File method)</a>
+
+      <ul>
+        <li><a href="pages/api.html#pysemtools.io.hdf.HDF5File.write_slices">(pysemtools.io.hdf.HDF5File method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 

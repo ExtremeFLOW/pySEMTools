@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interpolation to query points in parallel &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Interpolation to query points in parallel</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/1.1-interpolation_to_query_points_parallel.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Interpolation-to-query-points-in-parallel">
+<h1>Interpolation to query points in parallel<a class="headerlink" href="#Interpolation-to-query-points-in-parallel" title="Link to this heading"></a></h1>
+<p>In this example, we will show the workflow that we generally take when operating files that eventually need an interpolation operation.</p>
+<p>In example <code class="docutils literal notranslate"><span class="pre">4.6</span> <span class="pre">-</span> <span class="pre">interpolating_file_sequence</span></code>, we will later show how to quickly interpolate files from disk. However, in those cases, IO for probes is in serial, reading in <code class="docutils literal notranslate"><span class="pre">rank</span> <span class="pre">0</span></code> and scattering the data.</p>
+<p>We have found that while very useful, sometimes the amount of data and operations to make call for a different approach. We hope that this example can help you get started quickly in such scenarios.</p>
+<blockquote>
+<div><p>The goal of this example is to showcase a workflow where <strong>every step</strong> is in parallel</p>
+</div></blockquote>
+<section id="SEM-mesh-and-query-points">
+<h2>SEM mesh and query points<a class="headerlink" href="#SEM-mesh-and-query-points" title="Link to this heading"></a></h2>
+<p>For interpolation, we allways require a spectral element mesh (SEM) that contains the original data, and we also need a set of query points to interpolate to.</p>
+<p>We recommend that both of these are files in disk. For query points, it is a good idea to have a prepared <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> file. You can see how we create ours in example <code class="docutils literal notranslate"><span class="pre">4.5</span> <span class="pre">-</span> <span class="pre">structured_mesh</span></code>. For this example we use the previously created points in <code class="docutils literal notranslate"><span class="pre">../data/points.hdf5</span></code></p>
+<p>The SEM mesh corresponds to a cylindrical domain located at: <code class="docutils literal notranslate"><span class="pre">../data/rbc0.f00001</span></code></p>
+<blockquote>
+<div><p>We recommend that you set up you mesh such that you can partition it across ranks based on <code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">0</span></code> from its shape this is not a hard requirement if you only want to use <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> files. But it is needed if you want <code class="docutils literal notranslate"><span class="pre">vtkhdf</span></code></p>
+</div></blockquote>
+<p>Note that here we show multiple ways to perform IO. In general, the wrappers <code class="docutils literal notranslate"><span class="pre">read_data</span></code> and <code class="docutils literal notranslate"><span class="pre">write_data</span></code> can perform IO to all supported types. They are selected based on the file extension. However keep in mind that this example is just a template. You are encouraged to change IO ways for the explicit types if you need more flexibility or control on the data.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sem_mesh_fname</span> <span class="o">=</span> <span class="s1">&#39;../data/rbc0.f00001&#39;</span>
+<span class="n">query_points_fname</span> <span class="o">=</span> <span class="s1">&#39;../data/points.hdf5&#39;</span>
+</pre></div>
+</div>
+</div>
+<p>we also need to define a file sequence of data that will be interpolated. In this case, we will just have one file in our sequence:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">file_sequence</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;../data/rbc0.f00001&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Read-mesh/query-data">
+<h2>Read mesh/query data<a class="headerlink" href="#Read-mesh/query-data" title="Link to this heading"></a></h2>
+<p>Now we start with the io</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+</pre></div>
+</div>
+</div>
+<p>For the query points, we will use our wrapper. For the nek-like type we will use the dedicated reader. In reality, the wrapper can be used in both cases.</p>
+<p>Please see example <code class="docutils literal notranslate"><span class="pre">1.1</span> <span class="pre">-</span> <span class="pre">datatypes_io</span></code> to know more on ways to perform IO</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Read the query points</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_data</span>
+<span class="n">query_mesh</span> <span class="o">=</span> <span class="n">read_data</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">query_points_fname</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="n">parallel_io</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Read the SEM mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span><span class="p">,</span> <span class="n">FieldRegistry</span><span class="p">,</span> <span class="n">Coef</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech</span><span class="w"> </span><span class="kn">import</span> <span class="n">pynekread</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">sem_mesh_fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">)</span>
+
+<span class="c1"># Optionally build Coefs if you need derivatives, etc. Be mindful that this requires a bit of memory</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2026-03-04 22:19:42,494  HDF5File              INFO      ../data/points.hdf5 opened - mode r - serial
+2026-03-04 22:19:42,500  HDF5File              INFO      ../data/points.hdf5 closed - Elapsed time: 0.005900768s
+2026-03-04 22:19:42,500  pynekread             INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 22:19:42,523  Mesh                  INFO      Mesh object initialized from coordinates with type: float64 - Elapsed time: 0.008784796000000001s
+2026-03-04 22:19:42,524  pynekread             INFO      File successfully read - Elapsed time: 0.024041356s
+2026-03-04 22:19:42,575  Coef                  INFO      Coef object initialized - dtype: float64 - Elapsed time: 0.049865215000000004s
+</pre></div></div>
+</div>
+<p>Note that if running this on a python script on multiple ranks, both of these data sets will already be distributed among ranks at this stage. Here we read the <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> keys of the hdf5 file that contains the query points</p>
+<p><strong>Important</strong> the query points need to be given as an array with shape <code class="docutils literal notranslate"><span class="pre">(n_points,</span> <span class="pre">3)</span></code> and right now our query points are 3 different arrays with shape <code class="docutils literal notranslate"><span class="pre">(nx,</span> <span class="pre">ny,</span> <span class="pre">nz)</span></code>. So we need to do a preprocessing step:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">xyz</span> <span class="o">=</span> <span class="p">[</span><span class="n">query_mesh</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">query_mesh</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">,</span> <span class="n">query_mesh</span><span class="p">[</span><span class="s2">&quot;z&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">]</span>
+<span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Operate-and-interpolate-data">
+<h2>Operate and interpolate data<a class="headerlink" href="#Operate-and-interpolate-data" title="Link to this heading"></a></h2>
+<p>We can now do any operations we need in our file sequence.</p>
+<p>We leave a code block section empty, where you could include any operation you need.</p>
+<blockquote>
+<div><p>Distributed axis here needs to be the same used to read the data, otherwise errors might appear. <strong>Importat:</strong> Since we output in <code class="docutils literal notranslate"><span class="pre">vtkhdf</span></code>, we <strong>need</strong> distributed axis <code class="docutils literal notranslate"><span class="pre">0</span></code></p>
+</div></blockquote>
+<p>Note that after the fields are interpolated into the query points, we reshape the data back to the original shape.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">Probes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_data</span>
+<span class="k">for</span> <span class="n">fi</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">):</span>
+
+    <span class="c1"># ===========================</span>
+    <span class="c1"># Initialize the interpolator</span>
+    <span class="c1"># ===========================</span>
+    <span class="k">if</span> <span class="n">fi</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># Only at step 0</span>
+        <span class="n">probes</span> <span class="o">=</span> <span class="n">Probes</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">probes</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span>
+                        <span class="n">point_interpolator_type</span><span class="o">=</span><span class="s1">&#39;multiple_point_legendre_numpy&#39;</span><span class="p">,</span>
+                        <span class="n">max_pts</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">find_points_comm_pattern</span><span class="o">=</span><span class="s1">&#39;point_to_point&#39;</span><span class="p">,</span>
+                        <span class="n">write_coords</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">output_fname</span><span class="o">=</span><span class="s1">&#39;out.hdf5&#39;</span><span class="p">)</span>
+        <span class="n">probes</span><span class="o">.</span><span class="n">log</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">,</span> <span class="s1">&#39;==============================================================================&#39;</span><span class="p">)</span>
+
+    <span class="c1"># =============================</span>
+    <span class="c1"># Read current file in sequence</span>
+    <span class="c1"># =============================</span>
+    <span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+    <span class="n">pynekread</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
+
+    <span class="c1"># ================================</span>
+    <span class="c1"># Do operations that you need here</span>
+    <span class="c1"># ================================</span>
+
+
+    <span class="c1"># ===============================</span>
+    <span class="c1"># Interpolate to the query points</span>
+    <span class="c1"># ===============================</span>
+    <span class="n">field_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+    <span class="n">probes</span><span class="o">.</span><span class="n">interpolate_from_field_list</span><span class="p">(</span><span class="n">fld</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">field_list</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">write_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">field_names</span><span class="o">=</span><span class="n">field_names</span><span class="p">)</span>
+
+    <span class="c1"># ====================================</span>
+    <span class="c1"># Output the data in a format you need</span>
+    <span class="c1"># ====================================</span>
+    <span class="n">fname_out</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;interpolated_</span><span class="si">{</span><span class="n">fi</span><span class="si">:</span><span class="s1">05d</span><span class="si">}</span><span class="s1">.vtkhdf&#39;</span>
+    <span class="n">output_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">field_names</span><span class="p">):</span>
+        <span class="n">output_data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">probes</span><span class="o">.</span><span class="n">interpolated_fields</span><span class="p">[:,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">query_mesh</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
+    <span class="n">write_data</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname_out</span><span class="p">,</span> <span class="n">data_dict</span><span class="o">=</span><span class="n">output_data</span><span class="p">,</span> <span class="n">parallel_io</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="p">[</span><span class="n">query_mesh</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">query_mesh</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2026-03-04 22:19:42,868  Probes                INFO      Initializing Probes object
+2026-03-04 22:19:42,869  Probes                INFO      Query points (probes) read/assigned - Elapsed time: 2.0434000000013608e-05s
+2026-03-04 22:19:42,877  Probes                INFO      Interpolator initialized in all ranks - Elapsed time: 0.007555385999999997s
+2026-03-04 22:19:42,884  Interpolator          INFO      Elapsed time: 0.005895140000000021s
+2026-03-04 22:19:42,885  Interpolator          INFO      Finding points - start
+2026-03-04 22:19:43,033  Interpolator          INFO      Processing data in multiple ranks. Reporting progress only for rank 0
+2026-03-04 22:19:43,034  Interpolator          INFO      Processing batch: 1 out of 1
+2026-03-04 22:19:46,273  Probes                INFO      Finding points finalized in all ranks - Elapsed time: 3.388536329s
+2026-03-04 22:19:46,277  Interpolator          INFO      Elapsed time: 0.0030791539999999173s
+2026-03-04 22:19:46,281  Probes                INFO      Found 69760 points, 0 not found, 2240 with warnings
+2026-03-04 22:19:46,282  Probes                INFO      Probes object initialized in all ranks - Elapsed time: 3.414060353s
+2026-03-04 22:19:46,283  Probes                INFO      ==============================================================================
+2026-03-04 22:19:46,283  pynekread             INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 22:19:46,292  Field                 INFO      Field registry updated with: [&#39;u&#39;, &#39;v&#39;, &#39;w&#39;, &#39;p&#39;, &#39;t&#39;] - dtype: float64
+2026-03-04 22:19:46,293  pynekread             INFO      File successfully read - Elapsed time: 0.009393837999999821s
+2026-03-04 22:19:46,293  Probes                INFO      Interpolating fields from field list
+2026-03-04 22:19:46,555  Probes                INFO      Finished interpolation and redistribution in all ranks - Aggregated time: 0.26068537199999975s
+2026-03-04 22:19:46,556  Probes                INFO      Finished writing interpolated fields - Elapsed time: 1.554000000680844e-06s
+2026-03-04 22:19:46,558  HDF5File              INFO      interpolated_00000.vtkhdf opened - mode w - serial
+2026-03-04 22:19:46,630  HDF5File              INFO      interpolated_00000.vtkhdf closed - Elapsed time: 0.07268667199999967s
+</pre></div></div>
+</div>
+<p>Now you are done!</p>
+<p>If you used <code class="docutils literal notranslate"><span class="pre">vtkhdf</span></code> you can visualize in paraview. Otherwise you can consume the data as you see fit.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

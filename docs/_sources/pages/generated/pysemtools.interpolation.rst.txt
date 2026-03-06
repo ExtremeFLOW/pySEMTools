@@ -1,0 +1,12 @@
+﻿pysemtools.interpolation
+========================
+
+.. automodule:: pysemtools.interpolation
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Probes
+   

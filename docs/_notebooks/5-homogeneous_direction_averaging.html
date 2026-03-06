@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
@@ -50,6 +50,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
@@ -80,8 +83,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -114,7 +115,7 @@
 <section id="Import-general-modules">
 <h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
@@ -135,36 +136,32 @@
 <h3>Clone the data<a class="headerlink" href="#Clone-the-data" title="Link to this heading"></a></h3>
 <p>Get some data from a public repository</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository with the data</span>
-<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git ../data/sem_data&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download the data if it does not exist</span>
+<span class="n">sem_data_path</span> <span class="o">=</span> <span class="s2">&quot;../data/sem_data/&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sem_data_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data not found, cloning repository...&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git </span><span class="si">{</span><span class="n">sem_data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data found.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-fatal: destination path &#39;../data/sem_data&#39; already exists and is not an empty directory.
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-32768
+Sem data found.
 </pre></div></div>
 </div>
 <section id="Create-a-file-name-sequence">
 <h4>Create a file name sequence<a class="headerlink" href="#Create-a-file-name-sequence" title="Link to this heading"></a></h4>
 <p>This file name sequence will be used to read and average the data.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_files</span> <span class="o">=</span> <span class="mi">1</span>
@@ -179,7 +176,7 @@ fatal: destination path &#39;../data/sem_data&#39; already exists and is not an 
 <h3>Average the file sequence in the homogeneous direction<a class="headerlink" href="#Average-the-file-sequence-in-the-homogeneous-direction" title="Link to this heading"></a></h3>
 <p>Simply call the function that performs the average</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.space_averaging</span><span class="w"> </span><span class="kn">import</span> <span class="n">space_average_field_files</span>
@@ -194,69 +191,69 @@ fatal: destination path &#39;../data/sem_data&#39; already exists and is not an 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2025-02-18 14:54:45,825 - space_average_field_files - INFO - Averaging field files in sequence: [&#39;../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000&#39;]
-2025-02-18 14:54:45,827 - space_average_field_files - INFO - Reading the mesh from the first file in the sequence
-2025-02-18 14:54:45,827 - space_average_field_files - INFO - Output files will be saved in: ./
-2025-02-18 14:54:45,828 - Mesh - INFO - Initializing empty Mesh object.
-2025-02-18 14:54:45,829 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
-2025-02-18 14:54:45,844 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2025-02-18 14:54:45,846 - Mesh - INFO - Initializing common attributes.
-2025-02-18 14:54:45,847 - Mesh - INFO - Getting vertices
-2025-02-18 14:54:45,849 - Mesh - INFO - Getting edge centers
-2025-02-18 14:54:45,921 - Mesh - INFO - Getting facet centers
-2025-02-18 14:54:45,967 - Mesh - INFO - Mesh object initialized.
-2025-02-18 14:54:45,968 - Mesh - INFO - Mesh data is of type: float32
-2025-02-18 14:54:45,969 - Mesh - INFO - Elapsed time: 0.12440090699999473s
-2025-02-18 14:54:45,970 - pynekread - INFO - File read
-2025-02-18 14:54:45,970 - pynekread - INFO - Elapsed time: 0.1414608279999925s
-2025-02-18 14:54:45,971 - space_average_field_files - INFO - Initializing coefficients
-2025-02-18 14:54:45,972 - Coef - INFO - Initializing Coef object
-2025-02-18 14:54:45,973 - Coef - INFO - Getting derivative matrices
-2025-02-18 14:54:45,976 - Coef - INFO - Calculating the components of the jacobian
-2025-02-18 14:54:46,519 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
-2025-02-18 14:54:46,573 - Coef - INFO - Calculating the mass matrix
-2025-02-18 14:54:46,575 - Coef - INFO - Coef object initialized
-2025-02-18 14:54:46,576 - Coef - INFO - Coef data is of type: float32
-2025-02-18 14:54:46,576 - Coef - INFO - Elapsed time: 0.6042016179999905s
-2025-02-18 14:54:46,577 - space_average_field_files - INFO - Averaging in the direction: z
-2025-02-18 14:54:46,577 - space_average_field_files - INFO - Identifying unique cross-sections in each rank separately
-2025-02-18 14:54:46,603 - space_average_field_files - INFO - Identifying which rank will take charge of the 2D elements
-2025-02-18 14:54:46,604 - space_average_field_files - WARNING - This might be slow...
-2025-02-18 14:54:46,605 - space_average_field_files - WARNING - It might be slower with many ranks...
-2025-02-18 14:54:46,606 - space_average_field_files - WARNING - Consider using only as many as necesary for data to fit in memory
-2025-02-18 14:54:46,691 - space_average_field_files - INFO - done!
-2025-02-18 14:54:46,692 - space_average_field_files - INFO - Elapsed time: 0.08553983400003062s
-2025-02-18 14:54:46,692 - space_average_field_files - INFO - Mapping the indices of the original elements to those of the unique elements in the specified direction
-2025-02-18 14:54:46,960 - space_average_field_files - INFO - Getting 2D slices
-2025-02-18 14:54:47,059 - space_average_field_files - INFO - Verifying averaging
-2025-02-18 14:54:47,083 - space_average_field_files - INFO - Averaging test passed: True
-2025-02-18 14:54:47,084 - space_average_field_files - INFO - Creating 2D mesh object on ranks that have them
-2025-02-18 14:54:47,086 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2025-02-18 14:54:47,087 - Mesh - INFO - Initializing common attributes.
-2025-02-18 14:54:47,087 - Mesh - INFO - Getting vertices
-2025-02-18 14:54:47,088 - Mesh - INFO - Getting edge centers
-2025-02-18 14:54:47,093 - Mesh - INFO - Facet centers not available for 2D
-2025-02-18 14:54:47,095 - Mesh - INFO - Mesh object initialized.
-2025-02-18 14:54:47,095 - Mesh - INFO - Mesh data is of type: float32
-2025-02-18 14:54:47,097 - Mesh - INFO - Elapsed time: 0.01059433499995066s
-2025-02-18 14:54:47,098 - Field - INFO - Initializing empty Field object
-2025-02-18 14:54:47,099 - pynekwrite - INFO - Writing file: ./2dcoordinates0.f00000
-2025-02-18 14:54:47,102 - pynekwrite - INFO - Elapsed time: 0.0035358829999836416s
+2025-12-05 11:29:35,537 - space_average_field_files - INFO - Averaging field files in sequence: [&#39;../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000&#39;]
+2025-12-05 11:29:35,538 - space_average_field_files - INFO - Reading the mesh from the first file in the sequence
+2025-12-05 11:29:35,539 - space_average_field_files - INFO - Output files will be saved in: ./
+2025-12-05 11:29:35,539 - Mesh - INFO - Initializing empty Mesh object.
+2025-12-05 11:29:35,540 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-12-05 11:29:35,569 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-12-05 11:29:35,570 - Mesh - INFO - Initializing common attributes.
+2025-12-05 11:29:35,571 - Mesh - INFO - Getting vertices
+2025-12-05 11:29:35,573 - Mesh - INFO - Getting edge centers
+2025-12-05 11:29:35,650 - Mesh - INFO - Getting facet centers
+2025-12-05 11:29:35,701 - Mesh - INFO - Mesh object initialized.
+2025-12-05 11:29:35,702 - Mesh - INFO - Mesh data is of type: float32
+2025-12-05 11:29:35,703 - Mesh - INFO - Elapsed time: 0.13361820099999022s
+2025-12-05 11:29:35,704 - pynekread - INFO - File read
+2025-12-05 11:29:35,704 - pynekread - INFO - Elapsed time: 0.16428677700002936s
+2025-12-05 11:29:35,706 - space_average_field_files - INFO - Initializing coefficients
+2025-12-05 11:29:35,708 - Coef - INFO - Initializing Coef object
+2025-12-05 11:29:35,709 - Coef - INFO - Getting derivative matrices
+2025-12-05 11:29:35,815 - Coef - INFO - Calculating the components of the jacobian
+2025-12-05 11:29:35,901 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2025-12-05 11:29:35,950 - Coef - INFO - Calculating the mass matrix
+2025-12-05 11:29:35,952 - Coef - INFO - Coef object initialized
+2025-12-05 11:29:35,953 - Coef - INFO - Coef data is of type: float32
+2025-12-05 11:29:35,953 - Coef - INFO - Elapsed time: 0.24588868799997954s
+2025-12-05 11:29:35,954 - space_average_field_files - INFO - Averaging in the direction: z
+2025-12-05 11:29:35,955 - space_average_field_files - INFO - Identifying unique cross-sections in each rank separately
+2025-12-05 11:29:35,978 - space_average_field_files - INFO - Identifying which rank will take charge of the 2D elements
+2025-12-05 11:29:35,980 - space_average_field_files - WARNING - This might be slow...
+2025-12-05 11:29:35,980 - space_average_field_files - WARNING - It might be slower with many ranks...
+2025-12-05 11:29:35,980 - space_average_field_files - WARNING - Consider using only as many as necesary for data to fit in memory
+2025-12-05 11:29:36,053 - space_average_field_files - INFO - done!
+2025-12-05 11:29:36,054 - space_average_field_files - INFO - Elapsed time: 0.07308071500000324s
+2025-12-05 11:29:36,054 - space_average_field_files - INFO - Mapping the indices of the original elements to those of the unique elements in the specified direction
+2025-12-05 11:29:36,297 - space_average_field_files - INFO - Getting 2D slices
+2025-12-05 11:29:36,380 - space_average_field_files - INFO - Verifying averaging
+2025-12-05 11:29:36,400 - space_average_field_files - INFO - Averaging test passed: True
+2025-12-05 11:29:36,401 - space_average_field_files - INFO - Creating 2D mesh object on ranks that have them
+2025-12-05 11:29:36,402 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-12-05 11:29:36,402 - Mesh - INFO - Initializing common attributes.
+2025-12-05 11:29:36,403 - Mesh - INFO - Getting vertices
+2025-12-05 11:29:36,403 - Mesh - INFO - Getting edge centers
+2025-12-05 11:29:36,406 - Mesh - INFO - Facet centers not available for 2D
+2025-12-05 11:29:36,406 - Mesh - INFO - Mesh object initialized.
+2025-12-05 11:29:36,406 - Mesh - INFO - Mesh data is of type: float32
+2025-12-05 11:29:36,407 - Mesh - INFO - Elapsed time: 0.0049296060000187936s
+2025-12-05 11:29:36,408 - Field - INFO - Initializing empty Field object
+2025-12-05 11:29:36,410 - pynekwrite - INFO - Writing file: ./2dcoordinates0.f00000
+2025-12-05 11:29:36,412 - pynekwrite - INFO - Elapsed time: 0.002028196999958709s
 =================================================================================================
-2025-02-18 14:54:47,104 - Field - INFO - Initializing empty Field object
-2025-02-18 14:54:47,104 - space_average_field_files - INFO - Starting to go through the files in the index:
-2025-02-18 14:54:47,105 - space_average_field_files - INFO - Reading file ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
-2025-02-18 14:54:47,107 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
-2025-02-18 14:54:47,109 - pynekread - INFO - Reading field data
-2025-02-18 14:54:47,144 - pynekread - INFO - File read
-2025-02-18 14:54:47,151 - pynekread - INFO - Elapsed time: 0.04427590400001691s
-2025-02-18 14:54:47,155 - space_average_field_files - INFO - Averaging the fields in the specified direction
-2025-02-18 14:54:47,355 - space_average_field_files - INFO - z velocity field found in the file and output in 3D is not requested. Saving z velocity as the last scalar
-2025-02-18 14:54:47,407 - space_average_field_files - INFO - Averaging finished, writing to file ./z_avg_batch_mean_field0.f00000
-2025-02-18 14:54:47,408 - pynekwrite - INFO - Writing file: ./z_avg_batch_mean_field0.f00000
-2025-02-18 14:54:47,411 - pynekwrite - INFO - Elapsed time: 0.002557305999971504s
-2025-02-18 14:54:47,411 - space_average_field_files - INFO - Run finished
-2025-02-18 14:54:47,412 - space_average_field_files - INFO - Elapsed time: 0.3065160890000129s
+2025-12-05 11:29:36,412 - Field - INFO - Initializing empty Field object
+2025-12-05 11:29:36,413 - space_average_field_files - INFO - Starting to go through the files in the index:
+2025-12-05 11:29:36,413 - space_average_field_files - INFO - Reading file ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-12-05 11:29:36,414 - pynekread - INFO - Reading file: ../data/sem_data/statistics/channel_nelv_5000/batch_mean_field0.f00000
+2025-12-05 11:29:36,416 - pynekread - INFO - Reading field data
+2025-12-05 11:29:36,441 - pynekread - INFO - File read
+2025-12-05 11:29:36,442 - pynekread - INFO - Elapsed time: 0.02827252999998109s
+2025-12-05 11:29:36,443 - space_average_field_files - INFO - Averaging the fields in the specified direction
+2025-12-05 11:29:36,575 - space_average_field_files - INFO - z velocity field found in the file and output in 3D is not requested. Saving z velocity as the last scalar
+2025-12-05 11:29:36,621 - space_average_field_files - INFO - Averaging finished, writing to file ./z_avg_batch_mean_field0.f00000
+2025-12-05 11:29:36,622 - pynekwrite - INFO - Writing file: ./z_avg_batch_mean_field0.f00000
+2025-12-05 11:29:36,623 - pynekwrite - INFO - Elapsed time: 0.001674507000018366s
+2025-12-05 11:29:36,624 - space_average_field_files - INFO - Run finished
+2025-12-05 11:29:36,625 - space_average_field_files - INFO - Elapsed time: 0.2117030460000251s
 </pre></div></div>
 </div>
 <p>That’s it! check your file in, e.g., Visit or paraview and check how it turned out!</p>

@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catalyst &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Catalyst</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/pages/catalyst.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="catalyst">
+<h1>Catalyst<a class="headerlink" href="#catalyst" title="Link to this heading"></a></h1>
+<p>The Catalyst module contains classes to aid with insitu visualization with Catalyst2.</p>
+<p>The objects in this module simply wrap around the Catalyst2 API to make it easier.</p>
+<section id="module-pysemtools.io.catalyst">
+<span id="catalyst2"></span><h2>Catalyst2<a class="headerlink" href="#module-pysemtools.io.catalyst" title="Link to this heading"></a></h2>
+<p>Classes to interface with paraview - catalyst</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pysemtools.io.catalyst.CatalystSession">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.catalyst.</span></span><span class="sig-name descname"><span class="pre">CatalystSession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pipeline</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">implementation_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.catalyst.CatalystSession" title="Link to this definition"></a></dt>
+<dd><p>Class to interface with catalyst</p>
+<p>Interface with catalyst to set up a session and load the pipeline.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>comm</strong><span class="classifier">MPI.Comm</span></dt><dd></dd>
+<dt><strong>pipeline</strong><span class="classifier">str</span></dt><dd><p>Path to the saved ParaView Catalyst state file (e.g. “pipeline.py”).</p>
+</dd>
+<dt><strong>channel</strong><span class="classifier">str</span></dt><dd><p>Name of the catalyst channel to use (must match the registrationName in your saved state script, e.g. “rbc00001.vtkhdf”).</p>
+</dd>
+<dt><strong>implementation_name</strong><span class="classifier">str</span></dt><dd><p>Optional name of the catalyst implementation to use. Also set with env variable CATALYST_IMPLEMENTATION_NAME
+e.g. export CATALYST_IMPLEMENTATION_NAME=paraview</p>
+</dd>
+<dt><strong>implementation_path</strong><span class="classifier">str</span></dt><dd><p>Optional path to the catalyst implementation. Also set with env variable CATALYST_IMPLEMENTATION_PATH
+e.g. export CATALYST_IMPLEMENTATION_PATH=/path/to/paraview/lib/catalyst</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.catalyst.CatalystSession.execute" title="pysemtools.io.catalyst.CatalystSession.execute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute</span></code></a>([timestep, time_value])</p></td>
+<td><p>Execute the catalyst pipeline for the current mesh and fields</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.catalyst.CatalystSession.finalize" title="pysemtools.io.catalyst.CatalystSession.finalize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finalize</span></code></a>()</p></td>
+<td><p>Finalize the catalyst session</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.io.catalyst.CatalystSession.set_field" title="pysemtools.io.catalyst.CatalystSession.set_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_field</span></code></a>(fields)</p></td>
+<td><p>Set the fields for the catalyst session / conduit node</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.io.catalyst.CatalystSession.set_mesh" title="pysemtools.io.catalyst.CatalystSession.set_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_mesh</span></code></a>(x, y, z[, cell_type])</p></td>
+<td><p>Set the mesh for the catalyst session / conduit node</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.catalyst.CatalystSession.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.catalyst.CatalystSession.execute" title="Link to this definition"></a></dt>
+<dd><p>Execute the catalyst pipeline for the current mesh and fields</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>timestep: int</strong></dt><dd><p>Current timestep to set in the catalyst state.</p>
+</dd>
+<dt><strong>time_value: float</strong></dt><dd><p>Current time value to set in the catalyst state.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.catalyst.CatalystSession.finalize">
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.catalyst.CatalystSession.finalize" title="Link to this definition"></a></dt>
+<dd><p>Finalize the catalyst session</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.catalyst.CatalystSession.set_field">
+<span class="sig-name descname"><span class="pre">set_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.catalyst.CatalystSession.set_field" title="Link to this definition"></a></dt>
+<dd><p>Set the fields for the catalyst session / conduit node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>fields: dict[str, np.ndarray]</strong></dt><dd><p>Dictionary of field name to field values.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.catalyst.CatalystSession.set_mesh">
+<span class="sig-name descname"><span class="pre">set_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'hex'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.catalyst.CatalystSession.set_mesh" title="Link to this definition"></a></dt>
+<dd><p>Set the mesh for the catalyst session / conduit node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x: np.ndarray</strong></dt><dd><p>array with local x coordinates on this rank.</p>
+</dd>
+<dt><strong>y: np.ndarray</strong></dt><dd><p>array with local y coordinates on this rank.</p>
+</dd>
+<dt><strong>z: np.ndarray</strong></dt><dd><p>array with local z coordinates on this rank.</p>
+</dd>
+<dt><strong>cell_type: str</strong></dt><dd><p>cell type, currently only “hex” is supported.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

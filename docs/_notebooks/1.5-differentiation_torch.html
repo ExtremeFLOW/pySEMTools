@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Derivation - With pytorch &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
@@ -50,6 +50,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
@@ -80,8 +83,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -122,6 +123,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="c1"># Get mpi info</span>
 <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
@@ -161,28 +163,28 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2025-02-26 01:20:46,250 - Mesh - INFO - Initializing empty Mesh object.
-2025-02-26 01:20:46,252 - Field - INFO - Initializing empty Field object
-2025-02-26 01:20:47,072 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
-2025-02-26 01:20:47,076 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2025-02-26 01:20:47,077 - Mesh - INFO - Initializing common attributes.
-2025-02-26 01:20:47,077 - Mesh - INFO - Getting vertices
-2025-02-26 01:20:47,078 - Mesh - INFO - Getting edge centers
-2025-02-26 01:20:47,081 - Mesh - INFO - Facet centers not available for 2D
-2025-02-26 01:20:47,226 - Mesh - INFO - Mesh object initialized.
-2025-02-26 01:20:47,227 - Mesh - INFO - Mesh data is of type: torch.float64
-2025-02-26 01:20:47,228 - Mesh - INFO - Elapsed time: 0.151925045s
-2025-02-26 01:20:47,228 - pynekread - INFO - Reading field data
-2025-02-26 01:20:47,235 - pynekread - INFO - File read
-2025-02-26 01:20:47,235 - pynekread - INFO - Elapsed time: 0.163253043s
-2025-02-26 01:20:47,236 - Coef - INFO - Initializing Coef object
-2025-02-26 01:20:47,237 - Coef - INFO - Getting derivative matrices
-2025-02-26 01:20:47,239 - Coef - INFO - Calculating the components of the jacobian
-2025-02-26 01:20:47,276 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
-2025-02-26 01:20:47,292 - Coef - INFO - Calculating the mass matrix
-2025-02-26 01:20:47,293 - Coef - INFO - Coef object initialized
-2025-02-26 01:20:47,294 - Coef - INFO - Coef data is of type: torch.float64
-2025-02-26 01:20:47,295 - Coef - INFO - Elapsed time: 0.05844784s
+2025-12-03 15:07:25,991 - Mesh - INFO - Initializing empty Mesh object.
+2025-12-03 15:07:25,993 - Field - INFO - Initializing empty Field object
+2025-12-03 15:07:25,994 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
+2025-12-03 15:07:26,002 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-12-03 15:07:26,002 - Mesh - INFO - Initializing common attributes.
+2025-12-03 15:07:26,004 - Mesh - INFO - Getting vertices
+2025-12-03 15:07:26,005 - Mesh - INFO - Getting edge centers
+2025-12-03 15:07:26,011 - Mesh - INFO - Facet centers not available for 2D
+2025-12-03 15:07:26,016 - Mesh - INFO - Mesh object initialized.
+2025-12-03 15:07:26,017 - Mesh - INFO - Mesh data is of type: torch.float64
+2025-12-03 15:07:26,018 - Mesh - INFO - Elapsed time: 0.01664351s
+2025-12-03 15:07:26,019 - pynekread - INFO - Reading field data
+2025-12-03 15:07:26,025 - pynekread - INFO - File read
+2025-12-03 15:07:26,026 - pynekread - INFO - Elapsed time: 0.031775622s
+2025-12-03 15:07:26,026 - Coef - INFO - Initializing Coef object
+2025-12-03 15:07:26,027 - Coef - INFO - Getting derivative matrices
+2025-12-03 15:07:26,030 - Coef - INFO - Calculating the components of the jacobian
+2025-12-03 15:07:26,066 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2025-12-03 15:07:26,072 - Coef - INFO - Calculating the mass matrix
+2025-12-03 15:07:26,076 - Coef - INFO - Coef object initialized
+2025-12-03 15:07:26,078 - Coef - INFO - Coef data is of type: torch.float64
+2025-12-03 15:07:26,083 - Coef - INFO - Elapsed time: 0.05607130700000001s
 </pre></div></div>
 </div>
 <section id="Plot-the-2D-velocity-field">
@@ -238,14 +240,14 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2025-02-26 01:20:48,362 - Coef - INFO - Calculating the derivative with respect to physical coordinates
-2025-02-26 01:20:48,367 - Coef - INFO - done
-2025-02-26 01:20:48,368 - Coef - INFO - Elapsed time: 0.004295227999999929s
-2025-02-26 01:20:48,370 - Coef - INFO - Calculating the derivative with respect to physical coordinates
-2025-02-26 01:20:48,371 - Coef - INFO - done
-2025-02-26 01:20:48,372 - Coef - INFO - Elapsed time: 0.0017059100000000882s
-cuda:0
-cuda:0
+2025-12-03 15:07:27,611 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-03 15:07:27,623 - Coef - INFO - done
+2025-12-03 15:07:27,624 - Coef - INFO - Elapsed time: 0.01152075099999994s
+2025-12-03 15:07:27,625 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-03 15:07:27,628 - Coef - INFO - done
+2025-12-03 15:07:27,629 - Coef - INFO - Elapsed time: 0.002808309999999814s
+cpu
+cpu
 </pre></div></div>
 </div>
 <section id="Plot-the-derivatives">
@@ -313,7 +315,7 @@ cuda:0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Device of mass matrix is cuda:0
+Device of mass matrix is cpu
 Area of the domain: 280.00000000000034
 </pre></div></div>
 </div>

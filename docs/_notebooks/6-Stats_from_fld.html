@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=16816911"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Processing statistics files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_notebooks/6-Stats_from_fld.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Processing-statistics-files">
+<h1>Processing statistics files<a class="headerlink" href="#Processing-statistics-files" title="Link to this heading"></a></h1>
+<p>In this example we show how one can use pysemtools to average fields in space.</p>
+<section id="Import-general-modules">
+<h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span> <span class="c1">#equivalent to the use of MPI_init() in C</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="c1"># Get mpi info</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+
+<span class="c1"># Hide the log for the notebook. Not recommended when running in clusters as it is better you see what happens</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PYSEMTOOLS_HIDE_LOG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;false&#39;</span>
+<br/></pre></div>
+</div>
+</div>
+<section id="Clone-the-data">
+<h3>Clone the data<a class="headerlink" href="#Clone-the-data" title="Link to this heading"></a></h3>
+<p>Get some data from a public repository</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download the data if it does not exist</span>
+<span class="n">sem_data_path</span> <span class="o">=</span> <span class="s2">&quot;../data/sem_data/&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sem_data_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data not found, cloning repository...&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git </span><span class="si">{</span><span class="n">sem_data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data found.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Sem data found.
+</pre></div></div>
+</div>
+<section id="Create-a-file-name-sequence">
+<h4>Create a file name sequence<a class="headerlink" href="#Create-a-file-name-sequence" title="Link to this heading"></a></h4>
+<p>This file name sequence will be used to read and average the data.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_files</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">folder_path</span> <span class="o">=</span> <span class="s2">&quot;../data/&quot;</span>
+<span class="n">output_path</span> <span class="o">=</span> <span class="s2">&quot;../data/&quot;</span>
+<span class="n">file_sequence</span> <span class="o">=</span><span class="p">[</span><span class="n">folder_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;tc_channel0.f</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_files</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Average-the-file-sequence-in-the-homogeneous-direction">
+<h3>Average the file sequence in the homogeneous direction<a class="headerlink" href="#Average-the-file-sequence-in-the-homogeneous-direction" title="Link to this heading"></a></h3>
+<p>Simply call the function that performs the average</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.postprocessing.statistics.fld_stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_augmented_field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.msh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.field</span><span class="w"> </span><span class="kn">import</span> <span class="n">FieldRegistry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.datatypes.coef</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coef</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.ppymech.neksuite</span><span class="w"> </span><span class="kn">import</span> <span class="n">pynekread</span><span class="p">,</span> <span class="n">pynekwrite</span>
+
+<span class="c1"># Read the data</span>
+<span class="n">bckend</span> <span class="o">=</span> <span class="s2">&quot;torch&quot;</span>
+<span class="n">msh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="n">bckend</span><span class="p">)</span>
+<span class="n">pynekread</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">file_sequence</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="c1"># Always define the data type in numpy.</span>
+
+<span class="c1"># Generate the coefficients</span>
+<span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="n">bckend</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_sequence</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;===============================================&quot;</span><span class="p">)</span>
+
+    <span class="n">fld</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="n">bckend</span><span class="p">)</span>
+    <span class="n">pynekread</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">fld</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="c1"># Always define the data type in numpy.</span>
+
+    <span class="c1"># call the routine</span>
+    <span class="n">augmented_fld</span> <span class="o">=</span> <span class="n">generate_augmented_field</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">,</span> <span class="n">coef</span><span class="o">=</span><span class="n">coef</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">msh</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="c1"># Write the data</span>
+    <span class="n">pynekwrite</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">output_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;augmented_field0.f</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">),</span> <span class="n">fld</span> <span class="o">=</span> <span class="n">augmented_fld</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span><span class="p">,</span> <span class="n">bckend</span><span class="o">=</span><span class="s2">&quot;numpy&quot;</span><span class="p">),</span> <span class="n">wdsz</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2025-12-05 11:33:09,070 - Mesh - INFO - Initializing empty Mesh object.
+2025-12-05 11:33:09,071 - pynekread - INFO - Reading file: ../data/tc_channel0.f00001
+2025-12-05 11:33:09,085 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-12-05 11:33:09,086 - Mesh - INFO - Initializing common attributes.
+2025-12-05 11:33:09,087 - Mesh - INFO - Getting vertices
+2025-12-05 11:33:09,089 - Mesh - INFO - Getting edge centers
+2025-12-05 11:33:09,098 - Mesh - INFO - Getting facet centers
+2025-12-05 11:33:09,106 - Mesh - INFO - Mesh object initialized.
+2025-12-05 11:33:09,107 - Mesh - INFO - Mesh data is of type: torch.float32
+2025-12-05 11:33:09,108 - Mesh - INFO - Elapsed time: 0.023086983s
+2025-12-05 11:33:09,109 - pynekread - INFO - File read
+2025-12-05 11:33:09,110 - pynekread - INFO - Elapsed time: 0.039394515s
+2025-12-05 11:33:09,112 - Coef - INFO - Initializing Coef object
+2025-12-05 11:33:09,114 - Coef - INFO - Getting derivative matrices
+2025-12-05 11:33:09,120 - Coef - INFO - Calculating the components of the jacobian
+2025-12-05 11:33:09,222 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
+2025-12-05 11:33:09,231 - Coef - INFO - Calculating the mass matrix
+2025-12-05 11:33:09,232 - Coef - INFO - Coef object initialized
+2025-12-05 11:33:09,233 - Coef - INFO - Coef data is of type: torch.float32
+2025-12-05 11:33:09,234 - Coef - INFO - Elapsed time: 0.121885312s
+===============================================
+2025-12-05 11:33:09,236 - Field - INFO - Initializing empty Field object
+2025-12-05 11:33:09,237 - pynekread - INFO - Reading file: ../data/tc_channel0.f00001
+2025-12-05 11:33:09,239 - pynekread - INFO - Reading field data
+2025-12-05 11:33:09,247 - pynekread - INFO - File read
+2025-12-05 11:33:09,248 - pynekread - INFO - Elapsed time: 0.010527632000000009s
+2025-12-05 11:33:09,248 - Field - INFO - Initializing empty Field object
+2025-12-05 11:33:09,260 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,270 - Coef - INFO - done
+2025-12-05 11:33:09,271 - Coef - INFO - Elapsed time: 0.010644831999999993s
+2025-12-05 11:33:09,274 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,281 - Coef - INFO - done
+2025-12-05 11:33:09,283 - Coef - INFO - Elapsed time: 0.008203269999999985s
+2025-12-05 11:33:09,285 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,291 - Coef - INFO - done
+2025-12-05 11:33:09,292 - Coef - INFO - Elapsed time: 0.006595053999999989s
+2025-12-05 11:33:09,293 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,302 - Coef - INFO - done
+2025-12-05 11:33:09,303 - Coef - INFO - Elapsed time: 0.009549418000000004s
+2025-12-05 11:33:09,304 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,311 - Coef - INFO - done
+2025-12-05 11:33:09,312 - Coef - INFO - Elapsed time: 0.0065092380000000005s
+2025-12-05 11:33:09,313 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,320 - Coef - INFO - done
+2025-12-05 11:33:09,321 - Coef - INFO - Elapsed time: 0.007904390000000011s
+2025-12-05 11:33:09,322 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,328 - Coef - INFO - done
+2025-12-05 11:33:09,329 - Coef - INFO - Elapsed time: 0.006293166000000017s
+2025-12-05 11:33:09,330 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,336 - Coef - INFO - done
+2025-12-05 11:33:09,337 - Coef - INFO - Elapsed time: 0.0062802040000000114s
+2025-12-05 11:33:09,338 - Coef - INFO - Calculating the derivative with respect to physical coordinates
+2025-12-05 11:33:09,344 - Coef - INFO - done
+2025-12-05 11:33:09,344 - Coef - INFO - Elapsed time: 0.005224002000000005s
+2025-12-05 11:33:09,352 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
+2025-12-05 11:33:09,353 - Mesh - INFO - Initializing common attributes.
+2025-12-05 11:33:09,354 - Mesh - INFO - Getting vertices
+2025-12-05 11:33:09,356 - Mesh - INFO - Getting edge centers
+2025-12-05 11:33:09,365 - Mesh - INFO - Getting facet centers
+2025-12-05 11:33:09,374 - Mesh - INFO - Mesh object initialized.
+2025-12-05 11:33:09,375 - Mesh - INFO - Mesh data is of type: float32
+2025-12-05 11:33:09,376 - Mesh - INFO - Elapsed time: 0.023503425000000022s
+2025-12-05 11:33:09,377 - Field - INFO - Initializing empty Field object
+2025-12-05 11:33:09,378 - pynekwrite - INFO - Writing file: ../data/augmented_field0.f00001
+2025-12-05 11:33:09,437 - pynekwrite - INFO - Elapsed time: 0.05894913299999999s
+</pre></div></div>
+</div>
+<p>That’s it! check your file in, e.g., Visit or paraview and check how it turned out!</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

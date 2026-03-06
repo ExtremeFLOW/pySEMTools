@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data types and IO &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Sem subdomains" href="2-sem_subdomains.html" />
-    <link rel="prev" title="InputOutput (I/O)" href="../pages/io.html" /> 
+    <link rel="prev" title="pysemtools.rom" href="../pages/generated/pysemtools.rom.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,6 +51,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../pages/datatypes.html">Data types</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul class="current">
@@ -86,6 +89,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#From-memory">From memory</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#From-disk">From disk</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#HDF5">HDF5</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#VTKHDF">VTKHDF</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Wrappers">Wrappers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Inspecting-memory-usage">Inspecting memory usage</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#Report">Report</a></li>
@@ -122,8 +127,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -156,7 +159,7 @@
 <h2>Import general modules<a class="headerlink" href="#Import-general-modules" title="Link to this heading"></a></h2>
 <p>mpi4py is always required when using these tools. Numpy is always good to have if any manipulation is to be done.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[99]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import required modules</span>
@@ -174,7 +177,7 @@
 <h2>Import modules from pysemtools<a class="headerlink" href="#Import-modules-from-pysemtools" title="Link to this heading"></a></h2>
 <p>In this case we will import all the data types that we currently support, as well as io functions that are required to populate them.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[100]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Data types</span>
@@ -206,23 +209,14 @@
 <h2>Initializing an empty object<a class="headerlink" href="#Initializing-an-empty-object" title="Link to this heading"></a></h2>
 <p>We can initialize an empty mesh object by just providing the communicator.</p>
 <p>Note that at this stage we must indicate if we want to find the connectivity of the points. This is important if later one whishes to average points at element interfaces. Be carefull, however, as it will require more memory.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[101]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh_2d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">msh_3d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">msh_2d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+<span class="n">msh_3d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-2024-10-04 11:15:26,856 - Mesh - INFO - Initializing empty Mesh object.
-2024-10-04 11:15:26,857 - Mesh - INFO - Initializing empty Mesh object.
-</pre></div></div>
 </div>
 </section>
 <section id="Initializing-from-a-file">
@@ -230,7 +224,7 @@
 <p>The standard way to initialize the data in a mesh object requires that an empty object is initialized and the the pynekread function is called. This function will take the empty object and read only the data containing the mesh.</p>
 <p>One must give the name and the empty object that will hold the data. Aditionally, the type of the data is an input.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[102]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pynekread</span><span class="p">(</span><span class="n">fname_2d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">msh</span><span class="o">=</span><span class="n">msh_2d</span><span class="p">)</span>
@@ -243,30 +237,12 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:26,868 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
-2024-10-04 11:15:26,875 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2024-10-04 11:15:26,876 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:26,877 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:26,878 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:26,886 - Mesh - INFO - Facet centers not available for 2D
-2024-10-04 11:15:26,887 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:27,254 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:27,255 - Mesh - INFO - Mesh data is of type: float64
-2024-10-04 11:15:27,256 - Mesh - INFO - Elapsed time: 0.380877588s
-2024-10-04 11:15:27,257 - pynekread - INFO - File read
-2024-10-04 11:15:27,258 - pynekread - INFO - Elapsed time: 0.38954081s
-2024-10-04 11:15:27,259 - pynekread - INFO - Reading file: ../data/rbc0.f00001
-2024-10-04 11:15:27,264 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2024-10-04 11:15:27,265 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:27,265 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:27,266 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:27,273 - Mesh - INFO - Getting facet centers
-2024-10-04 11:15:27,279 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:27,681 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:27,682 - Mesh - INFO - Mesh data is of type: float32
-2024-10-04 11:15:27,683 - Mesh - INFO - Elapsed time: 0.419004522s
-2024-10-04 11:15:27,684 - pynekread - INFO - File read
-2024-10-04 11:15:27,684 - pynekread - INFO - Elapsed time: 0.42567180499999996s
+2026-03-04 15:58:14,031  pynekread             INFO      Reading file: ../data/mixlay0.f00001
+2026-03-04 15:58:14,040  Mesh                  INFO      Mesh object initialized from coordinates with type: float64 - Elapsed time: 0.005635906000065916s
+2026-03-04 15:58:14,041  pynekread             INFO      File successfully read - Elapsed time: 0.010121335000008003s
+2026-03-04 15:58:14,041  pynekread             INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 15:58:14,061  Mesh                  INFO      Mesh object initialized from coordinates with type: float32 - Elapsed time: 0.015129852999962168s
+2026-03-04 15:58:14,062  pynekread             INFO      File successfully read - Elapsed time: 0.020931777999976475s
 </pre></div></div>
 </div>
 </section>
@@ -281,15 +257,15 @@
 <li><p>Initialize the mesh object from it</p></li>
 </ol>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[103]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1.</span>
 <span class="n">data_2d</span> <span class="o">=</span> <span class="n">preadnek</span><span class="p">(</span><span class="n">fname_2d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
 <span class="n">data_3d</span> <span class="o">=</span> <span class="n">preadnek</span><span class="p">(</span><span class="n">fname_3d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">single</span><span class="p">)</span>
 <span class="c1"># 2.</span>
-<span class="n">msh_2d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_2d</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">msh_3d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_3d</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">msh_2d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_2d</span><span class="p">)</span>
+<span class="n">msh_3d</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data_3d</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -298,28 +274,18 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:27,693 - preadnek - INFO - Reading file: ../data/mixlay0.f00001
-2024-10-04 11:15:27,767 - preadnek - INFO - Elapsed time: 0.07367152700000001s
-2024-10-04 11:15:27,768 - preadnek - INFO - Reading file: ../data/rbc0.f00001
-2024-10-04 11:15:27,803 - preadnek - INFO - Elapsed time: 0.034677242s
-2024-10-04 11:15:27,804 - Mesh - INFO - Initializing Mesh object from HexaData object.
-2024-10-04 11:15:27,811 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:27,811 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:27,812 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:27,818 - Mesh - INFO - Facet centers not available for 2D
-2024-10-04 11:15:27,819 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:28,163 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:28,163 - Mesh - INFO - Mesh data is of type: float64
-2024-10-04 11:15:28,164 - Mesh - INFO - Elapsed time: 0.360178777s
-2024-10-04 11:15:28,171 - Mesh - INFO - Initializing Mesh object from HexaData object.
-2024-10-04 11:15:28,175 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:28,176 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:28,177 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:28,186 - Mesh - INFO - Getting facet centers
-2024-10-04 11:15:28,192 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:28,572 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:28,573 - Mesh - INFO - Mesh data is of type: float32
-2024-10-04 11:15:28,573 - Mesh - INFO - Elapsed time: 0.40260753000000005s
+2026-03-04 15:58:14,072  preadnek              INFO      Reading file: ../data/mixlay0.f00001
+2026-03-04 15:58:14,253  preadnek              INFO      Elapsed time: 0.18158228199990845s
+2026-03-04 15:58:14,261  preadnek              INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 15:58:14,291  preadnek              INFO      Elapsed time: 0.02974485899994761s
+2026-03-04 15:58:14,294  Mesh                  INFO      Initializing Mesh object from HexaData object.
+2026-03-04 15:58:14,306  Mesh                  INFO      Mesh object initialized.
+2026-03-04 15:58:14,306  Mesh                  INFO      Mesh data is of type: float64
+2026-03-04 15:58:14,307  Mesh                  INFO      Elapsed time: 0.013255767000032392s
+2026-03-04 15:58:14,308  Mesh                  INFO      Initializing Mesh object from HexaData object.
+2026-03-04 15:58:14,323  Mesh                  INFO      Mesh object initialized.
+2026-03-04 15:58:14,323  Mesh                  INFO      Mesh data is of type: float32
+2026-03-04 15:58:14,324  Mesh                  INFO      Elapsed time: 0.016095315999905324s
 </pre></div></div>
 </div>
 </section>
@@ -327,7 +293,7 @@
 <h2>Initializing from an ndarray<a class="headerlink" href="#Initializing-from-an-ndarray" title="Link to this heading"></a></h2>
 <p>In some instances, one might create the SEM coordinates directly in python. If that is the case, starting directly from the coordinates as an array is also a possibility. One would first create an empty object and the initialize from coordinates as follow:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[104]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1.Copy the coordinates from before just to show</span>
@@ -337,7 +303,7 @@
 <span class="n">z</span> <span class="o">=</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 
 <span class="c1"># 2.Initialize a new mesh object</span>
-<span class="n">msh_3d_sub</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">create_connectivity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">msh_3d_sub</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
 <span class="n">msh_3d_sub</span><span class="o">.</span><span class="n">init_from_coords</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -347,16 +313,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:28,593 - Mesh - INFO - Initializing empty Mesh object.
-2024-10-04 11:15:28,594 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2024-10-04 11:15:28,595 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:28,596 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:28,597 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:28,608 - Mesh - INFO - Getting facet centers
-2024-10-04 11:15:28,616 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:29,080 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:29,081 - Mesh - INFO - Mesh data is of type: float64
-2024-10-04 11:15:29,081 - Mesh - INFO - Elapsed time: 0.48709318999999995s
+2026-03-04 15:58:14,351  Mesh                  INFO      Mesh object initialized from coordinates with type: float64 - Elapsed time: 0.017054289000043354s
 </pre></div></div>
 </div>
 <p>In this case, just to show a simple manipulation, we casted the arrays from single to double precision</p>
@@ -366,11 +323,11 @@
 <p>One aditional option for 3D meshes is to also obtain integration weights for the area of the facets in the SEM mesh. If you do not need it, do not activate it, as this takes some extra time and requires extra memory.</p>
 <p>The data type of the coef object attributes will match the type of the mesh object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[105]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coef_2d</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh_2d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">get_area</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">coef_3d</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh_3d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">get_area</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coef_2d</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh_2d</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+<span class="n">coef_3d</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh_3d</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -379,23 +336,22 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,091 - Coef - INFO - Initializing Coef object
-2024-10-04 11:15:29,092 - Coef - INFO - Getting derivative matrices
-2024-10-04 11:15:29,094 - Coef - INFO - Calculating the components of the jacobian
-2024-10-04 11:15:29,110 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
-2024-10-04 11:15:29,113 - Coef - INFO - Calculating the mass matrix
-2024-10-04 11:15:29,114 - Coef - INFO - Coef object initialized
-2024-10-04 11:15:29,114 - Coef - INFO - Coef data is of type: float64
-2024-10-04 11:15:29,114 - Coef - INFO - Elapsed time: 0.023606959999999955s
-2024-10-04 11:15:29,116 - Coef - INFO - Initializing Coef object
-2024-10-04 11:15:29,117 - Coef - INFO - Getting derivative matrices
-2024-10-04 11:15:29,121 - Coef - INFO - Calculating the components of the jacobian
-2024-10-04 11:15:29,222 - Coef - INFO - Calculating the jacobian determinant and inverse of the jacobian matrix
-2024-10-04 11:15:29,234 - Coef - INFO - Calculating the mass matrix
-2024-10-04 11:15:29,235 - Coef - INFO - Calculating area weights and normal vectors
-2024-10-04 11:15:29,255 - Coef - INFO - Coef object initialized
-2024-10-04 11:15:29,256 - Coef - INFO - Coef data is of type: float32
-2024-10-04 11:15:29,256 - Coef - INFO - Elapsed time: 0.14061485299999976s
+2026-03-04 15:58:14,360  Coef                  INFO      Initializing Coef object
+2026-03-04 15:58:14,361  Coef                  INFO      Getting derivative matrices
+2026-03-04 15:58:14,364  Coef                  INFO      Calculating the components of the jacobian
+2026-03-04 15:58:14,369  Coef                  INFO      Calculating the jacobian determinant and inverse of the jacobian matrix
+2026-03-04 15:58:14,371  Coef                  INFO      Calculating the mass matrix
+2026-03-04 15:58:14,372  Coef                  INFO      Coef object initialized
+2026-03-04 15:58:14,373  Coef                  INFO      Coef data is of type: float64
+2026-03-04 15:58:14,373  Coef                  INFO      Elapsed time: 0.013466366999978163s
+2026-03-04 15:58:14,374  Coef                  INFO      Initializing Coef object
+2026-03-04 15:58:14,374  Coef                  INFO      Getting derivative matrices
+2026-03-04 15:58:14,378  Coef                  INFO      Calculating the components of the jacobian
+2026-03-04 15:58:14,389  Coef                  INFO      Calculating the jacobian determinant and inverse of the jacobian matrix
+2026-03-04 15:58:14,399  Coef                  INFO      Calculating the mass matrix
+2026-03-04 15:58:14,400  Coef                  INFO      Coef object initialized
+2026-03-04 15:58:14,400  Coef                  INFO      Coef data is of type: float32
+2026-03-04 15:58:14,401  Coef                  INFO      Elapsed time: 0.027133218000017223s
 </pre></div></div>
 </div>
 </section>
@@ -411,8 +367,8 @@
 <section id="Initializing-an-empty-object.">
 <h2>Initializing an empty object.<a class="headerlink" href="#Initializing-an-empty-object." title="Link to this heading"></a></h2>
 <p>We follow the same procedure to initialize an empty object.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[106]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_2d</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
@@ -420,21 +376,12 @@
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-2024-10-04 11:15:29,263 - Field - INFO - Initializing empty Field object
-2024-10-04 11:15:29,265 - Field - INFO - Initializing empty Field object
-</pre></div></div>
-</div>
 </section>
 <section id="id3">
 <h2>Initializing from a file<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>Using the pynekread routine, one can follow the same procedure. In this case, if only the fld file is indicated as input, the mesh in the file will not be read</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[107]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pynekread</span><span class="p">(</span><span class="n">fname_2d</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">data_dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld_2d</span><span class="p">)</span>
@@ -447,14 +394,10 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,275 - pynekread - INFO - Reading file: ../data/mixlay0.f00001
-2024-10-04 11:15:29,277 - pynekread - INFO - Reading field data
-2024-10-04 11:15:29,282 - pynekread - INFO - File read
-2024-10-04 11:15:29,283 - pynekread - INFO - Elapsed time: 0.007930652000000205s
-2024-10-04 11:15:29,285 - pynekread - INFO - Reading file: ../data/rbc0.f00001
-2024-10-04 11:15:29,287 - pynekread - INFO - Reading field data
-2024-10-04 11:15:29,295 - pynekread - INFO - File read
-2024-10-04 11:15:29,295 - pynekread - INFO - Elapsed time: 0.010863174999999892s
+2026-03-04 15:58:14,419  pynekread             INFO      Reading file: ../data/mixlay0.f00001
+2026-03-04 15:58:14,423  pynekread             INFO      File successfully read - Elapsed time: 0.0040701989998979116s
+2026-03-04 15:58:14,424  pynekread             INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 15:58:14,429  pynekread             INFO      File successfully read - Elapsed time: 0.00529200400001173s
 </pre></div></div>
 </div>
 <p>Note that you can read both mesh and fields with pynekread if you specify both keywords, i.e, msh= and fld=</p>
@@ -463,7 +406,7 @@
 <h2>Initializing from hexadata<a class="headerlink" href="#Initializing-from-hexadata" title="Link to this heading"></a></h2>
 <p>Just as for the mesh, the same interface is valid.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[108]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1.</span>
@@ -480,22 +423,18 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,304 - preadnek - INFO - Reading file: ../data/mixlay0.f00001
-2024-10-04 11:15:29,451 - preadnek - INFO - Elapsed time: 0.1472354819999997s
-2024-10-04 11:15:29,455 - preadnek - INFO - Reading file: ../data/rbc0.f00001
-2024-10-04 11:15:29,491 - preadnek - INFO - Elapsed time: 0.035575633000000106s
-2024-10-04 11:15:29,493 - Field - INFO - Initializing Field object from HexaData
-2024-10-04 11:15:29,508 - Field - INFO - Field object initialized
-2024-10-04 11:15:29,509 - Field - INFO - Elapsed time: 0.015144010000000208s
-2024-10-04 11:15:29,509 - Field - INFO - Initializing Field object from HexaData
-2024-10-04 11:15:29,515 - Field - INFO - Field object initialized
-2024-10-04 11:15:29,515 - Field - INFO - Elapsed time: 0.006332111999999945s
+2026-03-04 15:58:14,444  preadnek              INFO      Reading file: ../data/mixlay0.f00001
+2026-03-04 15:58:14,533  preadnek              INFO      Elapsed time: 0.08818987199992989s
+2026-03-04 15:58:14,537  preadnek              INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 15:58:14,573  preadnek              INFO      Elapsed time: 0.036531340999999884s
+2026-03-04 15:58:14,588  Field                 INFO      Field object initialized from HexaData - Elapsed time: 0.013049441000021034s
+2026-03-04 15:58:14,595  Field                 INFO      Field object initialized from HexaData - Elapsed time: 0.005147600999976021s
 </pre></div></div>
 </div>
 <p>The field object contains all the information in a subdirectory called fields that is divided into the conventions of a nek5000 binary format.</p>
 <p>The keywords are:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[109]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld_2d</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -527,7 +466,7 @@ scal has 0 fields
 <p>Each keword has a list of fields depending on the contents of the file. Note how the 2 files that we test here have different information.</p>
 <p>To access the content of the files, one can do something like this:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[110]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">u</span> <span class="o">=</span> <span class="n">fld_3d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;vel&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -541,7 +480,7 @@ scal has 0 fields
 <p>If one wishes to add new data, it is as simple as appending arrays to any of the keys of the field object. Given that nek5000 readers follow certain logic, it is always safer to add new data to the scalars, unless one wishes to overwrite velocity, pressure, and/or temperature.</p>
 <p>For example, we can add the velocity magnitude as a scalar with:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[111]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">u</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">v</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">w</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -556,7 +495,7 @@ scal has 0 fields
 <p>Writing the data out always needs a mesh and field object, even if one does not wish to write the mesh out.</p>
 <p>The procedure is as simple as follows:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[112]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fname_out</span> <span class="o">=</span> <span class="s1">&#39;../data/out_rbc0.f00001&#39;</span>
@@ -570,8 +509,8 @@ scal has 0 fields
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,554 - pynekwrite - INFO - Writing file: ../data/out_rbc0.f00001
-2024-10-04 11:15:29,565 - pynekwrite - INFO - Elapsed time: 0.010662473000000006s
+2026-03-04 15:58:14,644  pynekwrite            INFO      Writing file: ../data/out_rbc0.f00001
+2026-03-04 15:58:14,656  pynekwrite            INFO      File written - Elapsed time: 0.012334320000036314s
 </pre></div></div>
 </div>
 </section>
@@ -581,7 +520,7 @@ scal has 0 fields
 <p>The methods to initialize it and write data with it are the same. It also contains the fields attribute with a list of the present fields.</p>
 <p>It however, has an additional registry attribute that names and points to each field.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[113]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span> <span class="o">=</span> <span class="n">FieldRegistry</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
@@ -594,15 +533,13 @@ scal has 0 fields
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,575 - Field - INFO - Initializing empty Field object
-2024-10-04 11:15:29,577 - pynekread - INFO - Reading file: ../data/rbc0.f00001
-2024-10-04 11:15:29,579 - pynekread - INFO - Reading field data
-2024-10-04 11:15:29,582 - pynekread - INFO - File read
-2024-10-04 11:15:29,584 - pynekread - INFO - Elapsed time: 0.006489980999999645s
+2026-03-04 15:58:14,669  pynekread             INFO      Reading file: ../data/rbc0.f00001
+2026-03-04 15:58:14,675  Field                 INFO      Field registry updated with: [&#39;u&#39;, &#39;v&#39;, &#39;w&#39;, &#39;p&#39;, &#39;t&#39;] - dtype: float32
+2026-03-04 15:58:14,677  pynekread             INFO      File successfully read - Elapsed time: 0.007462326999984725s
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[114]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -633,7 +570,7 @@ t has float32 dtype
 <p>Adding new fields can now also been done very easy as well. Here we can add a new field named mag that is the velocity magnitude calculated earlier.</p>
 <p>This field will be added as an scalar to the fields attribute.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[115]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">mag</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">mag</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -655,7 +592,7 @@ Field mag added to registry and fields directory in pos scal_0
 <p>You can also just read one field from a file, which reduces the memory footprint.</p>
 <p>The procesude is shown below, note that here we know that we have written the field mag as an scalar.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[116]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;mag_r&#39;</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="n">fname_out</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s1">&#39;fld&#39;</span><span class="p">,</span> <span class="n">file_key</span><span class="o">=</span><span class="s1">&#39;scal_0&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">mag</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -668,15 +605,15 @@ Field mag added to registry and fields directory in pos scal_0
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,613 - pynekread_field - INFO - Reading field: scal_0 from file: ../data/out_rbc0.f00001
-2024-10-04 11:15:29,624 - pynekread_field - INFO - File read
-2024-10-04 11:15:29,629 - pynekread_field - INFO - Elapsed time: 0.016024912999999863s
+2026-03-04 15:58:14,736  pynekread_field       INFO      Reading field: scal_0 from file: ../data/out_rbc0.f00001
+2026-03-04 15:58:14,753  pynekread_field       INFO      File read
+2026-03-04 15:58:14,755  pynekread_field       INFO      Elapsed time: 0.018543514999919353s
 Field mag_r added to registry and fields directory in pos scal_1
 </pre></div></div>
 </div>
 <p>Let’s compare the field that we previously wrote with the one we calculated</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[117]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">],</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;mag_r&#39;</span><span class="p">])</span>
@@ -697,7 +634,7 @@ True
 <p>If you would like to replace an entry in the field registry, then use the add field method with the same key</p>
 <p>Lets experiment adding a field full of ones. Based on the order of our operations, we know it is stored in scal 2. You can also check the registry_pos attribute:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[118]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;ones&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">mag</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">mag</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -733,7 +670,7 @@ scal_2
 </div>
 <p>If I modify the registry, the list is modified:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[119]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="s1">&#39;ones&#39;</span><span class="p">][</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="mf">2.0</span>
@@ -758,7 +695,7 @@ scal_2
 </div>
 <p>The same happens in the opposite direction</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[120]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s1">&#39;scal&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">100</span><span class="p">,</span><span class="mi">0</span><span class="p">,:,:]</span> <span class="o">=</span> <span class="mf">3.0</span>
@@ -783,7 +720,7 @@ scal_2
 </div>
 <p>However if you try to assing a field directly to the registry, you will get an error:</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[121]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span>
@@ -805,7 +742,7 @@ scal_2
 </div>
 <p>But see that if you add the field again with the proper method, then it should work as you want</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[122]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;ones&#39;</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="n">zeros</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">zeros</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -818,7 +755,7 @@ scal_2
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,750 - Field - WARNING - Field ones already in registry. Overwriting
+2026-03-04 15:58:14,873  Field                 WARNING   Field ones already in registry. Overwriting
 [[0. 0. 0. 0. 0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0. 0. 0.]
  [0. 0. 0. 0. 0. 0. 0. 0.]
@@ -829,11 +766,162 @@ scal_2
  [0. 0. 0. 0. 0. 0. 0. 0.]]
 </pre></div></div>
 </div>
+<section id="HDF5">
+<h3>HDF5<a class="headerlink" href="#HDF5" title="Link to this heading"></a></h3>
+<p>The nek-type files require the Mesh and Field/FieldRegistry classes to hold the data. This is due to the clear structure that those files have.</p>
+<p>PySEMTools also supports other type of files. In particular, HDF files. While in general, one can simply use hdf5 with h5py, PySEMTools provides objects that allow to manage parallel I/O in a much simpler manner. These files, however, do not require a structure and the data is managed by keys given by the user. As an example, here we write the data from the Mesh and Field into an hdf5 file</p>
+<blockquote>
+<div><p>Any numpy array can be written using this object. It does not need to come from the PySEMTools objects.</p>
+</div></blockquote>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[123]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.hdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">HDF5File</span>
+
+<span class="c1"># Set inputs</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;../data/out_rbc00001.hdf5&#39;</span>
+<span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;w&#39;</span> <span class="c1"># Read mode &quot;r&quot; or write mode &quot;w&quot;</span>
+<span class="n">parallel</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># Whether to use parallel IO driver (you need mpi-aware HDF5) In this notebook, the executions gets set to serial since we run in one rank</span>
+<span class="n">distributed_axis</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># The axis along the data will be (or is) partitioned among ranks. For SEM data, axis 0 is the one that indexes the elements</span>
+
+<span class="c1"># Open a file</span>
+<span class="n">hdf5_file</span> <span class="o">=</span> <span class="n">HDF5File</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">parallel</span><span class="p">)</span>
+
+<span class="c1"># Write the mesh into a &quot;mesh&quot; group (This is not required)</span>
+<span class="n">hdf5_file</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/x&quot;</span><span class="p">,</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">hdf5_file</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/y&quot;</span><span class="p">,</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">hdf5_file</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/z&quot;</span><span class="p">,</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Write the data in the field registry</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+    <span class="n">hdf5_file</span><span class="o">.</span><span class="n">write_dataset</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/fields/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Close the file</span>
+<span class="n">hdf5_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2026-03-04 15:58:14,906  HDF5File              INFO      ../data/out_rbc00001.hdf5 opened - mode w - serial
+2026-03-04 15:58:14,939  HDF5File              INFO      ../data/out_rbc00001.hdf5 closed - Elapsed time: 0.03635136200000488s
+</pre></div></div>
+</div>
+<p>Having this, it is then possible to read the data and check that all is correct. Please note that the subgroups in the HDF5 for this case are for ilustration.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[124]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hdf5_file</span> <span class="o">=</span> <span class="n">HDF5File</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Check the mesh</span>
+<span class="n">xh</span> <span class="o">=</span> <span class="n">hdf5_file</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/x&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;X coordinates match: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">xh</span><span class="p">,</span><span class="w"> </span><span class="n">msh_3d</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">xh</span> <span class="o">=</span> <span class="n">hdf5_file</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/y&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Y coordinates match: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">xh</span><span class="p">,</span><span class="w"> </span><span class="n">msh_3d</span><span class="o">.</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">xh</span> <span class="o">=</span> <span class="n">hdf5_file</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="s2">&quot;/mesh/z&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z coordinates match: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">xh</span><span class="p">,</span><span class="w"> </span><span class="n">msh_3d</span><span class="o">.</span><span class="n">z</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Check the fields</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">datah</span> <span class="o">=</span> <span class="n">hdf5_file</span><span class="o">.</span><span class="n">read_dataset</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/fields/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">distributed_axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> matches: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">datah</span><span class="p">,</span><span class="w"> </span><span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">hdf5_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2026-03-04 15:58:14,978  HDF5File              INFO      ../data/out_rbc00001.hdf5 opened - mode r - serial
+X coordinates match: True
+Y coordinates match: True
+Z coordinates match: True
+Field u matches: True
+Field v matches: True
+Field w matches: True
+Field p matches: True
+Field t matches: True
+Field mag matches: True
+Field mag_r matches: True
+Field ones matches: True
+2026-03-04 15:58:15,087  HDF5File              INFO      ../data/out_rbc00001.hdf5 closed - Elapsed time: 0.10908896199998708s
+</pre></div></div>
+</div>
+</section>
+<section id="VTKHDF">
+<h3>VTKHDF<a class="headerlink" href="#VTKHDF" title="Link to this heading"></a></h3>
+<p>To visualize files from HDF5, one can use the VTKHDF format. Which is an HDF5 file with a more strict structure, where connectivity is created.</p>
+<p>Our objects work for 3D and 4D arrays.</p>
+<ul class="simple">
+<li><p>For 3D arrays, we assume that the mesh is written in a <code class="docutils literal notranslate"><span class="pre">meshgrid</span></code> style, so vtk cells are built from neighbouring points.</p></li>
+<li><p>For 4D arrays, we assume that the data is coming from a <code class="docutils literal notranslate"><span class="pre">SEM</span></code> mesh, where the axis 0 represents the elements. So the connectivity is built with that in mind.</p></li>
+</ul>
+<blockquote>
+<div><p>All of these objects work in parallel, however for VTKHDF, the distributed_axis <strong>has</strong> to be equal to <code class="docutils literal notranslate"><span class="pre">0</span></code>. This is simply due to how the data is dumped into files by the different ranks This requirement might be relaxed in the future.</p>
+</div></blockquote>
+<p>Note that for this case, we <strong>need</strong> a mesh, which is written in a specific way so vtk readers can understand it. At the moment, we write all the fields as <code class="docutils literal notranslate"><span class="pre">PointData</span></code>. So the structure of these files is certainly more strict than simply <code class="docutils literal notranslate"><span class="pre">HDF5</span></code></p>
+<p>Similarly to the previous example, the data can be written as follows:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[125]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.hdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">VTKHDFFile</span>
+
+<span class="c1"># Set inputs</span>
+<span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;../data/out_rbc00001.vtkhdf&#39;</span>
+
+<span class="c1"># Write VTKHDF data</span>
+<span class="n">fw</span> <span class="o">=</span> <span class="n">VTKHDFFile</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fw</span><span class="o">.</span><span class="n">write_mesh_data</span><span class="p">(</span><span class="n">msh_3d</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">fw</span><span class="o">.</span><span class="n">write_point_data</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">fld_3d_r</span><span class="o">.</span><span class="n">registry</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+<span class="n">fw</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2026-03-04 15:58:15,117  HDF5File              INFO      ../data/out_rbc00001.vtkhdf opened - mode w - serial
+2026-03-04 15:58:15,750  HDF5File              INFO      ../data/out_rbc00001.vtkhdf closed - Elapsed time: 0.6464613679999047s
+</pre></div></div>
+</div>
+<blockquote>
+<div><p>Note that this is very useful if you want to visualize interpolation points in 3D (tutorials of interpolation are found in section 4 of the examples in PySEMTools)</p>
+</div></blockquote>
+<p>This file can be read with paraview (among other software) to produce:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[126]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;../data/rbc_vtkhdf.png&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_notebooks_1-datatypes_io_57_0.png" src="../_images/_notebooks_1-datatypes_io_57_0.png" />
+</div>
+</div>
+</section>
 <section id="Wrappers">
 <h3>Wrappers<a class="headerlink" href="#Wrappers" title="Link to this heading"></a></h3>
 <p>In the event that all you want is a numpy array with the data, you can also use a wrapper to retrieve the data.</p>
+<p>The wrappers also work for hdf5 and vtkhdf files. In those cases, everything is selected based on the extension of the file name.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[127]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.io.wrappers</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_data</span>
@@ -847,28 +935,17 @@ scal_2
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-2024-10-04 11:15:29,791 - Field - INFO - Initializing empty Field object
-2024-10-04 11:15:29,792 - Mesh - INFO - Initializing empty Mesh object.
-2024-10-04 11:15:29,792 - pynekread - INFO - Reading file: ../data/out_rbc0.f00001
-2024-10-04 11:15:29,797 - Mesh - INFO - Initializing Mesh object from x,y,z ndarrays.
-2024-10-04 11:15:29,798 - Mesh - INFO - Initializing common attributes.
-2024-10-04 11:15:29,798 - Mesh - INFO - Getting vertices
-2024-10-04 11:15:29,799 - Mesh - INFO - Getting edge centers
-2024-10-04 11:15:29,810 - Mesh - INFO - Getting facet centers
-2024-10-04 11:15:29,817 - Mesh - INFO - Creating connectivity
-2024-10-04 11:15:30,204 - Mesh - INFO - Mesh object initialized.
-2024-10-04 11:15:30,205 - Mesh - INFO - Mesh data is of type: float32
-2024-10-04 11:15:30,206 - Mesh - INFO - Elapsed time: 0.40879251299999986s
-2024-10-04 11:15:30,207 - pynekread - INFO - File read
-2024-10-04 11:15:30,207 - pynekread - INFO - Elapsed time: 0.4150390530000001s
-2024-10-04 11:15:30,209 - pynekread_field - INFO - Reading field: scal_0 from file: ../data/out_rbc0.f00001
-2024-10-04 11:15:30,212 - pynekread_field - INFO - File read
-2024-10-04 11:15:30,212 - pynekread_field - INFO - Elapsed time: 0.003471009999999719s
+2026-03-04 15:58:15,780  pynekread             INFO      Reading file: ../data/out_rbc0.f00001
+2026-03-04 15:58:15,802  Mesh                  INFO      Mesh object initialized from coordinates with type: float32 - Elapsed time: 0.01716634100000647s
+2026-03-04 15:58:15,803  pynekread             INFO      File successfully read - Elapsed time: 0.023492424000096435s
+2026-03-04 15:58:15,805  pynekread_field       INFO      Reading field: scal_0 from file: ../data/out_rbc0.f00001
+2026-03-04 15:58:15,807  pynekread_field       INFO      File read
+2026-03-04 15:58:15,808  pynekread_field       INFO      Elapsed time: 0.0037234540000099514s
 </pre></div></div>
 </div>
 <p>data is a dictionary that contains the data of the keys that were given.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[128]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">msh_3d</span><span class="o">.</span><span class="n">x</span><span class="p">))</span>
@@ -894,7 +971,7 @@ True
 <h3>Inspecting memory usage<a class="headerlink" href="#Inspecting-memory-usage" title="Link to this heading"></a></h3>
 <p>To inspect the memory usage, one can use the monitoring module</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[129]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pysemtools.monitoring.memory_monitor</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryMonitor</span>
@@ -905,7 +982,7 @@ True
 </div>
 <p>You can chose to inspect the total memory used, or check the ussage of each attibute.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[130]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mm</span><span class="o">.</span><span class="n">object_memory_usage</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">msh_3d</span><span class="p">,</span> <span class="s2">&quot;mesh_3d&quot;</span><span class="p">,</span> <span class="n">print_msg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -924,7 +1001,7 @@ True
 <p>Report the information.</p>
 <p>Note that for field registry objects, the information of registry and field will appear as duplicate. We have seen howeverm that they point to the sampe places in memory, therefore no need to worry about memory duplication.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[131]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -939,11 +1016,12 @@ True
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Rank: 0 - Memory usage of mesh_3d: 25.399681091308594 MB
+Rank: 0 - Memory usage of mesh_3d: 3.702667236328125 MB
 Rank: 0 - Memory usage of mesh_3d attributes:
-Rank: 0 - Memory usage of mesh_3d attr - coord_hash_to_shared_map: 21.699501037597656 MB
-Rank: 0 - Memory usage of mesh_3d attr - create_connectivity_bool: 3.0517578125e-05 MB
+Rank: 0 - Memory usage of mesh_3d attr - bckend: 5.340576171875e-05 MB
+Rank: 0 - Memory usage of mesh_3d attr - create_connectivity_bool: 2.288818359375e-05 MB
 Rank: 0 - Memory usage of mesh_3d attr - edge_centers: 0.082550048828125 MB
+Rank: 0 - Memory usage of mesh_3d attr - elmap: 0.00244140625 MB
 Rank: 0 - Memory usage of mesh_3d attr - facet_centers: 0.041351318359375 MB
 Rank: 0 - Memory usage of mesh_3d attr - gdim: 3.0517578125e-05 MB
 Rank: 0 - Memory usage of mesh_3d attr - glb_nelv: 4.57763671875e-05 MB
@@ -959,11 +1037,11 @@ Rank: 0 - Memory usage of mesh_3d attr - x: 1.172027587890625 MB
 Rank: 0 - Memory usage of mesh_3d attr - y: 1.172027587890625 MB
 Rank: 0 - Memory usage of mesh_3d attr - z: 1.172027587890625 MB
 ===================================
-Rank: 0 - Memory usage of coef_3d: 26.96227264404297 MB
+Rank: 0 - Memory usage of coef_3d: 23.445945739746094 MB
 Rank: 0 - Memory usage of coef_3d attributes:
 Rank: 0 - Memory usage of coef_3d attr - B: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - apply_1d_operators: 3.0517578125e-05 MB
-Rank: 0 - Memory usage of coef_3d attr - area: 0.879058837890625 MB
+Rank: 0 - Memory usage of coef_3d attr - bckend: 5.340576171875e-05 MB
 Rank: 0 - Memory usage of coef_3d attr - dn: 0.000396728515625 MB
 Rank: 0 - Memory usage of coef_3d attr - dr: 0.000396728515625 MB
 Rank: 0 - Memory usage of coef_3d attr - drdx: 1.172027587890625 MB
@@ -977,7 +1055,7 @@ Rank: 0 - Memory usage of coef_3d attr - dt: 0.000396728515625 MB
 Rank: 0 - Memory usage of coef_3d attr - dtdx: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - dtdy: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - dtdz: 1.172027587890625 MB
-Rank: 0 - Memory usage of coef_3d attr - dtype: 0.00011444091796875 MB
+Rank: 0 - Memory usage of coef_3d attr - dtype: 9.1552734375e-05 MB
 Rank: 0 - Memory usage of coef_3d attr - dxdr: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - dxds: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - dxdt: 1.172027587890625 MB
@@ -989,17 +1067,15 @@ Rank: 0 - Memory usage of coef_3d attr - dzds: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - dzdt: 1.172027587890625 MB
 Rank: 0 - Memory usage of coef_3d attr - gdim: 3.0517578125e-05 MB
 Rank: 0 - Memory usage of coef_3d attr - jac: 1.172027587890625 MB
-Rank: 0 - Memory usage of coef_3d attr - nx: 0.879058837890625 MB
-Rank: 0 - Memory usage of coef_3d attr - ny: 0.879058837890625 MB
-Rank: 0 - Memory usage of coef_3d attr - nz: 0.879058837890625 MB
 Rank: 0 - Memory usage of coef_3d attr - v: 0.000396728515625 MB
 Rank: 0 - Memory usage of coef_3d attr - vinv: 0.000396728515625 MB
-Rank: 0 - Memory usage of coef_3d attr - w: 0.0004119873046875 MB
+Rank: 0 - Memory usage of coef_3d attr - w: 0.0003509521484375 MB
 Rank: 0 - Memory usage of coef_3d attr - w3: 0.002105712890625 MB
-Rank: 0 - Memory usage of coef_3d attr - x: 0.0004119873046875 MB
+Rank: 0 - Memory usage of coef_3d attr - x: 0.0003509521484375 MB
 ===================================
-Rank: 0 - Memory usage of fld_3d: 18.75537109375 MB
+Rank: 0 - Memory usage of fld_3d: 18.75542449951172 MB
 Rank: 0 - Memory usage of fld_3d attributes:
+Rank: 0 - Memory usage of fld_3d attr - bckend: 5.340576171875e-05 MB
 Rank: 0 - Memory usage of fld_3d attr - fields: 9.376884460449219 MB
 Rank: 0 - Memory usage of fld_3d attr - pres_fields: 3.0517578125e-05 MB
 Rank: 0 - Memory usage of fld_3d attr - registry: 9.376899719238281 MB
@@ -1021,7 +1097,7 @@ Rank: 0 - Memory usage of fld_3d attr - vel_fields: 3.0517578125e-05 MB
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../pages/io.html" class="btn btn-neutral float-left" title="InputOutput (I/O)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../pages/generated/pysemtools.rom.html" class="btn btn-neutral float-left" title="pysemtools.rom" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="2-sem_subdomains.html" class="btn btn-neutral float-right" title="Sem subdomains" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

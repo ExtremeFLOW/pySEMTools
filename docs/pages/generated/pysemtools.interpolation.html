@@ -1,0 +1,176 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pysemtools.interpolation &mdash; PySEMTools develop documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=16816911"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="pysemtools.io.ppymech" href="pysemtools.io.ppymech.html" />
+    <link rel="prev" title="pysemtools.datatypes" href="pysemtools.datatypes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            PySEMTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../datatypes.html">Data types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">InputOutput (I/O)</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.cli.html">pysemtools.cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.comm.html">pysemtools.comm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.datatypes.html">pysemtools.datatypes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pysemtools.interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.io.ppymech.html">pysemtools.io.ppymech</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.io.adios2.html">pysemtools.io.adios2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.io.hdf.html">pysemtools.io.hdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.io.catalyst.html">pysemtools.io.catalyst</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.io.wrappers.html">pysemtools.io.wrappers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.monitoring.html">pysemtools.monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysemtools.rom.html">pysemtools.rom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.cli">cli</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.comm">comm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.datatypes">datatypes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.interpolation">interpolation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#io">io</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.monitoring">monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#module-pysemtools.rom">rom</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/2-sem_subdomains.html">Sem subdomains</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/3-data_compression.html">Data compression</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on calculus on SEM mesh:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-differentiation.html">Derivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/2-integration.html">Integration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on interpolation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-interpolation_to_query_points.html">Interpolation to query points</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/2-element_interpolation.html">Element distribution interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/3-interpolation_from_2d_sem_mesh.html">Interpolation from 2D sem mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/5-structured_mesh.html">Generating structured meshes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/6-interpolating_file_sequences.html">Interpolating file sequences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/7-visualizing_pointclouds.html">Visualizing pointclouds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on reduced order models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-POD_from_pointclouds.html">POD from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/2-POD_fft_from_pointclouds.html">POD and fft from pointclouds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/2-POD_fft_from_pointclouds.html#Write-out-data">Write out data</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples on statistics:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">PySEMTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API</a></li>
+      <li class="breadcrumb-item active">pysemtools.interpolation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/pages/generated/pysemtools.interpolation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pysemtools.interpolation">
+<span id="pysemtools-interpolation"></span><h1>pysemtools.interpolation<a class="headerlink" href="#module-pysemtools.interpolation" title="Link to this heading"></a></h1>
+<p>High-order interpolation routines for SEM data.</p>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../api.html#pysemtools.interpolation.Probes" title="pysemtools.interpolation.Probes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Probes</span></code></a>(comm[, output_fname, probes, msh, ...])</p></td>
+<td><p>Class to interpolate fields at probes from a SEM mesh.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pysemtools.datatypes.html" class="btn btn-neutral float-left" title="pysemtools.datatypes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pysemtools.io.ppymech.html" class="btn btn-neutral float-right" title="pysemtools.io.ppymech" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Neko authors.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

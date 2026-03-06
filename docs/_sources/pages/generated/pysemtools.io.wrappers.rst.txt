@@ -1,0 +1,14 @@
+﻿pysemtools.io.wrappers
+======================
+
+.. automodule:: pysemtools.io.wrappers
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      partition_read_data
+      read_data
+      write_data
+   

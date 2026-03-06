@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coef &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -47,6 +47,9 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
@@ -77,8 +80,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -162,6 +163,12 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.apply_spatial_filter" title="pysemtools.datatypes.coef.Coef.apply_spatial_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_spatial_filter</span></code></a>(field)</p></td>
+<td><p>Apply the stored spatial filters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.build_spatial_filter" title="pysemtools.datatypes.coef.Coef.build_spatial_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_spatial_filter</span></code></a>([r_tf, s_tf, t_tf])</p></td>
+<td><p>Build a spatial filter based on the given transfer functions.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.dssum" title="pysemtools.datatypes.coef.Coef.dssum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dssum</span></code></a>(field, msh)</p></td>
 <td><p>Peform average of given field over shared points in each rank.</p></td>
 </tr>
@@ -177,10 +184,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.dudrst_3d_operator" title="pysemtools.datatypes.coef.Coef.dudrst_3d_operator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst_3d_operator</span></code></a>(field, dr)</p></td>
 <td><p>Perform derivative with respect to reference coordinate r.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.dudxyz" title="pysemtools.datatypes.coef.Coef.dudxyz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudxyz</span></code></a>(field, drdx, dsdx[, dtdx])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.dudrst_transposed" title="pysemtools.datatypes.coef.Coef.dudrst_transposed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudrst_transposed</span></code></a>(field[, direction])</p></td>
+<td><p>Perform derivative with respect to reference coordinate r/s/t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.dudxyz" title="pysemtools.datatypes.coef.Coef.dudxyz"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dudxyz</span></code></a>(field, drdx, dsdx[, dtdx])</p></td>
 <td><p>Perform derivative with respect to physical coordinate x,y,z.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.glsum" title="pysemtools.datatypes.coef.Coef.glsum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glsum</span></code></a>(a, comm[, dtype])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pysemtools.datatypes.coef.Coef.glsum" title="pysemtools.datatypes.coef.Coef.glsum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">glsum</span></code></a>(a, comm[, dtype])</p></td>
 <td><p>Peform global summatin of given qunaitity a using MPI.</p></td>
 </tr>
 </tbody>
@@ -195,6 +205,53 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">coef</span> <span class="o">=</span> <span class="n">Coef</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
 </pre></div>
 </div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.coef.Coef.apply_spatial_filter">
+<span class="sig-name descname"><span class="pre">apply_spatial_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.coef.Coef.apply_spatial_filter" title="Link to this definition"></a></dt>
+<dd><p>Apply the stored spatial filters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">np.array</span></dt><dd><p>Field to apply the spatial filter to. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.array</dt><dd><p>Filtered field. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The spatial filters must be created before calling this function, otherwise, an error will be raised.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.coef.Coef.build_spatial_filter">
+<span class="sig-name descname"><span class="pre">build_spatial_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r_tf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_tf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_tf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.coef.Coef.build_spatial_filter" title="Link to this definition"></a></dt>
+<dd><p>Build a spatial filter based on the given transfer functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>r_tf</strong><span class="classifier">np.array</span></dt><dd><p>Transfer function for the r dimension. Shape should be (lx, lx).</p>
+</dd>
+<dt><strong>s_tf</strong><span class="classifier">np.array</span></dt><dd><p>Transfer function for the s dimension. Shape should be (ly, ly).</p>
+</dd>
+<dt><strong>t_tf</strong><span class="classifier">np.array</span></dt><dd><p>Transfer function for the t dimension. Shape should be (lz, lz).
+This is optional. If none is passed, it is assumed that the field is 2D.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>None</dt><dd><p>The spatial filters are stored in the r_filter, s_filter, and t_filter attributes.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="pysemtools.datatypes.coef.Coef.dssum">
 <span class="sig-name descname"><span class="pre">dssum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.coef.Coef.dssum" title="Link to this definition"></a></dt>
@@ -333,6 +390,29 @@ This is optional. If none is passed, it is assumed that the field is 2D.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dxdr</span> <span class="o">=</span> <span class="n">coef</span><span class="o">.</span><span class="n">dudrst</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">coef</span><span class="o">.</span><span class="n">dr</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.datatypes.coef.Coef.dudrst_transposed">
+<span class="sig-name descname"><span class="pre">dudrst_transposed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'r'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.datatypes.coef.Coef.dudrst_transposed" title="Link to this definition"></a></dt>
+<dd><p>Perform derivative with respect to reference coordinate r/s/t.</p>
+<p>Used to perform the derivative in the reference coordinates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>field</strong><span class="classifier">ndarray</span></dt><dd><p>Field to take derivative of. Shape should be (nelv, lz, ly, lx).</p>
+</dd>
+<dt><strong>direction</strong><span class="classifier">str</span></dt><dd><p>Direction to take the derivative. Can be ‘r’, ‘s’, or ‘t’. (Default value = ‘r’).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Derivative of the field with respect to r/s/t. Shape is the same as the input field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

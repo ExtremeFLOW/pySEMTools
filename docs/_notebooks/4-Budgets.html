@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Processing statistics files &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
@@ -50,6 +50,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../pages/interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../pages/io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pages/api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-datatypes_io.html">Data types and IO</a></li>
@@ -80,8 +83,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -143,26 +144,22 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clone the repository with the data</span>
-<span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git ../data/sem_data&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download the data if it does not exist</span>
+<span class="n">sem_data_path</span> <span class="o">=</span> <span class="s2">&quot;../data/sem_data/&quot;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">sem_data_path</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data not found, cloning repository...&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;git clone https://github.com/adperezm/sem_data.git </span><span class="si">{</span><span class="n">sem_data_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sem data found.&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-fatal: destination path &#39;../data/sem_data&#39; already exists and is not an empty directory.
-</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-32768
+Sem data found.
 </pre></div></div>
 </div>
 <p>In this example, we start from the fact that the data is already averaged. Previous examples show how one can average files.</p>
@@ -248,7 +245,7 @@ fields in the give file:  [&#39;vel_0&#39;, &#39;vel_1&#39;, &#39;pres&#39;, &#3
 <div class="highlight"><pre>
 /home/adperez/software/pySEMTools/pysemtools/postprocessing/statistics/RS_budgets.py:138: UserWarning: The number of scalar fields above 39 is not supported. This was done to make converted 2D statistics files consistent! Limiting the number to 39...
   warnings.warn(&#34;The number of scalar fields above 39 is not supported. &#34;+
-/home/adperez/software/pySEMTools/pysemtools/postprocessing/statistics/RS_budgets.py:212: UserWarning: The s39 field (z-velocity) was not removed from the file. Be careful with potential inconsistencies!
+/home/adperez/software/pySEMTools/pysemtools/postprocessing/statistics/RS_budgets.py:228: UserWarning: The s39 field (z-velocity) was not removed from the file. Be careful with potential inconsistencies!
   warnings.warn(&#39;The s39 field (z-velocity) was not removed from the file. &#39;+
 </pre></div></div>
 </div>
@@ -359,7 +356,7 @@ working on: VWW
 
     <span class="c1"># exclude last points since periodic</span>
     <span class="n">theta</span> <span class="o">=</span> <span class="mf">.5</span> <span class="o">*</span> <span class="p">(</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">ntheta</span><span class="p">]</span><span class="o">+</span><span class="n">theta</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="p">)</span>
-    <span class="n">z</span>     <span class="o">=</span> <span class="mf">.5</span>
+    <span class="n">z</span>     <span class="o">=</span> <span class="mi">0</span>
     <span class="c1"># z     = .5 * ( z[0:nz]+z[1:])</span>
 
     <span class="n">re_tau</span>      <span class="o">=</span> <span class="mf">1000.</span>
@@ -369,7 +366,7 @@ working on: VWW
     <span class="n">rmax</span>        <span class="o">=</span> <span class="mf">1.0</span>
 
     <span class="n">r_base</span>      <span class="o">=</span> <span class="n">geometric_stretching</span><span class="p">(</span><span class="n">dr0</span><span class="p">,</span><span class="n">stretching</span><span class="p">,</span><span class="n">drmax</span><span class="p">,</span><span class="n">rmax</span><span class="p">)</span>
-    <span class="n">r_base</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>   <span class="o">=</span> <span class="mf">0.1</span><span class="o">/</span><span class="n">re_tau</span>    <span class="c1"># to avoid potential issues when maping to the exact walls</span>
+    <span class="c1">#r_base[0]   = 0.1/re_tau    # to avoid potential issues when maping to the exact walls</span>
     <span class="n">r_base</span>      <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">r_base</span>
     <span class="n">nr</span>          <span class="o">=</span> <span class="n">r_base</span><span class="o">.</span><span class="n">size</span>
     <span class="n">Nstruct</span>     <span class="o">=</span> <span class="p">[</span><span class="n">nr</span><span class="p">,</span> <span class="n">ntheta</span><span class="p">,</span> <span class="n">nz</span><span class="p">]</span>
@@ -643,7 +640,7 @@ Number of scalar fields: 40
 <p>In some cases, more averaging in some particular direction might be needed. IN this example we show how that could be done. In this example, axis 2 has only one point, therefore this averaging operation does nothing. We keep it here to show one possible operation to be done to the fields.</p>
 <p>In this particular case all the function does is to replicate all the data into 8 points in the z direction, to also assume that we have a 3d field when performing the rotations to be performed later.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># NOTE: the use of Reynolds number assumes all fields are in non-dimensional form</span>
@@ -675,13 +672,13 @@ Number of scalar fields: 40
 reading xyz coordinates...
 Done in 0.00 seconds.
 reading the 44 statistics fields...
-Done in 0.07 seconds.
+Done in 0.06 seconds.
 reading the additional 99 fields...
 Finished reading all fields.
-Done in 0.19 seconds.
+Done in 0.18 seconds.
 Converting arrays into single precision...
 Conversion complete.
-Done in 0.01 seconds.
+Done in 0.02 seconds.
 Reshaping into arrays...
 Reshaping complete.
 Done in 0.00 seconds.
@@ -690,9 +687,9 @@ Permutation complete.
 Done in 0.00 seconds.
 Taking the user-specified average using function av_func...
 Averaging complete.
-Done in 0.52 seconds.
+Done in 0.75 seconds.
 Saving the data in HDF5 format...
-Done in 1.12 seconds.
+Done in 1.17 seconds.
 Data saved successfully in HDF5 format.
 </pre></div></div>
 </div>
@@ -701,7 +698,7 @@ Data saved successfully in HDF5 format.
 <h4>Calculate the budgets<a class="headerlink" href="#Calculate-the-budgets" title="Link to this heading"></a></h4>
 <p>Use the interpolated aditional fields to finally calculate the budget terms in cartesian coordinates.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="c1"># NOTE: budgets are done in Cartesian cooridnates</span>
@@ -723,50 +720,50 @@ Data saved successfully in HDF5 format.
 Reynolds number =  18849.99924600003
 --------------working on XYZ coordinates...
 Number of points:  (105, 1176, 8)
-Done in 0.02 seconds.
+Done in 0.03 seconds.
 --------------working on mean velocities...
-Done in 0.02 seconds.
+Done in 0.03 seconds.
 --------------working on Reynolds stresses...
-Done in 0.08 seconds.
+Done in 0.12 seconds.
 --------------working on pressure and its moments...
-Done in 0.21 seconds.
+Done in 0.28 seconds.
 --------------working on tripple products...
-Done in 0.48 seconds.
+Done in 0.59 seconds.
 --------------working on velocity kurtosis...
-Done in 0.24 seconds.
+Done in 0.23 seconds.
 --------------working on velocity gradients...
-Time taken: 0.06 seconds
+Time taken: 0.07 seconds
 --------------working on momentum convection terms...
-Time taken: 0.10 seconds
+Time taken: 0.12 seconds
 --------------working on the residual momentum convection terms...
-Time taken: 0.09 seconds
+Time taken: 0.08 seconds
 --------------working on momentum pressure terms...
 Warning: assuming rho=1 everywhere!
 Time taken: 0.02 seconds
 --------------working on production terms...
 Time taken: 0.45 seconds
 --------------working on convection terms...
-Time taken: 0.76 seconds
+Time taken: 0.85 seconds
 --------------working on momentum turbulent diffusion terms...
-Time taken: 0.12 seconds
+Time taken: 0.10 seconds
 --------------working on dissipation terms...
-Time taken: 0.38 seconds
+Time taken: 0.34 seconds
 --------------working on turbulent transport...
-Done in 2.73 seconds.
+Done in 2.57 seconds.
 --------------working on viscous diffusion...
-Done in 0.91 seconds.
+Done in 0.92 seconds.
 --------------working on momentum viscous diffusion terms...
-Done in 0.08 seconds.
---------------working on momentum residual terms...
-Done in 0.03 seconds.
---------------working on pressure-rate-of-strain terms...
-Done in 0.18 seconds.
---------------working on pressure transport terms...
-Done in 0.29 seconds.
---------------working on velocity-pressure-gradient terms...
 Done in 0.07 seconds.
---------------working on TKE budgets...
+--------------working on momentum residual terms...
 Done in 0.02 seconds.
+--------------working on pressure-rate-of-strain terms...
+Done in 0.16 seconds.
+--------------working on pressure transport terms...
+Done in 0.25 seconds.
+--------------working on velocity-pressure-gradient terms...
+Done in 0.05 seconds.
+--------------working on TKE budgets...
+Done in 0.01 seconds.
 All computations completed and data saved successfully.
 </pre></div></div>
 </div>
@@ -776,7 +773,7 @@ All computations completed and data saved successfully.
 <p>All the tensors calculated can be rotated into cylindrical coordinates, which match better the pipe. One can the perfomr azimuthal averages and plot the values.</p>
 <p>Here we show the values from the provided data with those of a reference simulation.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><br/><span></span><span class="k">def</span><span class="w"> </span><span class="nf">define_cylindrical_coord_system_vectors</span><span class="p">(</span><span class="n">XYZ</span><span class="p">):</span>
@@ -895,7 +892,7 @@ All computations completed and data saved successfully.
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">UVW</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span><span class="n">u_tau</span>   <span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
         <span class="c1">#df = pd.read_csv(path_to_refdata+&#39;/&#39;+fnames_refdata_vel, delim_whitespace=True, header=None)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_vel</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_vel</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">5</span><span class="p">]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mf">.5</span><span class="p">,</span><span class="n">Re_tau</span><span class="p">))</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="s1">&#39;Uplus&#39;</span><span class="p">)</span>
@@ -903,7 +900,7 @@ All computations completed and data saved successfully.
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Rij</span><span class="p">[:,:</span><span class="mi">4</span><span class="p">]</span> <span class="o">/</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">2</span>  <span class="p">,</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
         <span class="c1">#df = pd.read_csv(path_to_refdata+&#39;/&#39;+fnames_refdata_RS, delim_whitespace=True, header=None)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_RS</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_RS</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">((</span><span class="mf">.5</span><span class="p">,</span><span class="n">Re_tau</span><span class="p">))</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">path_to_files</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="s1">&#39;RSplus&#39;</span><span class="p">)</span>
@@ -918,7 +915,7 @@ All computations completed and data saved successfully.
             <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">ViscDiff_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>   <span class="p">,</span><span class="s1">&#39;grey&#39;</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">yplus</span><span class="p">,</span><span class="n">Res_ij</span><span class="p">[:,</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span><span class="p">(</span><span class="n">u_tau</span><span class="o">**</span><span class="mi">3</span><span class="o">/</span><span class="n">delta_nu</span><span class="p">)</span>        <span class="p">,</span><span class="s1">&#39;:k&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">k</span><span class="o">&lt;</span><span class="mi">4</span><span class="p">:</span>
-                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_buds</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path_to_refdata</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="o">+</span><span class="n">fnames_refdata_buds</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">2</span><span class="p">],</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">3</span><span class="p">:]</span>  <span class="p">,</span><span class="s1">&#39;:b&#39;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -936,7 +933,7 @@ All computations completed and data saved successfully.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Re_tau =  996.50208315011
+Re_tau =  996.6628831056183
 (104, 1176, 8)
 (104,)
 </pre></div></div>
@@ -984,7 +981,6 @@ Re_tau =  996.50208315011
 </div>
 </div>
 <p>Now we are done! From simulation outputs to results!</p>
-<p>There are some slight discrepancies, but those are not necesarly related to the python post-processing.</p>
 </section>
 </section>
 </section>

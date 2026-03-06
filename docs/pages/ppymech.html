@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ppymech &mdash; PySEMTools develop documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -47,6 +47,9 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">InputOutput (I/O)</a></li>
 </ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Examples on data types and IO:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-datatypes_io.html">Data types and IO</a></li>
@@ -77,8 +80,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html">Processing statistics files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../_notebooks/1-post_processing_mean_fields.html#Visualize-the-rotated-mean">Visualize the rotated mean</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/2-UQ_of_velocity.html">UQ of velocity fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../_notebooks/3-UQ_of_temperature.html">UQ of temperature fields</a></li>
 </ul>
 
         </div>
@@ -109,6 +110,39 @@
 <h1>ppymech<a class="headerlink" href="#ppymech" title="Link to this heading"></a></h1>
 <p>Descriptions of the contents of the Probes class.</p>
 <p id="module-pysemtools.io.ppymech.neksuite">Module that wraps the parallel IO calls and put data in the pymech format</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.NekHeader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">NekHeader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wdsz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orders</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_elems</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_elems_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">istep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nb_vars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.NekHeader" title="Link to this definition"></a></dt>
+<dd><p>Class containing the header information for a nek file
+This is HEAVILY inspired by pymech subroutines: <a class="reference external" href="https://github.com/eX-Mech/pymech">https://github.com/eX-Mech/pymech</a>
+The only reason it is reproduced here is to avoid importing too many modules that take a lot of memory, specially with mpi4py</p>
+<p class="rubric">Methods</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>as_bytestring</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>init_from_attributes</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>init_from_string</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.NekHeader.init_from_string">
+<span class="sig-name descname"><span class="pre">init_from_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.NekHeader.init_from_string" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.get_file_time">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">get_file_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.get_file_time" title="Link to this definition"></a></dt>
+<dd><p>Get the time from the file header. This is useful for calls to the individual field reader.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.preadnek">
 <span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">preadnek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.preadnek" title="Link to this definition"></a></dt>
@@ -168,7 +202,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.pynekread">
-<span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">pynekread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.pynekread" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">pynekread</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dtype=&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msh=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fld=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite_fld=False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.pynekread" title="Link to this definition"></a></dt>
 <dd><p>Read nek file and returs a pynekobject (Parallel).</p>
 <p>Main function for readinf nek type fld filed.</p>
 <dl class="field-list simple">
@@ -183,6 +217,8 @@
 <dt><strong>msh</strong><span class="classifier">Mesh</span></dt><dd><p>The mesh object to put the data in. (Default value = None).</p>
 </dd>
 <dt><strong>fld</strong><span class="classifier">Field</span></dt><dd><p>The field object to put the data in. (Default value = None).</p>
+</dd>
+<dt><strong>overwrite_fld</strong><span class="classifier">bool</span></dt><dd><p>Wether or not to overwrite the contents of fld. (Default value = False).</p>
 </dd>
 </dl>
 </dd>
@@ -263,6 +299,14 @@ Typically “vel”, “pres”, “temp” or “scal_1”, “scal_2”, etc.<
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pynekwrite</span><span class="p">(</span><span class="s1">&#39;field00001.fld&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">msh</span> <span class="o">=</span> <span class="n">msh</span><span class="p">,</span> <span class="n">fld</span><span class="o">=</span><span class="n">fld</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pysemtools.io.ppymech.neksuite.read_nekheader">
+<span class="sig-prename descclassname"><span class="pre">pysemtools.io.ppymech.neksuite.</span></span><span class="sig-name descname"><span class="pre">read_nekheader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pysemtools.io.ppymech.neksuite.read_nekheader" title="Link to this definition"></a></dt>
+<dd><p>Read the header of a nek type file.
+This is HEAVILY inspired by pymech subroutines: <a class="reference external" href="https://github.com/eX-Mech/pymech">https://github.com/eX-Mech/pymech</a>
+The only reason it is reproduced here is to avoid importing too many modules that take a lot of memory, specially with mpi4py</p>
 </dd></dl>
 
 </section>
