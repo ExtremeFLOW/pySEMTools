@@ -137,6 +137,7 @@ class HDF5File:
         else:
             return
 
+        self.log.toc(message=f"{self.fname} closed")
         if clean: 
             # Set attributes that are assigned when opening a file
             self.mode = None
@@ -152,7 +153,6 @@ class HDF5File:
             self.slices = None
             self.local_alloc_shape = None
 
-        self.log.toc(message=f"{self.fname} closed")
 
     def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_array_list_in_file: bool = False, ignore_metadata: bool = False):
         """ Read a dataset from the hdf5 file object
