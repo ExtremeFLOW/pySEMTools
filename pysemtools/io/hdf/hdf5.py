@@ -121,7 +121,7 @@ class HDF5File:
         # Set the active group to the root group
         self.set_active_group("/")
 
-    def close(self, clean: bool = False):
+    def close(self, clean: bool = True):
         """ Close the hdf5 file object 
         
         Parameters
@@ -137,12 +137,19 @@ class HDF5File:
         else:
             return
 
-        if clean:
+        if clean: 
+            # Set attributes that are assigned when opening a file
+            self.mode = None
+            self.parallel = None
+            self.active_group = None
+            self.fname = None
+
+            # Some temporary variables to store
             self.global_shape = None
             self.local_shape = None
             self.offset = None
             self.count = None
-            self.slices = None        
+            self.slices = None
             self.local_alloc_shape = None
 
         self.log.toc(message=f"{self.fname} closed")

@@ -34,11 +34,24 @@ class VTKHDFFile(HDF5File):
         super().__init__(comm, fname, mode, parallel)
 
         self.shape = None
+        self.mesh_fname = None
         
         # Write the headers if we are writing
         self.set_active_group("/VTKHDF")
         if self.mode == "w":
             write_headers(self.active_group)
+    
+    def close(self, clean: bool = True):
+        """ Close the hdf5 file object 
+        
+        Parameters
+        ----------
+        clean : bool
+            Whether to clean up the file after closing. This will delete the file from disk. Should only be used for testing.
+        """
+        super().close(clean)
+        self.shape = None
+        self.mesh_fname = None
 
     def read_mesh_data(self, dtype : np.dtype = np.double, distributed_axis: int = 0):
         """ Read the mesh data from the hdf5 file
@@ -110,6 +123,41 @@ class VTKHDFFile(HDF5File):
         extra_global_entries = [1] if self.parallel else [0]
         self.write_dataset("Offsets", vtk.data.pop("Offsets"), distributed_axis=distributed_axis, extra_global_entries=extra_global_entries)
         self.active_group["Offsets"][-1] = nconectivity_ids
+
+        self.mesh_fname = self.fname
+
+    def link_to_existing_mesh(self, mesh_name: str):
+        """ Link to an existing mesh
+        
+        Avoid rewriting mesh data if not necessary. It can be quite costly in storage.
+
+        Parameters
+        ----------
+        mesh_name : str
+            Name of the hdf5 file to link to. 
+        """
+
+        if mesh_name == "" and self.mesh_fname is None:
+            raise ValueError("Mesh name must be provided if mesh name is not set in the file")
+        elif mesh_name == "":
+            mesh_name = self.mesh_fname
+
+        # Get the field global shape from the mesh
+        if self.shape is None:
+            temp = HDF5File(self.comm, mesh_name, "r", self.parallel)
+            mesh_shape = temp.file["/VTKHDF/Points"].attrs["shape"]
+            self.shape = tuple(mesh_shape[:-1]) # Remove the last dimension which is the coordinate dimension
+            temp.close()
+
+        self.set_active_group("/VTKHDF")
+        self.active_group["NumberOfPoints"] = h5py.ExternalLink(mesh_name, "/VTKHDF/NumberOfPoints")
+        self.active_group["NumberOfCells"] = h5py.ExternalLink(mesh_name, "/VTKHDF/NumberOfCells")
+        self.active_group["NumberOfConnectivityIds"] = h5py.ExternalLink(mesh_name, "/VTKHDF/NumberOfConnectivityIds")
+        self.active_group["Points"] = h5py.ExternalLink(mesh_name, "/VTKHDF/Points")
+        self.active_group["Connectivity"] = h5py.ExternalLink(mesh_name, "/VTKHDF/Connectivity")
+        self.active_group["Types"] = h5py.ExternalLink(mesh_name, "/VTKHDF/Types")
+        self.active_group["Offsets"] = h5py.ExternalLink(mesh_name, "/VTKHDF/Offsets")
+
 
     def write_point_data(self, dataset_name : str, data: np.ndarray, distributed_axis: int = 0):
         """ Write point data to the hdf5 file
