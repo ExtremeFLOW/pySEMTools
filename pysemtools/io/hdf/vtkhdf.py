@@ -11,26 +11,22 @@ from ...datatypes import VTKMesh
 class VTKHDFFile(HDF5File):
     """
     Class to write and read vtkhdf files in parallel using h5py.
+    Open an hdf5 file based on inputs.
+
+    Parameters
+    ----------
+    comm : MPI.Comm
+        MPI communicator.
+    fname : str
+        Name of the hdf5 file to read or write.
+    mode : str
+        Mode to open the file. Should be "r" for reading or "w" for
+        writing.
+    parallel : bool
+        Whether to use parallel I/O or not. 
     """
 
     def __init__(self, comm : MPI.Comm, fname: str, mode: str, parallel: bool):
-        """ Initialize the hdf5 file object
-        
-        Open an hdf5 file based on inputs.
-
-        Parameters
-        ----------
-        comm : MPI.Comm
-            MPI communicator to use for parallel I/O. If parallel is False, this can be set
-            to None.
-        fname : str
-            Name of the hdf5 file to read or write.
-        mode : str
-            Mode to open the file. Should be "r" for reading or "w" for
-            writing.
-        parallel : bool
-            Whether to use parallel I/O or not. 
-        """
         super().__init__(comm, fname, mode, parallel)
 
         self.shape = None

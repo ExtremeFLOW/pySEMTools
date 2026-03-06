@@ -9,27 +9,24 @@ from ...monitoring.logger import Logger
 class HDF5File:
     """
     Class to write and read hdf5 files in parallel using h5py.
+        
+    Open an hdf5 file based on inputs.
+
+    Parameters
+    ----------
+    comm : MPI.Comm
+        MPI communicator.
+    fname : str
+        Name of the hdf5 file to read or write.
+    mode : str
+        Mode to open the file. Should be "r" for reading or "w" for
+        writing.
+    parallel : bool
+        Whether to use parallel I/O or not. 
     """
 
     def __init__(self, comm : MPI.Comm, fname: str, mode: str, parallel: bool):
-        """ Initialize the hdf5 file object
         
-        Open an hdf5 file based on inputs.
-
-        Parameters
-        ----------
-        comm : MPI.Comm
-            MPI communicator to use for parallel I/O. If parallel is False, this can be set
-            to None.
-        fname : str
-            Name of the hdf5 file to read or write.
-        mode : str
-            Mode to open the file. Should be "r" for reading or "w" for
-            writing.
-        parallel : bool
-            Whether to use parallel I/O or not. 
-        """
-
         # Assign the communicator and assign empty attributes        
         self.comm = comm
         self.log = Logger(comm=comm, module_name="HDF5File")
