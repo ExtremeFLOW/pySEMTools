@@ -5,7 +5,6 @@ from pathlib import Path
 import numpy as np
 
 from mpi4py import MPI
-from shapely import node
 import paraview
 import catalyst
 import catalyst_conduit as conduit
@@ -159,7 +158,6 @@ class CatalystSession:
     def finalize(self):
         """ Finalize the catalyst session"""
 
-        
         self.log.write("info", f"Finalizing Catalyst session")    
         catalyst.finalize(conduit.Node())
         
