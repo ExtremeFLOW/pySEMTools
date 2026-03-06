@@ -9,27 +9,24 @@ from ...monitoring.logger import Logger
 class HDF5File:
     """
     Class to write and read hdf5 files in parallel using h5py.
+        
+    Open an hdf5 file based on inputs.
+
+    Parameters
+    ----------
+    comm : MPI.Comm
+        MPI communicator.
+    fname : str
+        Name of the hdf5 file to read or write.
+    mode : str
+        Mode to open the file. Should be "r" for reading or "w" for
+        writing.
+    parallel : bool
+        Whether to use parallel I/O or not. 
     """
 
     def __init__(self, comm : MPI.Comm, fname: str, mode: str, parallel: bool):
-        """ Initialize the hdf5 file object
         
-        Open an hdf5 file based on inputs.
-
-        Parameters
-        ----------
-        comm : MPI.Comm
-            MPI communicator to use for parallel I/O. If parallel is False, this can be set
-            to None.
-        fname : str
-            Name of the hdf5 file to read or write.
-        mode : str
-            Mode to open the file. Should be "r" for reading or "w" for
-            writing.
-        parallel : bool
-            Whether to use parallel I/O or not. 
-        """
-
         # Assign the communicator and assign empty attributes        
         self.comm = comm
         self.log = Logger(comm=comm, module_name="HDF5File")
@@ -121,7 +118,7 @@ class HDF5File:
         # Set the active group to the root group
         self.set_active_group("/")
 
-    def close(self, clean: bool = False):
+    def close(self, clean: bool = True):
         """ Close the hdf5 file object 
         
         Parameters
@@ -137,15 +134,22 @@ class HDF5File:
         else:
             return
 
-        if clean:
+        self.log.toc(message=f"{self.fname} closed")
+        if clean: 
+            # Set attributes that are assigned when opening a file
+            self.mode = None
+            self.parallel = None
+            self.active_group = None
+            self.fname = None
+
+            # Some temporary variables to store
             self.global_shape = None
             self.local_shape = None
             self.offset = None
             self.count = None
-            self.slices = None        
+            self.slices = None
             self.local_alloc_shape = None
 
-        self.log.toc(message=f"{self.fname} closed")
 
     def read_dataset(self, dataset_name: str, dtype : np.dtype = np.double, distributed_axis: int = None, slices: list = None, as_array_list_in_file: bool = False, ignore_metadata: bool = False):
         """ Read a dataset from the hdf5 file object
