@@ -5,9 +5,16 @@ from pathlib import Path
 import numpy as np
 
 from mpi4py import MPI
-import paraview
-import catalyst
-import catalyst_conduit as conduit
+try :
+    import paraview
+    import catalyst
+    import catalyst_conduit as conduit
+except ImportError:
+    paraview = None
+    catalyst = None
+    conduit = None
+    Warning('Can not use catalyst for in-situ. Please install it or use the pvbatch python wrapper and add catalyst to PYTHONPATH')
+
 from ...monitoring import Logger
 from ...datatypes.msh_vtk import VTKMesh, VTK_HEXAHEDRON
 
