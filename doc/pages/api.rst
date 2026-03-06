@@ -15,6 +15,7 @@ The presently included submodules are:
     pysemtools.io.ppymech
     pysemtools.io.adios2
     pysemtools.io.hdf
+    pysemtools.io.catalyst
     pysemtools.io.wrappers
     pysemtools.monitoring
     pysemtools.rom
@@ -77,6 +78,12 @@ HDF
 ^^^
 
 .. automodule :: pysemtools.io.hdf
+    :members:
+
+Catalyst2
+^^^^^^^^^
+
+.. automodule :: pysemtools.io.catalyst
     :members:
 
 wrappers

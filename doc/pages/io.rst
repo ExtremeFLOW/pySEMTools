@@ -8,6 +8,7 @@ The main modules are:
     - :doc:`ppymech`
     - :doc:`adios2`
     - :doc:`hdf`
+    - :doc:`catalyst`
 
 We have developed wrapper functions that can be used to read and write data in a more user-friendly way. Here we show them:
 
