@@ -11,6 +11,16 @@ option(ADIOS2_USE_PYTHON "Build ADIOS2 with Python support" ON)
 option(ADIOS2_USE_FORTRAN "Build ADIOS2 with Fortran support" OFF)
 option(ADIOS2_USE_BZIP2 "Build ADIOS2 with BZip2 support" ON)
 
+# ===============================================================
+# HDF5
+# ===============================================================
+option(INSTALL_HDF5 "Install HDF5" ON)
+
+# ===============================================================
+# h5py
+# ===============================================================
+option(INSTALL_H5PY "Install h5py against the built HDF5" OFF)
+
 
 # ===============================================================
 # General folder structure
@@ -61,6 +71,15 @@ if(Python3_ROOT_DIR)
   message(STATUS "Requested Python root dir: ${Python3_ROOT_DIR}")
 endif()
 
+# ===============================================================
+# Add the libraries installation instructions to the build
+# ===============================================================
+
 if(INSTALL_ADIOS2)
   include(${CMAKE_SOURCE_DIR}/cmake/adios2.cmake)
 endif()
+
+if(INSTALL_HDF5 OR INSTALL_H5PY)
+  include(${CMAKE_SOURCE_DIR}/cmake/hdf5.cmake)
+endif()
+  

@@ -12,7 +12,10 @@ cmake -S . -B build-superbuild \
   -DCMAKE_CXX_COMPILER=$(which mpicxx) \
   -DPYTHON_EXECUTABLE=$(which python3) \
   -DINSTALL_ADIOS2=ON \
-  -DADIOS2_VERSION=2.10.1
+  -DADIOS2_VERSION=2.10.1 \
+  -DINSTALL_HDF5=ON \
+  -DHDF5_VERSION=1.14.6 \
+  -DINSTALL_H5PY=ON
 ```
 
 Here we have set defaults for things that work. But you can overwrite things if you see fit.
