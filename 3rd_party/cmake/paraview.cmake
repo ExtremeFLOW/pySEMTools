@@ -77,8 +77,7 @@ set(_paraview_depends "")
 # Auto-wire Catalyst from the same superbuild install tree
 if(PARAVIEW_ENABLE_CATALYST)
   set(_auto_catalyst_dir
-    "${THIRD_PARTY_INSTALL_PREFIX}")
-
+    "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_LIBDIR}/cmake/catalyst")
   list(APPEND _paraview_args
     -Dcatalyst_DIR=${_auto_catalyst_dir}
   )
