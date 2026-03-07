@@ -22,11 +22,12 @@ cmake -S . -B build-superbuild \
 
 Here we have set defaults for things that work. But you can overwrite things if you see fit.
 
-The build with
+After configuring, build with:
 ```bash
 cmake --build ./build-superbuild -j128
 ```
 
+The libraries will be installed in this folder. You can choose different options from cmake.
 
 
 
