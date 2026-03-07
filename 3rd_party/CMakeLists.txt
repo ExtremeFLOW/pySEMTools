@@ -28,6 +28,26 @@ option(INSTALL_CATALYST "Install Catalyst" OFF)
 option(CATALYST_WRAP_PYTHON "Build Catalyst Python wrappers" ON)
 
 # ===============================================================
+# Paraview
+# ===============================================================
+option(INSTALL_PARAVIEW "Install ParaView" OFF)
+
+set(PARAVIEW_VARIANT "SERVER" CACHE STRING "ParaView build variant: SERVER or DESKTOP")
+set_property(CACHE PARAVIEW_VARIANT PROPERTY STRINGS SERVER DESKTOP)
+
+option(PARAVIEW_USE_MPI "Build ParaView with MPI support" ON)
+option(PARAVIEW_USE_PYTHON "Build ParaView with Python support" ON)
+option(PARAVIEW_ENABLE_CATALYST "Build ParaView Catalyst implementation" ON)
+
+set(PARAVIEW_SMP_IMPLEMENTATION_TYPE "TBB" CACHE STRING "VTK SMP backend for ParaView")
+set_property(CACHE PARAVIEW_SMP_IMPLEMENTATION_TYPE PROPERTY STRINGS
+  Sequential STDThread TBB OpenMP)
+
+#if(PARAVIEW_ENABLE_CATALYST)
+#   set(INSTALL_CATALYST ON)
+#endif()
+
+# ===============================================================
 # General folder structure
 # ===============================================================
 
@@ -90,4 +110,8 @@ endif()
   
 if(INSTALL_CATALYST)
   include(${CMAKE_SOURCE_DIR}/cmake/catalyst.cmake)
+endif()
+
+if(INSTALL_PARAVIEW)
+  include(${CMAKE_SOURCE_DIR}/cmake/paraview.cmake)
 endif()

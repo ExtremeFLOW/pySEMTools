@@ -17,7 +17,10 @@ cmake -S . -B build-superbuild \
   -DHDF5_VERSION=1.14.6 \
   -DINSTALL_H5PY=ON \
   -DINSTALL_CATALYST=ON \
-  -DCATALYST_VERSION=2.0.0
+  -DCATALYST_VERSION=2.0.0 \
+  -DINSTALL_PARAVIEW=ON \
+  -DPARAVIEW_VERSION=6.0.1 \
+  -DPARAVIEW_VARIANT=SERVER
 ```
 
 > On supercomputers you will very likely need to change your mpi wrappers
@@ -26,7 +29,7 @@ Here we have set defaults for things that work. But you can overwrite things if 
 
 After configuring, build with:
 ```bash
-cmake --build ./build-superbuild -j128
+cmake --build ./build-superbuild -j10
 ```
 
 The libraries will be installed in this folder. You can choose different options from cmake.
