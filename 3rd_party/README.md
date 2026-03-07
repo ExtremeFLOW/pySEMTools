@@ -18,6 +18,8 @@ cmake -S . -B build-superbuild \
   -DINSTALL_H5PY=ON
 ```
 
+> On supercomputer you will very likely need to change your mpi wrappers
+
 Here we have set defaults for things that work. But you can overwrite things if you see fit.
 
 The build with
