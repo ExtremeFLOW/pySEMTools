@@ -6,7 +6,7 @@ include(ExternalProject)
 # ===============================================================
 # Adios2
 # ===============================================================
-option(INSTALL_ADIOS2 "Install ADIOS2" ON)
+option(INSTALL_ADIOS2 "Install ADIOS2" OFF)
 option(ADIOS2_USE_PYTHON "Build ADIOS2 with Python support" ON)
 option(ADIOS2_USE_FORTRAN "Build ADIOS2 with Fortran support" OFF)
 option(ADIOS2_USE_BZIP2 "Build ADIOS2 with BZip2 support" ON)
@@ -14,13 +14,18 @@ option(ADIOS2_USE_BZIP2 "Build ADIOS2 with BZip2 support" ON)
 # ===============================================================
 # HDF5
 # ===============================================================
-option(INSTALL_HDF5 "Install HDF5" ON)
+option(INSTALL_HDF5 "Install HDF5" OFF)
 
 # ===============================================================
 # h5py
 # ===============================================================
 option(INSTALL_H5PY "Install h5py against the built HDF5" OFF)
 
+# ===============================================================
+# Catalyst
+# ===============================================================
+option(INSTALL_CATALYST "Install Catalyst" OFF)
+option(CATALYST_WRAP_PYTHON "Build Catalyst Python wrappers" ON)
 
 # ===============================================================
 # General folder structure
@@ -83,3 +88,6 @@ if(INSTALL_HDF5 OR INSTALL_H5PY)
   include(${CMAKE_SOURCE_DIR}/cmake/hdf5.cmake)
 endif()
   
+if(INSTALL_CATALYST)
+  include(${CMAKE_SOURCE_DIR}/cmake/catalyst.cmake)
+endif()

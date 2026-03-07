@@ -15,7 +15,9 @@ cmake -S . -B build-superbuild \
   -DADIOS2_VERSION=2.10.1 \
   -DINSTALL_HDF5=ON \
   -DHDF5_VERSION=1.14.6 \
-  -DINSTALL_H5PY=ON
+  -DINSTALL_H5PY=ON \
+  -DINSTALL_CATALYST=ON \
+  -DCATALYST_VERSION=2.0.0
 ```
 
 > On supercomputers you will very likely need to change your mpi wrappers
