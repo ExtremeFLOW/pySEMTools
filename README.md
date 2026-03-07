@@ -93,7 +93,7 @@ In some instances, such as in supercomputers, it is typically necessary that the
 export MPICC=$(which cc)
 pip install mpi4py --no-cache-dir
 ```
-where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need pic or so). It is always a good idea to contact support or check the specific documentation if things do not work.
+where CC should be replaced by the correct C wrappers of the system (In a workstation you would probably need mpicc or so). It is always a good idea to contact support or check the specific documentation if things do not work.
 
 Based on our experience on some cray systems such as [Dardel](https://www.pdc.kth.se/hpc-services/computing-systems/dardel-hpc-system/dardel-1.1043529) and [Lumi](https://csc.fi/en/our-expertise/high-performance-computing/lumi-supercomputer/), a Wiki was made available [here](https://github.com/ExtremeFLOW/pySEMTools/wiki/Setting-up-python3-and-mpi4py) to help setting up on clusters.
 
