@@ -32,6 +32,13 @@ set(THIRD_PARTY_BINDIR "bin" CACHE STRING "Binary install dir")
 set(THIRD_PARTY_INCLUDEDIR "include" CACHE STRING "Include install dir")
 set(THIRD_PARTY_LIBDIR "lib" CACHE STRING "Library install dir")
 
+set(PYTHON_EXECUTABLE ""
+    CACHE FILEPATH "Exact Python interpreter to use for third-party builds")
+
+# Optional: also allow passing the root of that Python install
+set(Python3_ROOT_DIR ""
+    CACHE PATH "Optional root dir for the selected Python installation")
+
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_DOWNLOAD_DIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_BUILD_DIR}")
@@ -45,6 +52,14 @@ message(STATUS "Third-party build dir: ${THIRD_PARTY_BUILD_DIR}")
 message(STATUS "Third-party bin dir: ${THIRD_PARTY_BINDIR}")
 message(STATUS "Third-party include dir: ${THIRD_PARTY_INCLUDEDIR}")
 message(STATUS "Third-party lib dir: ${THIRD_PARTY_LIBDIR}")
+
+if(PYTHON_EXECUTABLE)
+  message(STATUS "Requested Python executable: ${PYTHON_EXECUTABLE}")
+endif()
+
+if(Python3_ROOT_DIR)
+  message(STATUS "Requested Python root dir: ${Python3_ROOT_DIR}")
+endif()
 
 if(INSTALL_ADIOS2)
   include(${CMAKE_SOURCE_DIR}/cmake/adios2.cmake)

@@ -18,24 +18,52 @@ message(STATUS "ADIOS2 version: ${ADIOS2_VERSION}")
 message(STATUS "ADIOS2 git tag: ${_adios2_git_tag}")
 message(STATUS "BZip2 version: ${BZIP2_VERSION}")
 message(STATUS "BZip2 URL: ${BZIP2_URL}")
-
 set(BZIP2_INSTALL_PREFIX "${THIRD_PARTY_INSTALL_PREFIX}")
 set(BZIP2_INCLUDE_DIR "${BZIP2_INSTALL_PREFIX}/${THIRD_PARTY_INCLUDEDIR}")
 set(BZIP2_LIBRARY_RELEASE "${BZIP2_INSTALL_PREFIX}/${THIRD_PARTY_LIBDIR}/libbz2.so")
 set(BZIP2_LIBRARY_DEBUG   "${BZIP2_INSTALL_PREFIX}/${THIRD_PARTY_LIBDIR}/libbz2.so")
 
+# Python handling
+set(_python_args -DADIOS2_USE_Python=OFF)
+
 if(ADIOS2_USE_PYTHON)
-  find_package(Python3 REQUIRED COMPONENTS Interpreter)
-  set(_python_args
-    -DADIOS2_USE_Python=ON
-    -DPython_EXECUTABLE=${Python3_EXECUTABLE}
-    -DPYTHON_EXECUTABLE=${Python3_EXECUTABLE}
-    -DPython_FIND_STRATEGY=LOCATION
-  )
-else()
-  set(_python_args
-    -DADIOS2_USE_Python=OFF
-  )
+  if(PYTHON_EXECUTABLE)
+    if(NOT EXISTS "${PYTHON_EXECUTABLE}")
+      message(FATAL_ERROR "PYTHON_EXECUTABLE does not exist: ${PYTHON_EXECUTABLE}")
+    endif()
+
+    get_filename_component(_python_root_from_exe "${PYTHON_EXECUTABLE}" DIRECTORY)
+    get_filename_component(_python_prefix_from_exe "${_python_root_from_exe}/.." ABSOLUTE)
+
+    set(_python_args
+      -DADIOS2_USE_Python=ON
+      -DPython3_EXECUTABLE=${PYTHON_EXECUTABLE}
+      -DPython_EXECUTABLE=${PYTHON_EXECUTABLE}
+      -DPYTHON_EXECUTABLE=${PYTHON_EXECUTABLE}
+      -DPython3_FIND_STRATEGY=LOCATION
+      -DPython_FIND_STRATEGY=LOCATION
+      -DPython3_ROOT_DIR=${_python_prefix_from_exe}
+    )
+
+    if(Python3_ROOT_DIR)
+      list(APPEND _python_args -DPython3_ROOT_DIR=${Python3_ROOT_DIR})
+    endif()
+  else()
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+    set(_python_args
+      -DADIOS2_USE_Python=ON
+      -DPython3_EXECUTABLE=${Python3_EXECUTABLE}
+      -DPython_EXECUTABLE=${Python3_EXECUTABLE}
+      -DPYTHON_EXECUTABLE=${Python3_EXECUTABLE}
+      -DPython3_FIND_STRATEGY=LOCATION
+      -DPython_FIND_STRATEGY=LOCATION
+    )
+
+    if(Python3_ROOT_DIR)
+      list(APPEND _python_args -DPython3_ROOT_DIR=${Python3_ROOT_DIR})
+    endif()
+  endif()
 endif()
 
 if(ADIOS2_USE_FORTRAN)
@@ -69,9 +97,7 @@ if(ADIOS2_USE_BZIP2)
 
   set(_adios2_depends bzip2_ext)
 else()
-  set(_bzip2_args
-    -DADIOS2_USE_BZip2=OFF
-  )
+  set(_bzip2_args -DADIOS2_USE_BZip2=OFF)
   set(_adios2_depends "")
 endif()
 
