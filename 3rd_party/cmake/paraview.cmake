@@ -38,6 +38,10 @@ set(_paraview_args
   -DCMAKE_BUILD_TYPE=Release
   -DPARAVIEW_ENABLE_CATALYST=${PARAVIEW_ENABLE_CATALYST} 
   -DPARAVIEW_USE_QT=${_paraview_use_qt}
+
+  # Help ParaView find dependencies installed in the same prefix.
+  -DCMAKE_PREFIX_PATH=${THIRD_PARTY_INSTALL_PREFIX}
+
 )
 
 # Python forwarding
