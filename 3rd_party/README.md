@@ -43,3 +43,6 @@ The libraries will be installed in this folder. You can choose different options
 
 > Setting the number of jobs in `-jxx` too high has caused paraview installations to run out of memory. 
 > keep this in mind if you encounter compilers breaking down at the vtk build stage.
+
+## Instructions known to work.
+We will try to periodically update [here](https://github.com/ExtremeFLOW/pySEMTools/discussions) instructions that work when installing in some platforms
