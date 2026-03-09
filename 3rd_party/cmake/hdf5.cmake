@@ -26,7 +26,7 @@ endif()
 
 set(_hdf5_depends "")
 if(INSTALL_H5PY)
-  set(_h5py_depends h5py_ext)
+  set(_h5py_depends hdf5_ext)
 endif()
 
 if(INSTALL_MPI4PY AND INSTALL_H5PY)
