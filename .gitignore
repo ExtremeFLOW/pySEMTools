@@ -11,3 +11,8 @@ dist
 *.npy
 build/
 docs/
+3rd_party/build*
+3rd_party/downloads*
+3rd_party/bin
+3rd_party/install
+3rd_party/lib
