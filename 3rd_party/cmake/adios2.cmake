@@ -101,6 +101,13 @@ else()
   set(_adios2_depends "")
 endif()
 
+if(INSTALL_MPI4PY AND ADIOS2_USE_PYTHON)
+  if(NOT TARGET mpi4py_ext)
+    message(FATAL_ERROR "INSTALL_MPI4PY is ON, but mpi4py_ext target was not created")
+  endif()
+  list(APPEND _adios2_depends mpi4py_ext)
+endif()
+
 ExternalProject_Add(adios2_ext
   GIT_REPOSITORY https://github.com/ornladios/ADIOS2.git
   GIT_TAG ${_adios2_git_tag}

@@ -11,6 +11,8 @@ cmake -S . -B build-superbuild \
   -DCMAKE_C_COMPILER=$(which mpicc) \
   -DCMAKE_CXX_COMPILER=$(which mpicxx) \
   -DPYTHON_EXECUTABLE=$(which python3) \
+  -DINSTALL_MPI4PY=ON \
+  -DMPI4PY_VERSION=4.1.1 \
   -DINSTALL_ADIOS2=ON \
   -DADIOS2_VERSION=2.10.1 \
   -DINSTALL_HDF5=ON \
@@ -33,6 +35,9 @@ cmake --build ./build-superbuild -j10
 ```
 
 The libraries will be installed in this folder. You can choose different options from cmake.
+
+> Setting the numbe of jobs in `-jxx` too high have cause paraview installations to run out of memory. 
+> keep this in mind if you encounter compilers breaking down at the vtk build stage.
 
 
 

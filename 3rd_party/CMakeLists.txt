@@ -1,7 +1,13 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.26)
 project(pysemtools_third_party NONE)
 
 include(ExternalProject)
+
+
+# ===============================================================
+# MPI4PY
+# ===============================================================
+option(INSTALL_MPI4PY "Install MPI4PY" OFF)
 
 # ===============================================================
 # Adios2
@@ -39,7 +45,7 @@ option(PARAVIEW_USE_MPI "Build ParaView with MPI support" ON)
 option(PARAVIEW_USE_PYTHON "Build ParaView with Python support" ON)
 option(PARAVIEW_ENABLE_CATALYST "Build ParaView Catalyst implementation" ON)
 
-set(PARAVIEW_SMP_IMPLEMENTATION_TYPE "TBB" CACHE STRING "VTK SMP backend for ParaView")
+set(PARAVIEW_SMP_IMPLEMENTATION_TYPE "STDThread" CACHE STRING "VTK SMP backend for ParaView")
 set_property(CACHE PARAVIEW_SMP_IMPLEMENTATION_TYPE PROPERTY STRINGS
   Sequential STDThread TBB OpenMP)
 
@@ -99,6 +105,10 @@ endif()
 # ===============================================================
 # Add the libraries installation instructions to the build
 # ===============================================================
+
+if(INSTALL_MPI4PY)
+  include(${CMAKE_SOURCE_DIR}/cmake/mpi4py.cmake)
+endif()
 
 if(INSTALL_ADIOS2)
   include(${CMAKE_SOURCE_DIR}/cmake/adios2.cmake)

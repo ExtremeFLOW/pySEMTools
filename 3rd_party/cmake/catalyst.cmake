@@ -63,6 +63,13 @@ endif()
 
 set(_catalyst_depends "")
 
+if(INSTALL_MPI4PY AND CATALYST_WRAP_PYTHON)
+  if(NOT TARGET mpi4py_ext)
+    message(FATAL_ERROR "INSTALL_MPI4PY is ON, but mpi4py_ext target was not created")
+  endif()
+  list(APPEND _catalyst_depends mpi4py_ext)
+endif()
+
 ExternalProject_Add(catalyst_ext
   GIT_REPOSITORY https://gitlab.kitware.com/paraview/catalyst.git
   GIT_TAG ${_catalyst_git_tag}

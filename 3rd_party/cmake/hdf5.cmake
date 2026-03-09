@@ -24,6 +24,20 @@ else()
   set(_python_exe "${Python3_EXECUTABLE}")
 endif()
 
+set(_hdf5_depends "")
+if(INSTALL_H5PY)
+  set(_h5py_depends h5py_ext)
+endif()
+
+if(INSTALL_MPI4PY AND INSTALL_H5PY)
+  if(NOT TARGET mpi4py_ext)
+    message(FATAL_ERROR "INSTALL_MPI4PY is ON, but mpi4py_ext target was not created")
+  endif()
+  list(APPEND _hdf5_depends mpi4py_ext)
+  list(APPEND _h5py_depends mpi4py_ext)
+
+endif()
+
 if(INSTALL_HDF5 OR INSTALL_H5PY)
   ExternalProject_Add(hdf5_ext
   GIT_REPOSITORY https://github.com/HDFGroup/hdf5.git
@@ -38,6 +52,8 @@ if(INSTALL_HDF5 OR INSTALL_H5PY)
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_INSTALL_PREFIX=${THIRD_PARTY_INSTALL_PREFIX}
     -DHDF5_ENABLE_PARALLEL=ON
+
+  DEPENDS ${_hdf5_depends} 
   )
 endif()
 
@@ -58,6 +74,6 @@ if(INSTALL_H5PY)
         ${CMAKE_COMMAND} -E env
           ${_h5py_env}
           ${_python_exe} -m pip install --no-cache-dir git+https://github.com/h5py/h5py.git
-      DEPENDS hdf5_ext
+      DEPENDS ${_h5py_depends}
     )
 endif()

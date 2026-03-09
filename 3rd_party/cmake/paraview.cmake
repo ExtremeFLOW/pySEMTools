@@ -93,6 +93,13 @@ if(PARAVIEW_ENABLE_CATALYST)
   endif()
 endif()
 
+if(INSTALL_MPI4PY AND PARAVIEW_USE_PYTHON)
+  if(NOT TARGET mpi4py_ext)
+    message(FATAL_ERROR "INSTALL_MPI4PY is ON, but mpi4py_ext target was not created")
+  endif()
+  list(APPEND _paraview_depends mpi4py_ext)
+endif()
+
 ExternalProject_Add(paraview_ext
   GIT_REPOSITORY https://gitlab.kitware.com/paraview/paraview.git
   GIT_TAG ${_paraview_git_tag}
