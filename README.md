@@ -82,6 +82,9 @@ pip install extremeflow-pysemtools[all]
 
 ## Dependencies of note
 
+> The `3rd_party/` folder in the root of the repository contains some scripts to install their dependencies, but we can not ensure it will work in every computer. Please refer
+> to specific library instructions or to system administrators for help when installing them.
+
 #### mpi4py
 `mpi4py` is needed even when running in serial, as the library is built with communication in mind. It can typically be installed with: 
 ```bash

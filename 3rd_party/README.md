@@ -2,9 +2,14 @@
 
 In this folder we provide cmake instructions to build the dependencies. This is not really guaranteed to work in all cases, but we thought to add it to reduce the barrier of entry.
 
-Please note that we have provided some instructions in the wiki, which use bash scripts. In this case we decided to use cmake to try to automate the process. This is by no means necesary. You can simply install everything yourself following the specific library's developers instructions.
+Please note that we have provided some instructions in the wiki, which use bash scripts. In this case we decided to use cmake to try to automate the process. This is by no means necessary. You can simply install everything yourself following the specific library developers instructions.
 
-To configure the dependencies use the following command:
+**Important:** 
+- ADIOS2 and Paraview take some time and are very situational. 
+- Parallel HDF5 and H5PY are very useful and recommended.
+- MPI4PY here is only really needed if you did not have it before. Note that this installation will make use of the systems' MPI, which is preferred in supercomputers
+
+To configure the dependencies use the following command (Select `OFF` or remove from the command if there is a library you do not want):
 
 ```bash
 cmake -S . -B build-superbuild \
@@ -36,9 +41,5 @@ cmake --build ./build-superbuild -j10
 
 The libraries will be installed in this folder. You can choose different options from cmake.
 
-> Setting the numbe of jobs in `-jxx` too high have cause paraview installations to run out of memory. 
+> Setting the number of jobs in `-jxx` too high has caused paraview installations to run out of memory. 
 > keep this in mind if you encounter compilers breaking down at the vtk build stage.
-
-
-
-
