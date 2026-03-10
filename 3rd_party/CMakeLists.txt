@@ -114,12 +114,20 @@ file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_BINDIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_INCLUDEDIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_LIBDIR}")
 
+# Create enviroment sh to export paths for installed libraries
+configure_file(
+  "${CMAKE_SOURCE_DIR}/env.sh.in"
+  "${THIRD_PARTY_INSTALL_PREFIX}/env.sh"
+  @ONLY
+)
+
 message(STATUS "Third-party install prefix: ${THIRD_PARTY_INSTALL_PREFIX}")
 message(STATUS "Third-party download dir: ${THIRD_PARTY_DOWNLOAD_DIR}")
 message(STATUS "Third-party build dir: ${THIRD_PARTY_BUILD_DIR}")
 message(STATUS "Third-party bin dir: ${THIRD_PARTY_BINDIR}")
 message(STATUS "Third-party include dir: ${THIRD_PARTY_INCLUDEDIR}")
 message(STATUS "Third-party lib dir: ${THIRD_PARTY_LIBDIR}")
+message(STATUS "Third-party python3 dir: ${THIRD_PARTY_PYTHONDIR}")
 
 if(PYTHON_EXECUTABLE)
   message(STATUS "Requested Python executable: ${PYTHON_EXECUTABLE}")
