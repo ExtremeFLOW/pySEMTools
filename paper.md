@@ -24,7 +24,7 @@ authors:
     affiliation: "1, 2"
 
 affiliations:
- - name: FLOW Dept.  Engineering Mechanics, KTH Royal Institute of Technology
+ - name: FLOW Dept. Engineering Mechanics, KTH Royal Institute of Technology
    index: 1
  - name: Institute of Fluid Mechanics (LSTM), Friedrich--Alexander--Universität (FAU)
    index: 2
