@@ -20,6 +20,17 @@ Repository = "https://github.com/ExtremeFLOW/pySEMTools.git"
 Issues = "https://github.com/ExtremeFLOW/pySEMTools/issues"
 
 [project.optional-dependencies]
+cpu = [
+    "pytest",
+    "pytest-json-report",
+    "pympler",
+    "memory_profiler",
+    "h5py",
+    "rtree",
+    "jupyter", 
+    "matplotlib",
+    "pyevtk",
+]
 test = [
     "extremeflow-pysemtools[torch]",
     "pytest",
