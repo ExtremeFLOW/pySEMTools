@@ -126,6 +126,7 @@ ExternalProject_Add(adios2_ext
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DADIOS2_USE_ZeroMQ=OFF
+    -DCMAKE_INSTALL_PYTHONDIR=${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_PYTHONDIR}
     ${_fortran_arg}
     ${_python_args}
     ${_bzip2_args}

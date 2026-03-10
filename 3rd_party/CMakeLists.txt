@@ -80,6 +80,33 @@ set(PYTHON_EXECUTABLE ""
 set(Python3_ROOT_DIR ""
     CACHE PATH "Optional root dir for the selected Python installation")
 
+
+# =========== This block just finds the right python version and sets a relative install path, since adios2.10.1 was misbihaving
+# =========== remove this if newer versions of adios2 behave like the other libraries
+# Get the exact name of where the python bindings should be installed for ADIOS2.
+## Set the python executable
+if(PYTHON_EXECUTABLE)
+  if(NOT EXISTS "${PYTHON_EXECUTABLE}")
+    message(FATAL_ERROR "PYTHON_EXECUTABLE does not exist: ${PYTHON_EXECUTABLE}")
+  endif()
+  set(_third_party_python_exe "${PYTHON_EXECUTABLE}")
+else()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  set(_third_party_python_exe "${Python3_EXECUTABLE}")
+endif()
+## Execute python to see obtain its version
+execute_process(
+  COMMAND "${_third_party_python_exe}" -c
+          "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+  OUTPUT_VARIABLE THIRD_PARTY_PYTHON_VERSION
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+## Set the variable that adios2 can use
+set(THIRD_PARTY_PYTHONDIR
+    "${THIRD_PARTY_LIBDIR}/python${THIRD_PARTY_PYTHON_VERSION}/site-packages"
+    CACHE STRING "Relative install dir for Python packages under the third-party prefix")
+#===============================================================
+
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_DOWNLOAD_DIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_BUILD_DIR}")
@@ -87,12 +114,20 @@ file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_BINDIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_INCLUDEDIR}")
 file(MAKE_DIRECTORY "${THIRD_PARTY_INSTALL_PREFIX}/${THIRD_PARTY_LIBDIR}")
 
+# Create enviroment sh to export paths for installed libraries
+configure_file(
+  "${CMAKE_SOURCE_DIR}/env.sh.in"
+  "${THIRD_PARTY_INSTALL_PREFIX}/env.sh"
+  @ONLY
+)
+
 message(STATUS "Third-party install prefix: ${THIRD_PARTY_INSTALL_PREFIX}")
 message(STATUS "Third-party download dir: ${THIRD_PARTY_DOWNLOAD_DIR}")
 message(STATUS "Third-party build dir: ${THIRD_PARTY_BUILD_DIR}")
 message(STATUS "Third-party bin dir: ${THIRD_PARTY_BINDIR}")
 message(STATUS "Third-party include dir: ${THIRD_PARTY_INCLUDEDIR}")
 message(STATUS "Third-party lib dir: ${THIRD_PARTY_LIBDIR}")
+message(STATUS "Third-party python3 dir: ${THIRD_PARTY_PYTHONDIR}")
 
 if(PYTHON_EXECUTABLE)
   message(STATUS "Requested Python executable: ${PYTHON_EXECUTABLE}")
