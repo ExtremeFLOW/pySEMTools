@@ -101,9 +101,9 @@ class DataStreamer:
         self.reader_st.EndStep()  # Data is read here
 
         # Assign values
-        self.glb_nelv = elems
-        self.lxyz = lxyz
-        self.gdim = gdim
+        self.glb_nelv = int(elems.item())
+        self.lxyz = int(lxyz.item())
+        self.gdim = int(gdim.item())
 
         # Determine how many elements each reader rank should have
         ## Preallocate the variable names that are populated in function
