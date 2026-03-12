@@ -63,78 +63,27 @@ class DataStreamer:
     >>> ds.stream(x.reshape(x.size))
     """
 
-    def __init__(self, comm, from_nek=True):
+    def __init__(self, comm, id, name="globalArray", timeout_seconds = 300):
 
         # Adios status
         self.okstep = adios2.StepStatus.OK
         self.endstream = adios2.StepStatus.EndOfStream
+        self.id = id
 
         # ADIOS2 instance
         self.adios = adios2.ADIOS(comm)
         # ADIOS IO - Engine
-        self.io_asynchronous = self.adios.DeclareIO("streamIO")
+        self.io_asynchronous = self.adios.DeclareIO(f"{name}_io")
         self.io_asynchronous.SetEngine("SST")
+        self.io_asynchronous.SetParameters({"OpenTimeoutSecs": str(timeout_seconds)})
 
         # Open the streams
+        print(f"Opening adios2 streams with name {name} and timeout {timeout_seconds} seconds.")
         self.reader_st = self.io_asynchronous.Open(
-            "globalArray_f2py", adios2.Mode.Read, comm
+            f"{name}_f2py", adios2.Mode.Read, comm
         )
         self.writer_st = self.io_asynchronous.Open(
-            "globalArray_py2f", adios2.Mode.Write, comm
-        )
-
-        # Access header stream to calculate my element counts
-        self.step_status = self.reader_st.BeginStep()
-
-        hdr_elems = self.io_asynchronous.InquireVariable("global_elements")
-        hdr_lxyz = self.io_asynchronous.InquireVariable("points_per_element")
-        hdr_gdim = self.io_asynchronous.InquireVariable("problem_dimension")
-
-        elems = np.zeros((1), dtype=np.intc)
-        lxyz = np.zeros((1), dtype=np.intc)
-        gdim = np.zeros((1), dtype=np.intc)
-
-        self.reader_st.Get(hdr_elems, elems)
-        self.reader_st.Get(hdr_lxyz, lxyz)
-        self.reader_st.Get(hdr_gdim, gdim)
-
-        self.reader_st.EndStep()  # Data is read here
-
-        # Assign values
-        self.glb_nelv = int(elems.item())
-        self.lxyz = int(lxyz.item())
-        self.gdim = int(gdim.item())
-
-        # Determine how many elements each reader rank should have
-        ## Preallocate the variable names that are populated in function
-        self.nelv = None
-        self.offset_el = None
-        self.n = None
-        element_mapping_load_balanced_linear(self, comm)
-
-        # Determine the orders if the stream comes from nek
-        if from_nek:
-            if self.gdim == 3:
-                self.lx = int(np.cbrt(self.lxyz))
-            else:
-                self.lx = int(np.sqrt(self.lxyz))
-            self.ly = self.lx
-            if self.gdim == 3:
-                self.lz = self.lx
-            else:
-                self.lz = 1
-
-        # Declare writing variable
-        tmp = np.zeros((1), dtype=np.double)
-        self.py2f_field_totalcount = int(self.glb_nelv * self.lxyz)
-        self.py2f_field_my_start = int(self.offset_el * self.lxyz)
-        self.py2f_field_my_count = int(self.nelv * self.lxyz)
-        self.py2f_field = self.io_asynchronous.DefineVariable(
-            "py2f_field",
-            tmp,
-            [self.py2f_field_totalcount],
-            [self.py2f_field_my_start],
-            [self.py2f_field_my_count],
+            f"{name}_py2f", adios2.Mode.Write, comm
         )
 
     def finalize(self):
