@@ -63,7 +63,13 @@ class DataStreamer:
     >>> ds.stream(x.reshape(x.size))
     """
 
-    def __init__(self, comm, from_nek=True, timeout_seconds = 300):
+    def __init__(
+        self,
+        comm,
+        from_nek=True,
+        timeout_seconds=300,
+        sync_comm=None,
+    ):
 
         # Adios status
         self.okstep = adios2.StepStatus.OK
@@ -85,12 +91,16 @@ class DataStreamer:
         )
 
 
-        # Open the streams
-        self.reader_st = self.io_reader.Open(
-            "globalArray_f2py", adios2.Mode.Read, comm
-        )
+        # Open our outbound stream first, then synchronize all MPMD ranks
+        # before attempting to connect to the peer writer.
         self.writer_st = self.io_writer.Open(
             "globalArray_py2f", adios2.Mode.Write, comm
+        )
+        if sync_comm is None:
+            sync_comm = comm
+        sync_comm.Barrier()
+        self.reader_st = self.io_reader.Open(
+            "globalArray_f2py", adios2.Mode.Read, comm
         )
 
         # Access header stream to calculate my element counts
