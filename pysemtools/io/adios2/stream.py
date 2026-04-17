@@ -71,26 +71,34 @@ class DataStreamer:
 
         # ADIOS2 instance
         self.adios = adios2.ADIOS(comm)
-        # ADIOS IO - Engine
-        self.io_asynchronous = self.adios.DeclareIO("streamIO")
-        self.io_asynchronous.SetEngine("SST")
-        self.io_asynchronous.SetParameters({"OpenTimeoutSecs": str(timeout_seconds)})
+        # ADIOS IOs
+        self.io_reader = self.adios.DeclareIO("streamReaderIO")
+        self.io_reader.SetEngine("SST")
+        self.io_reader.SetParameters(
+            {"OpenTimeoutSecs": str(timeout_seconds)}
+        )
+
+        self.io_writer = self.adios.DeclareIO("streamWriterIO")
+        self.io_writer.SetEngine("SST")
+        self.io_writer.SetParameters(
+            {"OpenTimeoutSecs": str(timeout_seconds)}
+        )
 
 
         # Open the streams
-        self.reader_st = self.io_asynchronous.Open(
+        self.reader_st = self.io_reader.Open(
             "globalArray_f2py", adios2.Mode.Read, comm
         )
-        self.writer_st = self.io_asynchronous.Open(
+        self.writer_st = self.io_writer.Open(
             "globalArray_py2f", adios2.Mode.Write, comm
         )
 
         # Access header stream to calculate my element counts
         self.step_status = self.reader_st.BeginStep()
 
-        hdr_elems = self.io_asynchronous.InquireVariable("global_elements")
-        hdr_lxyz = self.io_asynchronous.InquireVariable("points_per_element")
-        hdr_gdim = self.io_asynchronous.InquireVariable("problem_dimension")
+        hdr_elems = self.io_reader.InquireVariable("global_elements")
+        hdr_lxyz = self.io_reader.InquireVariable("points_per_element")
+        hdr_gdim = self.io_reader.InquireVariable("problem_dimension")
 
         elems = np.zeros((1), dtype=np.intc)
         lxyz = np.zeros((1), dtype=np.intc)
@@ -131,7 +139,7 @@ class DataStreamer:
         self.py2f_field_totalcount = int(self.glb_nelv * self.lxyz)
         self.py2f_field_my_start = int(self.offset_el * self.lxyz)
         self.py2f_field_my_count = int(self.nelv * self.lxyz)
-        self.py2f_field = self.io_asynchronous.DefineVariable(
+        self.py2f_field = self.io_writer.DefineVariable(
             "py2f_field",
             tmp,
             [self.py2f_field_totalcount],
@@ -197,7 +205,7 @@ class DataStreamer:
 
         if self.step_status == adios2.StepStatus.OK:
             # Set up the offsets
-            f2py_field = self.io_asynchronous.InquireVariable(variable)
+            f2py_field = self.io_reader.InquireVariable(variable)
             f2py_field.SetSelection(
                 [[self.py2f_field_my_start], [self.py2f_field_my_count]]
             )
