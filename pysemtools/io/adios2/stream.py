@@ -91,19 +91,21 @@ class DataStreamer:
         )
 
 
-        # Open our outbound stream first, then synchronize all MPMD ranks
-        # before attempting to connect to the peer writer.
-        self.writer_st = self.io_writer.Open(
-            "globalArray_py2f", adios2.Mode.Write, comm
-        )
         if sync_comm is None:
             sync_comm = comm
+
         sync_comm.Barrier()
         self.reader_st = self.io_reader.Open(
             "globalArray_f2py", adios2.Mode.Read, comm
         )
+        sync_comm.Barrier()
+        self.writer_st = self.io_writer.Open(
+            "globalArray_py2f", adios2.Mode.Write, comm
+        )
+        sync_comm.Barrier()
 
         # Access header stream to calculate my element counts
+        sync_comm.Barrier()
         self.step_status = self.reader_st.BeginStep()
 
         hdr_elems = self.io_reader.InquireVariable("global_elements")
@@ -119,6 +121,7 @@ class DataStreamer:
         self.reader_st.Get(hdr_gdim, gdim)
 
         self.reader_st.EndStep()  # Data is read here
+        sync_comm.Barrier()
 
         # Assign values
         self.glb_nelv = int(elems.item())
