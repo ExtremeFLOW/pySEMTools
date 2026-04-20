@@ -1,6 +1,7 @@
 """Module that defines classes to use adios2 to connect python code to 
 other codes that have matching pair adios streams."""
 
+import time
 import numpy as np
 
 # Adios2 is assumed to be available
@@ -95,17 +96,23 @@ class DataStreamer:
             sync_comm = comm
 
         sync_comm.Barrier()
+        time.sleep(2)
         self.reader_st = self.io_reader.Open(
             "globalArray_f2py", adios2.Mode.Read, comm
         )
+        time.sleep(2)
         sync_comm.Barrier()
+        time.sleep(2)
         self.writer_st = self.io_writer.Open(
             "globalArray_py2f", adios2.Mode.Write, comm
         )
+        time.sleep(2)
         sync_comm.Barrier()
+        time.sleep(2)
 
         # Access header stream to calculate my element counts
         sync_comm.Barrier()
+        time.sleep(2)
         self.step_status = self.reader_st.BeginStep()
 
         hdr_elems = self.io_reader.InquireVariable("global_elements")
@@ -121,6 +128,7 @@ class DataStreamer:
         self.reader_st.Get(hdr_gdim, gdim)
 
         self.reader_st.EndStep()  # Data is read here
+        time.sleep(2)
         sync_comm.Barrier()
 
         # Assign values
