@@ -90,16 +90,10 @@ class DataStreamer:
 
         # ADIOS2 instance
         self.adios = adios2.ADIOS(comm)
-        # ADIOS IOs
-        self.io_reader = self.adios.DeclareIO("streamReaderIO")
-        self.io_reader.SetEngine("SST")
-        self.io_reader.SetParameters(
-            {"OpenTimeoutSecs": str(timeout_seconds)}
-        )
-
-        self.io_writer = self.adios.DeclareIO("streamWriterIO")
-        self.io_writer.SetEngine("SST")
-        self.io_writer.SetParameters(
+        # ADIOS IO
+        self.io_stream = self.adios.DeclareIO("streamIO")
+        self.io_stream.SetEngine("SST")
+        self.io_stream.SetParameters(
             {"OpenTimeoutSecs": str(timeout_seconds)}
         )
 
@@ -108,7 +102,7 @@ class DataStreamer:
             "init start "
             f"timeout={timeout_seconds} from_nek={from_nek}",
         )
-        _dbg(comm, "declared streamReaderIO and streamWriterIO")
+        _dbg(comm, "declared shared streamIO")
 
         if sync_comm is None:
             sync_comm = comm
@@ -118,7 +112,7 @@ class DataStreamer:
         _dbg(comm, "barrier before reader open complete")
         time.sleep(2)
         _dbg(comm, "opening reader globalArray_f2py")
-        self.reader_st = self.io_reader.Open(
+        self.reader_st = self.io_stream.Open(
             "globalArray_f2py", adios2.Mode.Read, comm
         )
         _dbg(comm, "reader globalArray_f2py open complete")
@@ -128,7 +122,7 @@ class DataStreamer:
         _dbg(comm, "barrier before writer open complete")
         time.sleep(2)
         _dbg(comm, "opening writer globalArray_py2f")
-        self.writer_st = self.io_writer.Open(
+        self.writer_st = self.io_stream.Open(
             "globalArray_py2f", adios2.Mode.Write, comm
         )
         _dbg(comm, "writer globalArray_py2f open complete")
@@ -147,9 +141,9 @@ class DataStreamer:
         self.step_status = self.reader_st.BeginStep()
         _dbg(comm, f"reader header BeginStep status={self.step_status}")
 
-        hdr_elems = self.io_reader.InquireVariable("global_elements")
-        hdr_lxyz = self.io_reader.InquireVariable("points_per_element")
-        hdr_gdim = self.io_reader.InquireVariable("problem_dimension")
+        hdr_elems = self.io_stream.InquireVariable("global_elements")
+        hdr_lxyz = self.io_stream.InquireVariable("points_per_element")
+        hdr_gdim = self.io_stream.InquireVariable("problem_dimension")
         _dbg(
             comm,
             "header variables "
@@ -213,7 +207,7 @@ class DataStreamer:
         self.py2f_field_totalcount = int(self.glb_nelv * self.lxyz)
         self.py2f_field_my_start = int(self.offset_el * self.lxyz)
         self.py2f_field_my_count = int(self.nelv * self.lxyz)
-        self.py2f_field = self.io_writer.DefineVariable(
+        self.py2f_field = self.io_stream.DefineVariable(
             "py2f_field",
             tmp,
             [self.py2f_field_totalcount],
@@ -297,7 +291,7 @@ class DataStreamer:
 
         if self.step_status == adios2.StepStatus.OK:
             # Set up the offsets
-            f2py_field = self.io_reader.InquireVariable(variable)
+            f2py_field = self.io_stream.InquireVariable(variable)
             _dbg(
                 self.comm,
                 f"InquireVariable({variable}) found={f2py_field is not None}",
