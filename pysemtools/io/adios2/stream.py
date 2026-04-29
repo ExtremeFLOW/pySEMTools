@@ -16,17 +16,6 @@ except ImportError:
 NoneType = type(None)
 
 
-def _dbg(comm, msg):
-    """Print a rank-tagged debug message."""
-    try:
-        rank = comm.Get_rank()
-        size = comm.Get_size()
-        prefix = f"[PY-ADIOS][rank={rank}/{size}]"
-    except Exception:
-        prefix = "[PY-ADIOS]"
-    print(f"{prefix} {msg}", flush=True)
-
-
 class DataStreamer:
     """
     Class used to communicate data between codes using adios2.
@@ -86,7 +75,6 @@ class DataStreamer:
         # Adios status
         self.okstep = adios2.StepStatus.OK
         self.endstream = adios2.StepStatus.EndOfStream
-        self.comm = comm
 
         # ADIOS2 instance
         self.adios = adios2.ADIOS(comm)
@@ -97,60 +85,32 @@ class DataStreamer:
             {"OpenTimeoutSecs": str(timeout_seconds)}
         )
 
-        _dbg(
-            comm,
-            "init start "
-            f"timeout={timeout_seconds} from_nek={from_nek}",
-        )
-        _dbg(comm, "declared shared streamIO")
-
         if sync_comm is None:
             sync_comm = comm
 
-        _dbg(comm, "barrier before reader open")
         sync_comm.Barrier()
-        _dbg(comm, "barrier before reader open complete")
         time.sleep(2)
-        _dbg(comm, "opening reader globalArray_f2py")
         self.reader_st = self.io_stream.Open(
             "globalArray_f2py", adios2.Mode.Read, comm
         )
-        _dbg(comm, "reader globalArray_f2py open complete")
         time.sleep(2)
-        _dbg(comm, "barrier before writer open")
         sync_comm.Barrier()
-        _dbg(comm, "barrier before writer open complete")
         time.sleep(2)
-        _dbg(comm, "opening writer globalArray_py2f")
         self.writer_st = self.io_stream.Open(
             "globalArray_py2f", adios2.Mode.Write, comm
         )
-        _dbg(comm, "writer globalArray_py2f open complete")
         time.sleep(2)
-        _dbg(comm, "barrier after stream opens")
         sync_comm.Barrier()
-        _dbg(comm, "barrier after stream opens complete")
         time.sleep(2)
 
         # Access header stream to calculate my element counts
-        _dbg(comm, "barrier before header read")
         sync_comm.Barrier()
-        _dbg(comm, "barrier before header read complete")
         time.sleep(2)
-        _dbg(comm, "reader BeginStep for header")
         self.step_status = self.reader_st.BeginStep()
-        _dbg(comm, f"reader header BeginStep status={self.step_status}")
 
         hdr_elems = self.io_stream.InquireVariable("global_elements")
         hdr_lxyz = self.io_stream.InquireVariable("points_per_element")
         hdr_gdim = self.io_stream.InquireVariable("problem_dimension")
-        _dbg(
-            comm,
-            "header variables "
-            f"global_elements={hdr_elems is not None} "
-            f"points_per_element={hdr_lxyz is not None} "
-            f"problem_dimension={hdr_gdim is not None}",
-        )
 
         elems = np.zeros((1), dtype=np.intc)
         lxyz = np.zeros((1), dtype=np.intc)
@@ -161,17 +121,8 @@ class DataStreamer:
         self.reader_st.Get(hdr_gdim, gdim)
 
         self.reader_st.EndStep()  # Data is read here
-        _dbg(
-            comm,
-            "header read complete "
-            f"glb_nelv={int(elems.item())} "
-            f"lxyz={int(lxyz.item())} "
-            f"gdim={int(gdim.item())}",
-        )
         time.sleep(2)
-        _dbg(comm, "barrier after header read")
         sync_comm.Barrier()
-        _dbg(comm, "barrier after header read complete")
 
         # Assign values
         self.glb_nelv = int(elems.item())
@@ -184,11 +135,6 @@ class DataStreamer:
         self.offset_el = None
         self.n = None
         element_mapping_load_balanced_linear(self, comm)
-        _dbg(
-            comm,
-            "element mapping "
-            f"nelv={self.nelv} offset_el={self.offset_el} n={self.n}",
-        )
 
         # Determine the orders if the stream comes from nek
         if from_nek:
@@ -214,13 +160,6 @@ class DataStreamer:
             [self.py2f_field_my_start],
             [self.py2f_field_my_count],
         )
-        _dbg(
-            comm,
-            "defined py2f_field "
-            f"total={self.py2f_field_totalcount} "
-            f"start={self.py2f_field_my_start} "
-            f"count={self.py2f_field_my_count}",
-        )
 
     def finalize(self):
         """
@@ -228,10 +167,8 @@ class DataStreamer:
 
         Used to close reader and writer. The stream will end and the code will not be coupled.
         """
-        _dbg(self.comm, "closing reader and writer")
         self.reader_st.Close()
         self.writer_st.Close()
-        _dbg(self.comm, "reader and writer closed")
 
     def stream(self, fld):
         """
@@ -245,19 +182,12 @@ class DataStreamer:
             Field to be sent. Must be a 1d array.
         """
         # Begin a step
-        _dbg(
-            self.comm,
-            "writer BeginStep for py2f_field "
-            f"count={self.py2f_field_my_count}",
-        )
-        step_status = self.writer_st.BeginStep()
-        _dbg(self.comm, f"writer BeginStep status={step_status}")
+        self.writer_st.BeginStep()
         self.writer_st.Put(
             self.py2f_field,
             fld,
         )
         self.writer_st.EndStep()  # Data is sent here
-        _dbg(self.comm, "writer EndStep complete for py2f_field")
 
     def recieve(self, fld=None, variable="f2py_field"):
         """
@@ -285,29 +215,17 @@ class DataStreamer:
             fld = np.zeros((self.py2f_field_my_count), dtype=np.double)
 
         # Begin a step
-        _dbg(self.comm, f"reader BeginStep for variable={variable}")
         self.step_status = self.reader_st.BeginStep()
-        _dbg(self.comm, f"reader BeginStep status={self.step_status}")
 
         if self.step_status == adios2.StepStatus.OK:
             # Set up the offsets
             f2py_field = self.io_stream.InquireVariable(variable)
-            _dbg(
-                self.comm,
-                f"InquireVariable({variable}) found={f2py_field is not None}",
-            )
             f2py_field.SetSelection(
                 [[self.py2f_field_my_start], [self.py2f_field_my_count]]
             )
             self.reader_st.Get(f2py_field, fld)
 
             self.reader_st.EndStep()  # Data is read here
-            _dbg(
-                self.comm,
-                "reader EndStep complete "
-                f"start={self.py2f_field_my_start} "
-                f"count={self.py2f_field_my_count}",
-            )
 
         return fld
 
