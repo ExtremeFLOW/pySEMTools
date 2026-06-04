@@ -42,7 +42,7 @@ def main():
     --------
     To use this script, run it with MPI using the following command:
     
-    >>> mpirun -n <num_processes> python pysemtools_extract_subdomain --input_file <input.fld> --output_file <output.fld> --bounds=<xmin,xmax,ymin,ymax,zmin,zmax> [--fields=<field1,field2,...>]
+    >>> mpirun -n <num_processes> python pysemtools_extract_subdomain --input_file <input.fld> --output_file <output.fld> --bounds=<xmin,xmax,ymin,ymax,zmin,zmax> [--fields=<field1,field2,...>] [--mesh_file=<mesh.fld>]
     
     Replacing the placeholders with actual values. Observe that you have to remove the angle brackets.
     '''
