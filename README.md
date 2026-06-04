@@ -1,7 +1,20 @@
 # pySEMTools
 A package for post-processing data obtained using a spectral-element method (SEM), on hexahedral high-order elements.
 
-Documentation is available [here](https://extremeflow.github.io/pySEMTools/).
+The most prominent features of the packages are the following:
+* **Parallel IO**: A set of routines to perform distributed IO on Nek5000/Neko field files and directly keep the data in memory on NumPy arrays or PyMech data objects.
+* **Parallel data interfaces**: A set of objects that aim to facilitate the transfer of messages among processors. Done to ease the use of MPI functions for more inexperienced users.
+* **Calculus**:  Objects to calculate the derivation and integration matrices based on the geometry, which allows to perform calculus operations on the spectral element mesh.
+* **Mesh connectivity and partitioning**: Objects to determine the connectivity based on the geometry and mesh repartitioning tools for tasks such as global summation, among others.
+* **Interpolation**: Routines to perform high-order interpolation from an SEM mesh into any arbitrary query point. A crucial functionality when performing post-processing.
+* **Reduced-order modeling**: Objects to perform parallel and streaming proper orthogonal decomposition (POD).
+* **Data compression/streaming**: Through the use of ADIOS2 [@adios2], a set of interfaces is available to perform data compression or to connect Python scripts to running simulations to perform in-situ data processing. 
+* **Visualization**: Given that the data is available in Python, visualizations can be performed from readily available packages. 
+
+
+**Documentation** is available [here](https://extremeflow.github.io/pySEMTools/).
+
+If you wish to **contribute** to PySEMTools, need assistance or to report a bug, please check `CONTRIBUTING.md` for the community guidelines on the best way to do it.
 
 In case you find the tools useful, please cite as:
 * Perez, A., Toosi, S., Olsen, T.F., Markidis, S., Schlatter, P., 2025. Pysemtools: A library for post-processing hexahedral spectral element data. [https://doi.org/10.48550/arXiv.2504.12301](https://doi.org/10.48550/arXiv.2504.12301)

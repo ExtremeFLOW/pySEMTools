@@ -16,6 +16,9 @@ release = 'develop'
 
 extensions = ['numpydoc', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx.ext.githubpages', 'sphinx_rtd_theme', 'nbsphinx']
 
+autosummary_generate = True
+autosummary_ignore_module_all = False
+
 templates_path = ['_templates']
 exclude_patterns = []
 

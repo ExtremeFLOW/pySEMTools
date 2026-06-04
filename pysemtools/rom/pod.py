@@ -10,7 +10,33 @@ NoneType = type(None)
 
 
 class POD:
-    """Class that wraps the SVD to facilitate the use of the POD"""
+    """Class that wraps the SVD to facilitate the use of the POD
+    
+    This class performs the POD in parallel or locally, and allows for incremental updates of the modes.
+
+    This wraps the SVD class to provide a more user-friendly interface for performing POD.
+
+    Parameters
+    ----------
+    comm : MPI communicator
+        MPI communicator object.
+    number_of_modes_to_update : int
+        Number of modes to update during each update step. The default is 1.
+    global_updates : bool, optional
+        If True, perform global updates. If False, perform local updates. The default is True
+    auto_expand : bool, optional
+        If True, automatically expand the number of modes when the orthogonality criterion is not met
+        The default is False.
+    auto_expand_from_these_modes : int, optional
+        Number of modes from which to start the automatic expansion. The default is 1.
+    bckend : str, optional
+        Backend to be used for the math operations. The default is "numpy". "torch" can be used if PyTorch is installed.
+    
+    Returns
+    -------
+    None
+    
+    """
 
     def __init__(
         self,
@@ -53,7 +79,24 @@ class POD:
         self.log.write("info", "POD Object initialized")
 
     def check_snapshot_orthogonality(self, comm, xi=None):
-        """Check the level of orthogonality of the new snapshot with the current basis"""
+        """Check the level of orthogonality of the new snapshot with the current basis
+        
+        The data is stored in the running_ra attribute. This is valid only if the auto update is activated.
+        In this case, if the orthogonality ratio is above the minimun_orthogonality_ratio and the current number of modes
+        is below the setk, then the number of modes k is increased by one. The minimun orthogonality ratio is set to 0.99 by default.
+
+        Parameters
+        ----------
+        comm : MPI communicator
+            MPI communicator object.
+        xi : np.ndarray
+            New snapshot to be checked.
+
+        Returns
+        -------
+        None
+
+        """
 
         # Calculate the residual and check if basis needs to be expanded
         if self.number_of_updates >= 1:
@@ -79,7 +122,20 @@ class POD:
                 print("New k is = " + repr(self.k))
 
     def update(self, comm, buff=None):
-        """Update POD modes from a batch of snapshots in buff"""
+        """Update POD modes from a batch of snapshots in buff
+        
+        Parameters
+        ----------
+        comm : MPI communicator
+            MPI communicator object.
+        buff : np.ndarray
+            Buffer containing the new snapshots to update the modes.
+
+        Returns
+        -------
+        None
+        
+        """
 
         # Perform the update
         self.log.write("info", "Updating the POD modes")
@@ -104,8 +160,22 @@ class POD:
         )
 
     def scale_modes(self, comm, bm1sqrt=None, op="div"):
-        """Scale the current modes with the given mass matrix and the
-        provided opeartion (div or mult)"""
+        """Scale the current modes with the given mass matrix and the provided opeartion (div or mult)
+        
+        Parameters
+        ----------
+        comm : MPI communicator
+            MPI communicator object.
+        bm1sqrt : np.ndarray
+            Mass matrix to scale the modes.
+        op : str, optional
+            Operation to be performed. "div" for division, "mult" for multiplication. The default is "div".
+
+        Returns
+        -------
+        None
+
+        """
 
         self.log.write("info", "Rescaling the obtained modes...")
         # Scale the modes back before gathering them
@@ -115,7 +185,20 @@ class POD:
         self.log.write("info", "Rescaling the obtained modes... Done")
 
     def rotate_local_modes_to_global(self, comm):
-        """Do a rotation of the current modes into a global basis"""
+        """Do a rotation of the current modes into a global basis
+        
+        This is needed if the POD is initially performed locally. The rotation is done only once required.
+
+        Parameters
+        ----------
+        comm : MPI communicator
+            MPI communicator object.
+        
+        Returns
+        -------
+        None
+        
+        """
 
         # If local updates where made
         if not self.ifgbl_update:

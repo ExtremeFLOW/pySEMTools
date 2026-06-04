@@ -52,7 +52,45 @@ class CustomFormatter(logging.Formatter):
 
 
 class Logger:
-    """Class that takes charge of logging messages during POD execution"""
+    """Class that takes charge of logging messages
+    
+    This class takes care of logging only in one rank and setting differnent logging levels.
+
+    Generally, the levels are set using the environment variables PYSEMTOOLS_DEBUG and PYSEMTOOLS_HIDE_LOG.
+
+    Parameters
+    ----------
+    level : int, optional
+        Logging level. The default is None, which sets it to logging.INFO.
+    comm : MPI.Comm
+        MPI communicator.
+    module_name : str, optional
+        Name of the module that is using the logger. The default is None.
+    
+    Attributes
+    ----------
+    log : logging.Logger
+        Logger object that handles the logging
+    comm : MPI.Comm
+        MPI communicator
+    sync_time : dict
+        Dictionary to store the times for sync_tic/sync_toc methods
+    time : float
+        Variable to store the time for tic/toc methods
+    
+    Methods
+    -------
+    write(level, message)
+        Method that writes messages in the log
+    tic()
+        Store the current time.
+    toc()
+        Write elapsed time since the last call to tic.
+    sync_tic(id=0)
+        Store the current time.
+    sync_toc(id=0, message=None, time_message="Elapsed time: ")
+        Write elapsed time since the last call to tic.
+    """
 
     def __init__(self, level=None, comm=None, module_name=None):
 
@@ -105,7 +143,7 @@ class Logger:
     
     def sync_tic(self, id = 0):
         """
-        Store the current time.
+        Store the current time in the attibute sync_time with key id.
 
         Returns
         -------
@@ -126,7 +164,7 @@ class Logger:
     
     def sync_toc(self, id = 0, message=None, time_message="Elapsed time: "):
         """
-        Write elapsed time since the last call to tic.
+        Write elapsed time since the last call to tic for the given id in the sync_time attribute.
 
         """
 
@@ -137,7 +175,17 @@ class Logger:
             self.write("info", f"{message} - {time_message}{time() - self.sync_time[id]}s")
 
     def write(self, level, message):
-        """Method that writes messages in the log"""
+        """Writes messages in the log
+        
+        Parameters
+        ----------
+        level : str
+            Level of the message. Possible values are: "debug_all", "debug", "info
+            "info_all", "warning", "error", "critical".
+        message : str
+            Message to be logged.
+
+        """
         comm = self.comm
         rank = comm.Get_rank()
 

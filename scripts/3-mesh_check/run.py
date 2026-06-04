@@ -162,8 +162,8 @@ def calculate_mean_dissipations():
             dwdy = coef.dudxyz(w, coef.drdy, coef.dsdy, coef.dtdy)
             dwdz = coef.dudxyz(w, coef.drdz, coef.dsdz, coef.dtdz)
             sij_sq = np.zeros_like(msh.x, dtype=sem_dtype)
-            sij_sq += (dudx + dudx)**2 + (dudx + dvdx)**2 + (dudz + dwdx)**2
-            sij_sq += (dvdx + dudy)**2 + (dvdy + dvdy)**2 + (dvdz + dwdx)**2
+            sij_sq += (dudx + dudx)**2 + (dudy + dvdx)**2 + (dudz + dwdx)**2
+            sij_sq += (dvdx + dudy)**2 + (dvdy + dvdy)**2 + (dvdz + dwdy)**2
             sij_sq += (dwdx + dudz)**2 + (dwdy + dvdz)**2 + (dwdz + dwdz)**2
             sij_sq *= (0.5)**2
             eps_k_ = sij_sq * 2 * mu
