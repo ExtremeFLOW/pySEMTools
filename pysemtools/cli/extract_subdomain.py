@@ -33,6 +33,9 @@ def main():
         "--input_file", type=str, required=True, help="Path to the field file"
     )
     parser.add_argument(
+        "--mesh_file", type=str, required=False, help="Path to the mesh file"
+    )
+    parser.add_argument(
         "--output_file",
         type=str,
         required=True,
@@ -42,7 +45,7 @@ def main():
         "--bounds",
         type=parse_bounds,
         required=True,
-        help="Comma-separated list of 6 floats",
+        help="Comma-separated list of 6 floats, use format --bounds=-1.0,2.0,-1,1,0,0.1",
     )
     parser.add_argument(
         "--fields",
@@ -61,7 +64,12 @@ def main():
     fld = FieldRegistry(comm)
 
     # Read
-    pynekread(args.input_file, comm, data_dtype=np.single, msh=mesh, fld=fld)
+    if not args.mesh_file:
+        pynekread(args.input_file, comm, data_dtype=np.single, msh=mesh, fld=fld)
+    else:
+        pynekread(args.mesh_file, comm, data_dtype=np.single, msh=mesh)
+        pynekread(args.input_file, comm, data_dtype=np.single, fld=fld)
+
 
     fields = args.fields
     if not fields:
