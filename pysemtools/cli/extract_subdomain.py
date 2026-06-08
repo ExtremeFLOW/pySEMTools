@@ -42,7 +42,7 @@ def main():
     --------
     To use this script, run it with MPI using the following command:
     
-    >>> mpirun -n <num_processes> python pysemtools_extract_subdomain --input_file <input.fld> --output_file <output.fld> --bounds=<xmin,xmax,ymin,ymax,zmin,zmax> [--fields=<field1,field2,...>]
+    >>> mpirun -n <num_processes> python pysemtools_extract_subdomain --input_file <input.fld> --output_file <output.fld> --bounds=<xmin,xmax,ymin,ymax,zmin,zmax> [--fields=<field1,field2,...>] [--mesh_file=<mesh.fld>]
     
     Replacing the placeholders with actual values. Observe that you have to remove the angle brackets.
     '''
@@ -60,6 +60,9 @@ def main():
         "--input_file", type=str, required=True, help="Path to the field file"
     )
     parser.add_argument(
+        "--mesh_file", type=str, required=False, help="Path to the mesh file"
+    )
+    parser.add_argument(
         "--output_file",
         type=str,
         required=True,
@@ -69,7 +72,7 @@ def main():
         "--bounds",
         type=parse_bounds,
         required=True,
-        help="Comma-separated list of 6 floats",
+        help="Comma-separated list of 6 floats, use format --bounds=-1.0,2.0,-1,1,0,0.1",
     )
     parser.add_argument(
         "--fields",
@@ -88,7 +91,12 @@ def main():
     fld = FieldRegistry(comm)
 
     # Read
-    pynekread(args.input_file, comm, data_dtype=np.single, msh=mesh, fld=fld)
+    if not args.mesh_file:
+        pynekread(args.input_file, comm, data_dtype=np.single, msh=mesh, fld=fld)
+    else:
+        pynekread(args.mesh_file, comm, data_dtype=np.single, msh=mesh)
+        pynekread(args.input_file, comm, data_dtype=np.single, fld=fld)
+
 
     fields = args.fields
     if not fields:
