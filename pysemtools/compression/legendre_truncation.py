@@ -51,10 +51,10 @@ class DiscreetLegendreTruncation:
                     for data in self.uncompressed_data[field].keys():
                         self.uncompressed_data[field][data] = torch.tensor(self.uncompressed_data[field][data], dtype=self.dtype_d, device = self.device, requires_grad=False)
 
-        # Jacobian for fixed-error sampling.
-        # If coef.jac is not provided, use ones with mesh shape.
+        # Jacobian for coefficient-space weighted error accumulation.
         self.coef = coef
         self.jac = self._build_jac(msh=msh, coef=coef)
+        self.B = self._build_B(msh=msh, coef=coef)
 
     def _build_jac(self, msh: Mesh = None, coef: Coef = None):
         """
@@ -66,6 +66,22 @@ class DiscreetLegendreTruncation:
             if hasattr(jac, "detach"):
                 jac = jac.detach().cpu().numpy()
             return np.asarray(jac)
+
+        if msh is not None:
+            return np.ones_like(msh.x, dtype=self.dtype)
+
+        return np.ones((self.nelv, self.lz, self.ly, self.lx), dtype=self.dtype)
+
+    def _build_B(self, msh: Mesh = None, coef: Coef = None):
+        """
+        Use coef.B if available, otherwise use unit weights.
+        """
+
+        if coef is not None and hasattr(coef, "B"):
+            B = coef.B
+            if hasattr(B, "detach"):
+                B = B.detach().cpu().numpy()
+            return np.asarray(B)
 
         if msh is not None:
             return np.ones_like(msh.x, dtype=self.dtype)
@@ -480,7 +496,12 @@ class DiscreetLegendreTruncation:
         else:
             jac_flat = self.jac.reshape(nelv, -1)
 
-        vol = np.sum(jac_flat, axis=1)
+        if self.B is None:
+            B_flat = np.ones_like(y, dtype=self.dtype)
+        else:
+            B_flat = self.B.reshape(nelv, -1)
+
+        vol = np.sum(B_flat, axis=1)
         vol = np.where(vol > 0, vol, 1.0)
 
         achieved_error = np.zeros(nelv, dtype=self.dtype)
