@@ -366,7 +366,7 @@ class DiscreetLegendreTruncationBP:
                         array_dtype = np.float64
                 elif data_key == "bitplane_symbols":
                     shape = (-1,)
-                    array_dtype = np.uint64
+                    array_dtype = np.uint32
                 elif data_key == "bitplane_symbol_counts":
                     shape = (nelv,)
                     array_dtype = np.uint32
@@ -387,22 +387,81 @@ class DiscreetLegendreTruncationBP:
  
     def _sample_fixed_error(self, field_hat: np.ndarray, field_name: str, settings: dict):
         """
-        Encode each element as an embedded, TTHRESH-style bitplane stream.
+        Encode each Legendre element as an embedded bitplane stream.
 
-        Magnitude bits are emitted from most to least significant.  A coefficient
-        that becomes significant emits its sign immediately; coefficients that
-        are already significant emit one refinement bit on every later plane.
-        The binary event stream of each element is run-length encoded.  One
-        uint64 stores one symbol as ``(run_length << 1) | bit``.
+        The main inspiration is Section 4.2, "Bit-plane Coding", of:
 
-        Encoding stops independently for every element as soon as the weighted
-        RMS error of the currently decodable coefficients is no larger than
-        ``target_error``.  bzip2 is still applied later by ``compress_samples``.
+            Ballester-Ripoll, Lindstrom and Pajarola,
+            "TTHRESH: Tensor Compression for Multidimensional Visual Data".
+
+        In particular, this implementation follows these ideas from that section:
+
+        1. Convert floating-point coefficient magnitudes to unsigned integers
+           sharing one scale.  This corresponds conceptually to Eq. (9).
+        2. Visit the integer bits plane by plane, from the most-significant plane
+           to progressively less-important planes.
+        3. Stop the embedded stream as soon as the requested error is reached.
+           This plays the role of the SSE constraint in Eq. (8), although here
+           the stopping metric is a weighted RMS error for each SEM element.
+        4. Exploit long binary runs before applying the final lossless coder.
+           The paper discusses zero-run symbols in Section 4.2 and Fig. 6.
+
+        This is deliberately described as "TTHRESH-style", not as an exact
+        implementation of TTHRESH:
+
+        * TTHRESH encodes the full HOSVD core; this code encodes every local
+          Legendre element independently.
+        * TTHRESH can stop partway through its final bitplane.  This code tests
+          the error only after completing a whole plane for one element.
+        * TTHRESH handles every bitplane as a separate binary sequence.  Within
+          that plane, it represents each sequence of k zeroes followed by a one
+          (or terminated by the end of the plane) using only the integer k.  The
+          following one is normally implicit and therefore is not stored as a
+          second symbol.  For example, the paper maps 01110001 to [1, 0, 0, 3].
+
+          This implementation instead applies ordinary binary RLE to the entire
+          event stream after all selected planes have been joined.  It stores
+          both ``run_length`` and the repeated value (zero or one).  Consequently:
+
+          - runs of ones are represented explicitly;
+          - a run can continue across the boundary between two bitplanes;
+          - sign events are mixed into the same RLE stream;
+          - the decoder does not need bitplane boundaries during RLE expansion.
+
+          This representation is simpler to understand and decode, but it is not
+          the insignificance-run representation used by TTHRESH.
+        * TTHRESH arithmetic-codes its run symbols.  This code sends the arrays
+          to bzip2 later in ``compress_samples``.
+
+        Stream grammar
+        --------------
+        For every coefficient and every encoded plane, one magnitude event is
+        written.  Its interpretation depends on decoder state:
+
+        * not significant yet: 0 means "still insignificant"; 1 means "becomes
+          significant now", and one additional sign event follows immediately;
+        * already significant: the event is the next refinement bit.
+
+        Thus, the decoder needs no separate significance map: it recreates that
+        map while consuming the events in the same order as the encoder.
+
+        The binary events are finally represented as uint32 RLE symbols using
+
+            symbol = (run_length << 1) | bit.
+
+        The least-significant symbol bit stores the repeated event value (0 or
+        1); the remaining 31 bits store its run length.  Therefore a uint32
+        symbol can represent a run of at most 2**31 - 1 events.
         """
 
         target_error = settings["compression"]["target_error"]
         nelv = settings["mesh_information"]["nelv"]
 
+        # Flatten only within each spectral element.  Consequently, coefficient
+        # index 0..n_coeff-1 is the ordinary NumPy C-order traversal of the
+        # original (lz, ly, lx) array.  Encoder and decoder must use exactly the
+        # same traversal.  A future zig-zag/spectral ordering would be inserted
+        # here and inverted during decoding.
         y = field_hat.reshape(nelv, -1)
         n_coeff = y.shape[1]
 
@@ -416,14 +475,31 @@ class DiscreetLegendreTruncationBP:
         else:
             B_flat = self.B.reshape(nelv, -1)
 
+        # The distortion accumulated below is
+        #
+        #     error^2 = sum_i jac_i * (y_i - y_tilde_i)^2 / volume.
+        #
+        # TTHRESH can use an ordinary coefficient SSE because the HOSVD factor
+        # matrices are orthogonal (discussion surrounding Eq. (8)).  Here the
+        # Jacobian weights adapt the test to the element-wise Legendre setting,
+        # while B supplies the physical element volume used for normalization.
         vol = np.sum(B_flat, axis=1)
         vol = np.where(vol > 0, vol, 1.0)
 
-        # Sixty-three magnitude planes fit in uint64 without overflow.  Float32
-        # needs only 31 useful common-scale planes.
+        # The integer magnitude itself remains uint64.  This is different from
+        # the RLE symbol type: a magnitude needs enough bits to expose many
+        # precision planes, whereas a symbol only needs to hold one run length.
+        # Float32 has fewer useful mantissa bits, so 31 planes are ample there.
         max_planes = 31 if self.dtype == np.float32 else 63
+
+        # Element streams are encoded separately so that each element can stop
+        # at its own number of planes.  They are concatenated only after all
+        # elements have been processed; symbol_counts stores the boundaries.
         symbols_per_element = []
         symbol_counts = np.zeros(nelv, dtype=np.uint32)
+
+        # exponent stores the binary scale for each element; nplanes tells the
+        # decoder how many complete magnitude planes it should consume.
         exponents = np.zeros(nelv, dtype=np.int16)
         nplanes = np.zeros(nelv, dtype=np.uint8)
         achieved_error = np.zeros(nelv, dtype=self.dtype)
@@ -433,60 +509,109 @@ class DiscreetLegendreTruncationBP:
             abs_values = np.abs(values)
             maximum = float(np.max(abs_values))
 
-            initial_error = np.sqrt(np.sum(jac_flat[element] * values * values) / vol[element])
+            # Before transmitting anything the decoder reconstructs all
+            # coefficients as zero.  This is therefore the error of an empty
+            # stream.  If it already satisfies the target, this element requires
+            # no symbols, exponent, or planes at all.
+            initial_error = np.sqrt(
+                np.sum(jac_flat[element] * values * values) / vol[element]
+            )
             if maximum == 0.0 or initial_error <= target_error:
                 achieved_error[element] = initial_error
-                symbols_per_element.append(np.empty(0, dtype=np.uint64))
+                symbols_per_element.append(np.empty(0, dtype=np.uint32))
                 continue
 
-            # quantum is the value represented by the lowest available plane.
+            # Build a block-floating-point representation for this element.
+            #
+            # exponent locates the largest coefficient in binary.  All
+            # coefficients then share quantum, the value represented by the
+            # least-significant available integer bit.  This is the analogue of
+            # TTHRESH's common scaling in Eq. (9).
             exponent = int(np.floor(np.log2(maximum)))
             quantum = np.ldexp(1.0, exponent - (max_planes - 1))
-            magnitude = np.rint(abs_values / quantum).astype(np.uint64)
+
+            # floor is intentional.  Since maximum < 2**(exponent + 1), the
+            # scaled value is strictly below 2**max_planes and therefore fits
+            # in the selected uint64 bit positions.  Rounding could push an
+            # extreme value up to 2**max_planes and require one extra bit.
+            magnitude = np.floor(abs_values / quantum).astype(np.uint64)
             exponents[element] = exponent
 
+            # significant[c] becomes True when coefficient c emits its first 1.
+            # reconstructed_magnitude contains exactly the magnitude bits the
+            # decoder would know at the current point in the stream.
             significant = np.zeros(n_coeff, dtype=bool)
             reconstructed_magnitude = np.zeros(n_coeff, dtype=np.uint64)
+
+            # events temporarily holds the logical binary stream.  It is kept
+            # explicit here for readability; _run_length_encode_bits converts it
+            # to compact run symbols after the stopping plane is known.
             events = []
 
             for plane in range(max_planes):
+                # plane=0 visits the MSB first.  Each later plane decreases
+                # bit_position by one and adds one bit of precision.
                 bit_position = max_planes - 1 - plane
                 plane_bits = ((magnitude >> np.uint64(bit_position)) & np.uint64(1)).astype(np.uint8)
 
-                # This coefficient order can later be replaced by a spatial or
-                # zig-zag traversal without changing the bitplane format.
                 for coefficient in range(n_coeff):
                     bit = int(plane_bits[coefficient])
+
+                    # Every coefficient contributes exactly one magnitude event
+                    # on each plane that is reached.
                     events.append(bit)
+
                     if significant[coefficient]:
+                        # The coefficient was discovered on an earlier plane, so
+                        # this event is a refinement bit.  A zero requires no
+                        # numerical update; a one activates this power of two.
                         if bit:
                             reconstructed_magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                     elif bit:
+                        # First 1 for this coefficient: it becomes significant.
+                        # Its sign is emitted exactly once, immediately after the
+                        # significance event.  Convention: 0=positive, 1=negative.
                         significant[coefficient] = True
                         reconstructed_magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                         events.append(int(values[coefficient] < 0.0))
 
+                # Reconstruct from transmitted bits exactly as the decoder would.
+                # Testing this partial reconstruction is what makes the stream
+                # embedded: stopping after any completed plane produces a valid,
+                # progressively more accurate approximation.
                 reconstructed = reconstructed_magnitude.astype(np.float64) * quantum
                 reconstructed = np.where(values < 0.0, -reconstructed, reconstructed)
                 error = np.sqrt(
                     np.sum(jac_flat[element] * (values - reconstructed) ** 2) / vol[element]
                 )
+
+                # Store the stopping point even if all available planes are
+                # eventually needed.  uint8 is enough because max_planes <= 63.
                 nplanes[element] = plane + 1
                 achieved_error[element] = error
                 if error <= target_error:
                     break
 
+            # RLE is performed only after the stopping point is known, so no
+            # events belonging to discarded lower planes enter the stream.
+            #
+            # Notice that all retained planes have already been concatenated in
+            # events.  _run_length_encode_bits therefore sees one continuous
+            # sequence.  In TTHRESH Section 4.2, each bitplane is instead RLE
+            # encoded separately as zero-run lengths; a one after a zero run is
+            # implicit.  Our generic RLE stores both zero and one runs and may
+            # merge equal-valued events across a plane boundary.
             encoded_symbols = self._run_length_encode_bits(events)
             symbol_counts[element] = encoded_symbols.size
             symbols_per_element.append(encoded_symbols)
 
         if symbols_per_element:
-            symbols = np.concatenate(symbols_per_element).astype(np.uint64, copy=False)
+            symbols = np.concatenate(symbols_per_element).astype(np.uint32, copy=False)
         else:
-            symbols = np.empty(0, dtype=np.uint64)
+            symbols = np.empty(0, dtype=np.uint32)
 
         stats = {
-            "bitplane_format": "rle_uint64_v1",
+            "bitplane_format": "rle_uint32",
             "avg_bitplanes": float(np.mean(nplanes)),
             "avg_achieved_error": float(np.mean(achieved_error)),
             "target_reached": bool(np.all(achieved_error <= target_error)),
@@ -502,27 +627,90 @@ class DiscreetLegendreTruncationBP:
 
     @staticmethod
     def _run_length_encode_bits(bits):
-        """Pack a binary run as ``(run_length << 1) | bit`` in one uint64."""
+        """
+        Convert a sequence of 0/1 events into uint32 run-length symbols.
+
+        For example, the event sequence
+
+            0, 0, 0, 1, 1, 0
+
+        contains the runs ``(3, 0), (2, 1), (1, 0)`` and becomes
+
+            (3 << 1) | 0, (2 << 1) | 1, (1 << 1) | 0
+            = 6, 5, 2.
+
+        Difference from the TTHRESH insignificance runs
+        ------------------------------------------------
+        TTHRESH Section 4.2 encodes each bitplane independently.  It counts the
+        number k of zeroes before the next one and stores only k; the following
+        one is implicit.  A final run may instead end at the bitplane boundary.
+        The paper's example is:
+
+            bits:       0 1 1 1 0 0 0 1
+            zero runs:  1, 0, 0, 3
+
+        Reading the first three symbols means "one zero then one, zero zeroes
+        then one, zero zeroes then one".  The final 3 means "three zeroes then
+        the last one".  Thus TTHRESH stores zero-run lengths, not ordinary
+        ``(length, value)`` pairs.
+
+        This function uses conventional binary RLE instead.  It turns the same
+        bits into:
+
+            runs:       (1, 0), (3, 1), (3, 0), (1, 1)
+            symbols:    2, 7, 6, 3
+
+        Here both the run length and its binary value are explicit.  Moreover,
+        the caller supplies one stream containing magnitude, sign, and refinement
+        events from all retained planes, so runs can cross plane boundaries.
+        This is easier to decode but generally creates a different symbol
+        distribution from TTHRESH.  bzip2 later compresses the uint32 symbols.
+
+        One bit of a uint32 is reserved for the event value, leaving 31 bits for
+        the run.  If a future element can exceed that limit, a long run can be
+        split into multiple symbols; for now an explicit error prevents silent
+        integer overflow.
+        """
         if len(bits) == 0:
-            return np.empty(0, dtype=np.uint64)
+            return np.empty(0, dtype=np.uint32)
 
         symbols = []
         current = int(bits[0])
         run_length = 1
+        max_run_length = np.iinfo(np.uint32).max >> 1
+
         for bit in bits[1:]:
             bit = int(bit)
             if bit == current:
                 run_length += 1
             else:
+                if run_length > max_run_length:
+                    raise OverflowError(
+                        "A bitplane run does not fit in a uint32 symbol; "
+                        "split long runs before packing"
+                    )
                 symbols.append((run_length << 1) | current)
                 current = bit
                 run_length = 1
+
+        if run_length > max_run_length:
+            raise OverflowError(
+                "A bitplane run does not fit in a uint32 symbol; "
+                "split long runs before packing"
+            )
         symbols.append((run_length << 1) | current)
-        return np.asarray(symbols, dtype=np.uint64)
+        return np.asarray(symbols, dtype=np.uint32)
 
     @staticmethod
     def _run_length_decode_bits(symbols):
-        """Return an iterator over bits represented by uint64 RLE symbols."""
+        """
+        Yield the original binary events from packed RLE symbols.
+
+        ``packed & 1`` extracts the event value from the least-significant bit.
+        ``packed >> 1`` removes that bit and recovers the run length.  Calling
+        this function as a generator avoids allocating the expanded event stream
+        during decompression.
+        """
         for symbol in symbols:
             packed = int(symbol)
             run_length = packed >> 1
@@ -531,7 +719,20 @@ class DiscreetLegendreTruncationBP:
                 yield bit
 
     def _decode_fixed_error(self, data):
-        """Decode a ``rle_uint64_v1`` stream back into Legendre coefficients."""
+        """
+        Decode the embedded stream back into approximate Legendre coefficients.
+
+        This function deliberately mirrors _sample_fixed_error in reverse:
+
+        1. use symbol_counts to isolate each element's RLE stream;
+        2. expand symbols lazily into binary events;
+        3. revisit the same planes and coefficients in the same order;
+        4. rebuild significance state, signs, and integer magnitudes;
+        5. undo the shared block-floating-point scale.
+
+        The decoder does not need target_error or the original field.  The
+        stored number of planes is the complete stopping information.
+        """
         n_coeff = self.lx * self.ly * self.lz
         max_planes = 31 if self.dtype == np.float32 else 63
         output = np.zeros((self.nelv, n_coeff), dtype=self.dtype)
@@ -543,13 +744,21 @@ class DiscreetLegendreTruncationBP:
         symbol_offset = 0
 
         for element in range(self.nelv):
+            # Streams from all elements live in one concatenated symbol array.
+            # count identifies this element's slice and advances the offset to
+            # the beginning of the next one.
             count = int(counts[element])
             element_symbols = symbols[symbol_offset:symbol_offset + count]
             symbol_offset += count
             number_of_planes = int(planes_per_element[element])
+
+            # An element that met the target as the all-zero approximation wrote
+            # no events.  output was initialized to zero, so nothing is needed.
             if number_of_planes == 0:
                 continue
 
+            # Expand RLE on demand.  The significance and sign arrays are decoder
+            # state reconstructed solely from the events seen so far.
             bits = self._run_length_decode_bits(element_symbols)
             significant = np.zeros(n_coeff, dtype=bool)
             negative = np.zeros(n_coeff, dtype=bool)
@@ -558,20 +767,29 @@ class DiscreetLegendreTruncationBP:
             for plane in range(number_of_planes):
                 bit_position = max_planes - 1 - plane
                 for coefficient in range(n_coeff):
+                    # This is either a significance event or a refinement event,
+                    # depending on whether this coefficient was significant at
+                    # the start of the current step.
                     bit = next(bits)
                     if significant[coefficient]:
                         if bit:
                             magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                     elif bit:
+                        # A newly significant coefficient has one immediately
+                        # following sign event: 0=positive, 1=negative.
                         significant[coefficient] = True
                         magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                         negative[coefficient] = bool(next(bits))
 
+            # Recover the same quantum used by the encoder and map integer
+            # magnitudes back to floating point before restoring the signs.
             quantum = np.ldexp(1.0, int(exponents[element]) - (max_planes - 1))
             decoded = magnitude.astype(np.float64) * quantum
             decoded[negative] *= -1.0
             output[element] = decoded.astype(self.dtype)
 
+        # This catches corrupt counts and format mismatches that leave complete
+        # RLE symbols outside every element slice.
         if symbol_offset != symbols.size:
             raise ValueError("Bitplane stream has unused symbols; metadata are inconsistent")
         return output.reshape(self.nelv, self.lz, self.ly, self.lx)
