@@ -407,23 +407,22 @@ class DiscreetLegendreTruncationBPAdaptive:
         target_error = settings["compression"]["target_error"]
         nelv = settings["mesh_information"]["nelv"]
 
-        # Flatten only within each spectral element.  Consequently, coefficient
-        # index 0..n_coeff-1 is the ordinary NumPy C-order traversal of the
-        # original (lz, ly, lx) array.  Encoder and decoder must use exactly the
-        # same traversal.  A future zig-zag/spectral ordering would be inserted
-        # here and inverted during decoding.
-        y = field_hat.reshape(nelv, -1)
+        # Flatten within each element and reorder the coefficients using the
+        # same low-to-high spectral zigzag as V1.  The precision map and the
+        # plane-major event stream therefore both follow this ordering.
+        zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
+        y = field_hat.reshape(nelv, -1)[:, zigzag_order]
         n_coeff = y.shape[1]
 
         if self.jac is None:
             jac_flat = np.ones_like(y, dtype=self.dtype)
         else:
-            jac_flat = self.jac.reshape(nelv, -1)
+            jac_flat = self.jac.reshape(nelv, -1)[:, zigzag_order]
 
         if self.B is None:
             B_flat = np.ones_like(y, dtype=self.dtype)
         else:
-            B_flat = self.B.reshape(nelv, -1)
+            B_flat = self.B.reshape(nelv, -1)[:, zigzag_order]
 
         # The distortion accumulated below is
         #
@@ -575,6 +574,32 @@ class DiscreetLegendreTruncationBPAdaptive:
         return bitplane_data, stats
 
     @staticmethod
+    def _spectral_zigzag_order(lz, ly, lx):
+        """
+        Return C-order flat indices for a reversible 3-D spectral zigzag.
+
+        Coefficients are grouped by total degree ``ix + iy + iz``.  Alternate
+        degree shells are reversed to obtain a serpentine traversal.  The
+        returned indices address arrays shaped ``(lz, ly, lx)``.
+        """
+        shells = [[] for _ in range((lx - 1) + (ly - 1) + (lz - 1) + 1)]
+        for iz in range(lz):
+            for iy in range(ly):
+                for ix in range(lx):
+                    shells[ix + iy + iz].append((iz, iy, ix))
+
+        order = []
+        for degree, shell in enumerate(shells):
+            if degree % 2 == 1:
+                shell.reverse()
+            order.extend(
+                np.ravel_multi_index(coord, (lz, ly, lx))
+                for coord in shell
+            )
+
+        return np.asarray(order, dtype=np.intp)
+
+    @staticmethod
     def _run_length_encode_bits(bits):
         """
         Convert a sequence of 0/1 events into uint32 run-length symbols.
@@ -677,7 +702,8 @@ class DiscreetLegendreTruncationBPAdaptive:
         """
         n_coeff = self.lx * self.ly * self.lz
         max_planes = 31 if self.dtype == np.float32 else 63
-        output = np.zeros((self.nelv, n_coeff), dtype=self.dtype)
+        # Decode in transmitted zigzag order, then invert that permutation.
+        output_zigzag = np.zeros((self.nelv, n_coeff), dtype=self.dtype)
 
         symbols = data["bitplane_symbols"]
         counts = data["bitplane_symbol_counts"]
@@ -731,12 +757,15 @@ class DiscreetLegendreTruncationBPAdaptive:
             quantum = np.ldexp(1.0, int(exponents[element]) - (max_planes - 1))
             decoded = magnitude.astype(np.float64) * quantum
             decoded[negative] *= -1.0
-            output[element] = decoded.astype(self.dtype)
+            output_zigzag[element] = decoded.astype(self.dtype)
 
         # This catches corrupt counts and format mismatches that leave complete
         # RLE symbols outside every element slice.
         if symbol_offset != symbols.size:
             raise ValueError("Bitplane stream has unused symbols; metadata are inconsistent")
+        zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
+        output = np.zeros_like(output_zigzag)
+        output[:, zigzag_order] = output_zigzag
         return output.reshape(self.nelv, self.lz, self.ly, self.lx)
 
     def reconstruct_field(self, field_name: str = None):
