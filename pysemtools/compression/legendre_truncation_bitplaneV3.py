@@ -13,6 +13,7 @@ import h5py
 import os
 import torch
 import math
+import heapq
 
 class DiscreetLegendreTruncationBPAdaptiveV3:
 
@@ -286,7 +287,26 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         field_name: str = "field",
         target_error: float = None,
         target_quantity: str = "gradient",
+        allocation_mode: str = "coupled",
     ):
+        """Transform and encode one field to a requested physical RMS.
+
+        Parameters
+        ----------
+        field:
+            SEM nodal values with one ``(lz, ly, lx)`` block per element.
+        field_name:
+            Name used as the key in the stored stream dictionaries.
+        target_error:
+            Requested element-local RMS tolerance.
+        target_quantity:
+            ``"field"`` targets physical field RMS; ``"gradient"`` targets
+            the RMS norm of the complete 2-D or 3-D physical gradient.
+        allocation_mode:
+            ``"coupled"`` uses the full Gram matrix. ``"diagonal"`` ignores
+            cross-coefficient terms during allocation but retains exact final
+            validation with the full matrix.
+        """
         
         self.log.write("info", f"Sampling field \"{field_name}\" with target_error={target_error}")
 
@@ -310,11 +330,16 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             raise ValueError(
                 "target_quantity must be either 'field' or 'gradient'"
             )
+        if allocation_mode not in {"coupled", "diagonal"}:
+            raise ValueError(
+                "allocation_mode must be either 'coupled' or 'diagonal'"
+            )
 
         self.settings["compression"] = {
             "method": "fixed_error_bitplane_v3",
             "target_error": target_error,
             "target_quantity": target_quantity,
+            "allocation_mode": allocation_mode,
         }
 
         self.log.write("info", f"Sampling the field using bitplane coding. using settings: {self.settings['compression']}")
@@ -526,10 +551,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         intervening zero planes are included in its rate cost.  Bits are never
         skipped inside a coefficient.
 
-        Candidate benefits are coupled.  If ``G`` is the selected field/gradient
-        Gram matrix, ``e`` is the current coefficient-error vector, and refining
-        coefficient c changes its reconstructed value by signed amount delta,
-        then the exact reduction in the selected SSE is
+        ``allocation_mode='coupled'`` uses the complete Gram matrix.  If ``e``
+        is the current coefficient-error vector and refining coefficient c
+        changes its reconstruction by signed amount delta, its exact benefit is
 
             benefit_c = 2 * delta * (G @ e)[c] - delta**2 * G[c, c].
 
@@ -538,9 +562,13 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             e[c]  <- e[c] - delta,
             G @ e <- G @ e - delta * G[:, c].
 
-        Because the off-diagonal entries of G change every coefficient's score,
-        V2's persistent heap cannot be used: all currently available candidates
-        are rescored after every accepted extension.
+        Because the off-diagonal entries change every coefficient's score, all
+        active candidates must be rescored after each coupled extension.
+
+        ``allocation_mode='diagonal'`` ignores those cross terms during the
+        sweep and optimizes sum_c G[c,c] * e[c]**2.  Candidate scores are then
+        independent, so a persistent heap is valid.  The final achieved RMS is
+        nevertheless evaluated with the complete G in both modes.
 
         ``bitplane_precision[e, c]`` records the number of MSB planes assigned
         to coefficient c of element e.  During plane-major stream construction,
@@ -551,6 +579,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         target_error = settings["compression"]["target_error"]
         target_quantity = settings["compression"]["target_quantity"]
+        allocation_mode = settings["compression"]["allocation_mode"]
         nelv = settings["mesh_information"]["nelv"]
 
         # Flatten within each element and reorder the coefficients using the
@@ -681,45 +710,19 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             ]
             gram_diagonal = np.diag(error_gram)
 
-            while total_sse > target_sse:
-                best_score = -np.inf
-                best_coefficient = None
-                best_benefit = None
-
-                for coefficient, candidate in enumerate(candidates):
-                    if candidate is None:
-                        continue
-
-                    _, _, signed_delta, cost = candidate
-                    benefit = (
-                        2.0 * signed_delta * gram_times_error[coefficient]
-                        - signed_delta * signed_delta * gram_diagonal[coefficient]
-                    )
-                    score = benefit / cost
-
-                    # Coefficients are already in spectral-zigzag order, so the
-                    # strict comparison also makes that order the deterministic
-                    # tie breaker.
-                    if score > best_score:
-                        best_score = score
-                        best_coefficient = coefficient
-                        best_benefit = benefit
-
-                if best_coefficient is None:
-                    break
-
-                new_precision, new_mag, signed_delta, _ = candidates[best_coefficient]
-                precision[element, best_coefficient] = new_precision
-                reconstructed_magnitude[best_coefficient] = np.uint64(new_mag)
-
-                # Exact O(n_coeff) update of the coupled error state.
-                coefficient_error[best_coefficient] -= signed_delta
-                gram_times_error -= signed_delta * error_gram[:, best_coefficient]
-                total_sse -= best_benefit
-
-                candidates[best_coefficient] = next_extension(
-                    best_coefficient,
-                    new_precision,
+            # Choose between two genuinely different sweeps here, rather than
+            # placing a mode test inside every greedy iteration.
+            if allocation_mode == "coupled":
+                total_sse = self._allocate_coupled(
+                    coefficient_error, error_gram, gram_times_error,
+                    gram_diagonal, candidates, next_extension, target_sse,
+                    precision[element], reconstructed_magnitude,
+                )
+            else:
+                total_sse = self._allocate_diagonal(
+                    coefficient_error, gram_diagonal, candidates,
+                    next_extension, target_sse, precision[element],
+                    reconstructed_magnitude,
                 )
 
             # Re-evaluate the quadratic form once to remove accumulated scalar
@@ -754,6 +757,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         stats = {
             "bitplane_format": "adaptive_gram_precision_rle_uint32",
             "target_quantity": target_quantity,
+            "allocation_mode": allocation_mode,
             "avg_bitplanes": float(np.mean(precision)),
             "avg_achieved_error": float(np.mean(achieved_error)),
             "target_reached": bool(np.all(achieved_error <= target_error)),
@@ -766,6 +770,113 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             "bitplane_precision": precision,
         }
         return bitplane_data, stats
+
+    @staticmethod
+    def _allocate_coupled(
+        coefficient_error, error_gram, gram_times_error, gram_diagonal,
+        candidates, next_extension, target_sse, precision_row,
+        reconstructed_magnitude,
+    ):
+        """Greedy allocation using every diagonal and cross term in G.
+
+        Selecting one coefficient changes ``G @ coefficient_error`` for all
+        coefficients.  Consequently every active benefit must be recomputed.
+        The rescore below is vectorized; only creation of the selected next
+        extension remains scalar.
+        """
+        total_sse = float(coefficient_error @ gram_times_error)
+        n_coeff = coefficient_error.size
+        delta = np.zeros(n_coeff, dtype=np.float64)
+        cost = np.ones(n_coeff, dtype=np.float64)
+        available = np.zeros(n_coeff, dtype=bool)
+
+        def cache_candidate(coefficient):
+            candidate = candidates[coefficient]
+            available[coefficient] = candidate is not None
+            if candidate is not None:
+                delta[coefficient] = candidate[2]
+                cost[coefficient] = candidate[3]
+
+        for coefficient in range(n_coeff):
+            cache_candidate(coefficient)
+
+        while total_sse > target_sse and np.any(available):
+            benefit = (
+                2.0 * delta * gram_times_error
+                - delta * delta * gram_diagonal
+            )
+            score = benefit / cost
+            score[~available] = -np.inf
+
+            # np.argmax chooses the first tie, which is deterministic because
+            # the arrays already follow spectral-zigzag order.
+            best = int(np.argmax(score))
+            if not np.isfinite(score[best]):
+                break
+
+            new_precision, new_mag, signed_delta, _ = candidates[best]
+            precision_row[best] = new_precision
+            reconstructed_magnitude[best] = np.uint64(new_mag)
+
+            coefficient_error[best] -= signed_delta
+            gram_times_error -= signed_delta * error_gram[:, best]
+            total_sse -= float(benefit[best])
+
+            candidates[best] = next_extension(best, new_precision)
+            cache_candidate(best)
+
+        return total_sse
+
+    @staticmethod
+    def _allocate_diagonal(
+        coefficient_error, gram_diagonal, candidates, next_extension,
+        target_sse, precision_row, reconstructed_magnitude,
+    ):
+        """Greedy allocation using only the diagonal sensitivity of G.
+
+        The approximate SSE is ``sum(G[c,c] * error[c]**2)``.  Refining c
+        cannot alter another coefficient's score, so candidates can remain in
+        a heap until selected.  The caller subsequently measures the result
+        with the complete Gram quadratic form, including the omitted coupling.
+        """
+        total_sse = float(np.dot(gram_diagonal, coefficient_error**2))
+        heap = []
+
+        def push_candidate(coefficient):
+            candidate = candidates[coefficient]
+            if candidate is None:
+                return
+
+            _, _, signed_delta, candidate_cost = candidate
+            old_error = coefficient_error[coefficient]
+            new_error = old_error - signed_delta
+            benefit = gram_diagonal[coefficient] * (
+                old_error * old_error - new_error * new_error
+            )
+            score = benefit / candidate_cost
+
+            # The coefficient index breaks equal-score ties according to the
+            # existing zigzag order.
+            heapq.heappush(
+                heap, (-float(score), coefficient, float(benefit))
+            )
+
+        for coefficient in range(coefficient_error.size):
+            push_candidate(coefficient)
+
+        while total_sse > target_sse and heap:
+            _, best, benefit = heapq.heappop(heap)
+            new_precision, new_mag, signed_delta, _ = candidates[best]
+
+            precision_row[best] = new_precision
+            reconstructed_magnitude[best] = np.uint64(new_mag)
+            coefficient_error[best] -= signed_delta
+            total_sse -= benefit
+
+            candidates[best] = next_extension(best, new_precision)
+            push_candidate(best)
+
+        return total_sse
 
     @staticmethod
     def _spectral_zigzag_order(lz, ly, lx):
