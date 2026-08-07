@@ -167,9 +167,51 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             array = array.detach().cpu().numpy()
         return np.asarray(array)
 
-    def _build_error_gram(self, element, target_quantity, zigzag_order):
+    def _prepare_diagonal_error_operators(self):
+        """Cache geometry-independent operators used by diagonal V3.
+
+        ``L`` maps modal coefficients to nodal values.  For a gradient target
+        the matrices ``Dr @ L``, ``Ds @ L`` and ``Dt @ L`` are also independent
+        of the element geometry, so computing them once avoids an expensive
+        dense matrix product for every element and physical direction.
         """
-        Build the element-local Gram matrix for field or gradient error.
+        if hasattr(self, "_v3_diagonal_operators"):
+            return self._v3_diagonal_operators
+
+        if self.coef is None:
+            raise ValueError("V3 scoring requires a Coef object")
+
+        required = ["v_xd", "w_xd", "jac"]
+        missing = [name for name in required if not hasattr(self.coef, name)]
+        if missing:
+            raise ValueError("Missing Coef data required by V3: " + ", ".join(missing))
+
+        L = self._as_numpy(self.coef.v_xd)
+        weight_data = self._as_numpy(self.coef.w_xd)
+        reference_weights = (
+            np.diag(weight_data) if weight_data.ndim == 2
+            else weight_data.reshape(-1)
+        )
+        operators = {"L": L, "reference_weights": reference_weights}
+
+        if hasattr(self.coef, "dr_xd") and hasattr(self.coef, "ds_xd"):
+            operators["DrL"] = self._as_numpy(self.coef.dr_xd) @ L
+            operators["DsL"] = self._as_numpy(self.coef.ds_xd) @ L
+            if self.gdim == 3:
+                if not hasattr(self.coef, "dt_xd"):
+                    raise ValueError("Missing Coef data required by V3: dt_xd")
+                operators["DtL"] = self._as_numpy(self.coef.dt_xd) @ L
+
+        self._v3_diagonal_operators = operators
+        return operators
+
+    def _build_error_diagonal(self, element, target_quantity, zigzag_order):
+        """Return only ``diag(G)`` and a direct physical SSE evaluator.
+
+        No full Gram matrix is formed.  The diagonal is accumulated as
+        ``sum_q weight[q] * K[q, c]**2``.  The returned evaluator computes the
+        exact physical quadratic error from ``K @ coefficient_error`` and is
+        used only for final validation.
 
         Let ``L`` map Legendre coefficients to nodal values.  For the physical
         x derivative in three dimensions,
@@ -191,15 +233,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         corresponding to the weighted squared L2 error of the nodal field.
 
-        The final row/column permutation places G in the same spectral-zigzag
-        coefficient order used by the adaptive bitplane allocator.
+        All inputs and outputs use spectral-zigzag coefficient order.
         """
-        if self.coef is None:
-            raise ValueError(
-                "V3 scoring requires a Coef object with stored multidimensional "
-                "operators"
-            )
-
         required = ["v_xd", "w_xd", "jac"]
         if target_quantity == "gradient":
             required.extend(["dr_xd", "ds_xd"])
@@ -212,30 +247,21 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 + ". Initialize Coef with store_multidimensional_operators=True."
             )
 
-        L = self._as_numpy(self.coef.v_xd)
-
-        # coef.w_xd is stored as a diagonal matrix.  Only its diagonal is needed,
-        # because W K is a pointwise multiplication of every row of K.
-        reference_weight_matrix = self._as_numpy(self.coef.w_xd)
-        if reference_weight_matrix.ndim == 2:
-            reference_weights = np.diag(reference_weight_matrix)
-        else:
-            reference_weights = reference_weight_matrix.reshape(-1)
+        cached = self._prepare_diagonal_error_operators()
+        L = cached["L"]
+        reference_weights = cached["reference_weights"]
 
         jacobian = self._as_numpy(self.coef.jac)[element].reshape(-1)
         physical_weights = reference_weights * jacobian
 
-        # Field error requires no derivative or inverse-Jacobian operators.
         if target_quantity == "field":
-            gram = L.T @ (physical_weights[:, None] * L)
-            gram = 0.5 * (gram + gram.T)
-            return gram[np.ix_(zigzag_order, zigzag_order)], float(
-                np.sum(physical_weights)
-            )
+            diagonal = np.einsum("q,qc,qc->c", physical_weights, L, L, optimize=True)
 
-        Dr = self._as_numpy(self.coef.dr_xd)
-        Ds = self._as_numpy(self.coef.ds_xd)
-        Dt = self._as_numpy(self.coef.dt_xd) if self.gdim == 3 else None
+            def evaluate(error_zigzag):
+                nodal_error = L @ error_zigzag[np.argsort(zigzag_order)]
+                return float(np.dot(physical_weights, nodal_error * nodal_error))
+
+            return diagonal[zigzag_order], float(np.sum(physical_weights)), evaluate
 
         def geometry(name):
             if not hasattr(self.coef, name):
@@ -244,42 +270,50 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 )
             return self._as_numpy(getattr(self.coef, name))[element].reshape(-1)
 
-        def physical_derivative_operator(direction):
+        DrL = cached["DrL"]
+        DsL = cached["DsL"]
+        DtL = cached.get("DtL")
+
+        def physical_modal_operator(direction):
             if direction == "x":
-                operator = geometry("drdx")[:, None] * Dr
-                operator += geometry("dsdx")[:, None] * Ds
+                operator = geometry("drdx")[:, None] * DrL
+                operator += geometry("dsdx")[:, None] * DsL
                 if self.gdim == 3:
-                    operator += geometry("dtdx")[:, None] * Dt
+                    operator += geometry("dtdx")[:, None] * DtL
                 return operator
 
             if direction == "y":
-                operator = geometry("drdy")[:, None] * Dr
-                operator += geometry("dsdy")[:, None] * Ds
+                operator = geometry("drdy")[:, None] * DrL
+                operator += geometry("dsdy")[:, None] * DsL
                 if self.gdim == 3:
-                    operator += geometry("dtdy")[:, None] * Dt
+                    operator += geometry("dtdy")[:, None] * DtL
                 return operator
 
             if direction == "z" and self.gdim == 3:
-                operator = geometry("drdz")[:, None] * Dr
-                operator += geometry("dsdz")[:, None] * Ds
-                operator += geometry("dtdz")[:, None] * Dt
+                operator = geometry("drdz")[:, None] * DrL
+                operator += geometry("dsdz")[:, None] * DsL
+                operator += geometry("dtdz")[:, None] * DtL
                 return operator
 
             raise ValueError(f"Derivative direction '{direction}' is unavailable")
 
         directions = ["x", "y"] if self.gdim == 2 else ["x", "y", "z"]
 
-        gram = np.zeros((L.shape[1], L.shape[1]), dtype=self.dtype)
+        diagonal = np.zeros(L.shape[1], dtype=np.float64)
+        physical_operators = []
         for direction in directions:
-            A = physical_derivative_operator(direction)
-            K = A @ L
-            # K.T @ diag(physical_weights) @ K, without forming the diagonal W.
-            gram += K.T @ (physical_weights[:, None] * K)
+            K = physical_modal_operator(direction)
+            diagonal += np.einsum("q,qc,qc->c", physical_weights, K, K, optimize=True)
+            physical_operators.append(K[:, zigzag_order])
 
-        # Numerical roundoff can introduce a tiny asymmetry.  Enforce the exact
-        # symmetry expected by the quadratic error form.
-        gram = 0.5 * (gram + gram.T)
-        return gram[np.ix_(zigzag_order, zigzag_order)], float(np.sum(physical_weights))
+        def evaluate(error_zigzag):
+            sse = 0.0
+            for K in physical_operators:
+                derivative_error = K @ error_zigzag
+                sse += float(np.dot(physical_weights, derivative_error * derivative_error))
+            return sse
+
+        return diagonal[zigzag_order], float(np.sum(physical_weights)), evaluate
     
     def sample_field(
         self,
@@ -287,7 +321,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         field_name: str = "field",
         target_error: float = None,
         target_quantity: str = "gradient",
-        allocation_mode: str = "coupled",
+        allocation_mode: str = "diagonal",
     ):
         """Transform and encode one field to a requested physical RMS.
 
@@ -303,9 +337,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             ``"field"`` targets physical field RMS; ``"gradient"`` targets
             the RMS norm of the complete 2-D or 3-D physical gradient.
         allocation_mode:
-            ``"coupled"`` uses the full Gram matrix. ``"diagonal"`` ignores
-            cross-coefficient terms during allocation but retains exact final
-            validation with the full matrix.
+            Kept for call compatibility. Only ``"diagonal"`` is supported.
         """
         
         self.log.write("info", f"Sampling field \"{field_name}\" with target_error={target_error}")
@@ -330,10 +362,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             raise ValueError(
                 "target_quantity must be either 'field' or 'gradient'"
             )
-        if allocation_mode not in {"coupled", "diagonal"}:
-            raise ValueError(
-                "allocation_mode must be either 'coupled' or 'diagonal'"
-            )
+        if allocation_mode != "diagonal":
+            raise ValueError("V3 now supports only allocation_mode='diagonal'")
 
         self.settings["compression"] = {
             "method": "fixed_error_bitplane_v3",
@@ -544,31 +574,17 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
  
     def _sample_fixed_error(self, field_hat: np.ndarray, field_name: str, settings: dict):
         """
-        Allocate a separate contiguous bit prefix to every coefficient using
-        either physical-field or physical-gradient error as the distortion.
+        Allocate one contiguous bit prefix per coefficient with diagonal
+        physical sensitivity scoring.
 
         As in V2, a useful extension ends at the coefficient's next 1 bit; any
         intervening zero planes are included in its rate cost.  Bits are never
         skipped inside a coefficient.
 
-        ``allocation_mode='coupled'`` uses the complete Gram matrix.  If ``e``
-        is the current coefficient-error vector and refining coefficient c
-        changes its reconstruction by signed amount delta, its exact benefit is
-
-            benefit_c = 2 * delta * (G @ e)[c] - delta**2 * G[c, c].
-
-        After selecting c, this implementation updates
-
-            e[c]  <- e[c] - delta,
-            G @ e <- G @ e - delta * G[:, c].
-
-        Because the off-diagonal entries change every coefficient's score, all
-        active candidates must be rescored after each coupled extension.
-
-        ``allocation_mode='diagonal'`` ignores those cross terms during the
-        sweep and optimizes sum_c G[c,c] * e[c]**2.  Candidate scores are then
-        independent, so a persistent heap is valid.  The final achieved RMS is
-        nevertheless evaluated with the complete G in both modes.
+        The sweep minimizes ``sum_c G[c,c] * error[c]**2``.  Candidates are
+        independent, so only the selected coefficient is updated in a heap.
+        The final achieved RMS is evaluated directly with the physical field or
+        derivative operators, without constructing the full Gram matrix.
 
         ``bitplane_precision[e, c]`` records the number of MSB planes assigned
         to coefficient c of element e.  During plane-major stream construction,
@@ -579,7 +595,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         target_error = settings["compression"]["target_error"]
         target_quantity = settings["compression"]["target_quantity"]
-        allocation_mode = settings["compression"]["allocation_mode"]
+        allocation_mode = "diagonal"
         nelv = settings["mesh_information"]["nelv"]
 
         # Flatten within each element and reorder the coefficients using the
@@ -606,17 +622,14 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             abs_values = np.abs(values)
             maximum = float(np.max(abs_values))
 
-            # G is expressed in the same zigzag ordering as values.  With an
-            # initially zero reconstruction, coefficient_error equals values.
-            error_gram, element_volume = self._build_error_gram(
+            gram_diagonal, element_volume, evaluate_sse = self._build_error_diagonal(
                 element,
                 target_quantity,
                 zigzag_order,
             )
             element_volume = element_volume if element_volume > 0.0 else 1.0
             coefficient_error = values.astype(np.float64, copy=True)
-            gram_times_error = error_gram @ coefficient_error
-            initial_sse = float(coefficient_error @ gram_times_error)
+            initial_sse = evaluate_sse(coefficient_error)
             initial_sse = max(initial_sse, 0.0)
             initial_error = np.sqrt(initial_sse / element_volume)
 
@@ -644,37 +657,29 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             magnitude = np.floor(abs_values / quantum).astype(np.uint64)
             exponents[element] = exponent
 
-            reconstructed_magnitude = np.zeros(n_coeff, dtype=np.uint64)
-
-            total_sse = initial_sse
             target_sse = float(target_error * target_error * element_volume)
 
             def next_extension(coefficient, old_precision):
                 """
-                Return the next contiguous prefix ending at a 1 bit.
+                Jump directly to the next set bit below the current prefix.
 
-                The returned signed_delta is the change in the reconstructed
-                Legendre coefficient.  It is positive for a positive original
-                coefficient and negative for a negative original coefficient.
+                This replaces a Python loop over intervening zero planes with
+                integer masking and ``bit_length``.  The extension's numerical
+                change is exactly the value of that newly transmitted set bit.
                 """
-                for new_precision in range(old_precision + 1, max_planes + 1):
-                    bit_position = max_planes - new_precision
-                    if (int(magnitude[coefficient]) >> bit_position) & 1:
-                        old_mag = int(reconstructed_magnitude[coefficient])
-                        new_mag = old_mag | (1 << bit_position)
-                        magnitude_delta = (new_mag - old_mag) * quantum
-                        signed_delta = (
-                            -magnitude_delta
-                            if values[coefficient] < 0.0
-                            else magnitude_delta
-                        )
-                        # Every traversed plane emits one bit.  The first 1 also
-                        # emits the sign, hence one additional event.
-                        cost = new_precision - old_precision
-                        if old_mag == 0:
-                            cost += 1
-                        return new_precision, new_mag, signed_delta, cost
-                return None
+                old_lowest_position = max_planes - old_precision
+                if old_lowest_position <= 0:
+                    return None
+                remaining = int(magnitude[coefficient]) & ((1 << old_lowest_position) - 1)
+                if remaining == 0:
+                    return None
+                bit_position = remaining.bit_length() - 1
+                new_precision = max_planes - bit_position
+                signed_delta = np.ldexp(quantum, bit_position)
+                if values[coefficient] < 0.0:
+                    signed_delta = -signed_delta
+                cost = new_precision - old_precision + (1 if old_precision == 0 else 0)
+                return new_precision, signed_delta, cost
 
             if target_quantity == "gradient":
                 # Preserve the constant Legendre mode explicitly for a gradient
@@ -682,68 +687,34 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 # an error in it and would otherwise allow the mean to drift.
                 # The zigzag puts this mode at coefficient index zero.
                 mean_coefficient = 0
-                mean_precision = 0
+                mean_magnitude = int(magnitude[mean_coefficient])
+                if mean_magnitude:
+                    lowest_set_bit = (mean_magnitude & -mean_magnitude).bit_length() - 1
+                    precision[element, mean_coefficient] = max_planes - lowest_set_bit
+                    reconstructed = mean_magnitude * quantum
+                    if values[mean_coefficient] < 0.0:
+                        reconstructed = -reconstructed
+                    coefficient_error[mean_coefficient] -= reconstructed
 
-                while True:
-                    candidate = next_extension(mean_coefficient, mean_precision)
-                    if candidate is None:
-                        break
-
-                    new_precision, new_mag, signed_delta, _ = candidate
-                    precision[element, mean_coefficient] = new_precision
-                    reconstructed_magnitude[mean_coefficient] = np.uint64(new_mag)
-
-                    coefficient_error[mean_coefficient] -= signed_delta
-                    gram_times_error -= signed_delta * error_gram[:, mean_coefficient]
-                    mean_precision = new_precision
-
-                # This should leave the gradient SSE unchanged mathematically,
-                # but recomputing avoids relying on exact discrete cancellation.
-                total_sse = float(coefficient_error @ gram_times_error)
-
-            # Cache only the geometry-independent description of each next
-            # extension.  Its benefit is deliberately recomputed every greedy
-            # iteration because gram_times_error changes globally.
             candidates = [
                 next_extension(c, int(precision[element, c]))
                 for c in range(n_coeff)
             ]
-            gram_diagonal = np.diag(error_gram)
-
-            # Choose between two genuinely different sweeps here, rather than
-            # placing a mode test inside every greedy iteration.
-            if allocation_mode == "coupled":
-                total_sse = self._allocate_coupled(
-                    coefficient_error, error_gram, gram_times_error,
-                    gram_diagonal, candidates, next_extension, target_sse,
-                    precision[element], reconstructed_magnitude,
-                )
-            else:
-                total_sse = self._allocate_diagonal(
-                    coefficient_error, gram_diagonal, candidates,
-                    next_extension, target_sse, precision[element],
-                    reconstructed_magnitude,
-                )
+            self._allocate_diagonal(
+                coefficient_error, gram_diagonal, candidates,
+                next_extension, target_sse, precision[element],
+            )
 
             # Re-evaluate the quadratic form once to remove accumulated scalar
             # update roundoff before recording the achieved target RMS.
-            total_sse = float(coefficient_error @ (error_gram @ coefficient_error))
+            total_sse = evaluate_sse(coefficient_error)
             achieved_error[element] = np.sqrt(max(total_sse, 0.0) / element_volume)
 
             # Construct a plane-major stream, but omit coefficients whose chosen
             # prefix has already ended.  Sign follows the first emitted 1.
-            events = []
-            significant = np.zeros(n_coeff, dtype=bool)
-            for plane in range(int(np.max(precision[element]))):
-                bit_position = max_planes - 1 - plane
-                for coefficient in range(n_coeff):
-                    if plane >= int(precision[element, coefficient]):
-                        continue
-                    bit = (int(magnitude[coefficient]) >> bit_position) & 1
-                    events.append(bit)
-                    if not significant[coefficient] and bit:
-                        significant[coefficient] = True
-                        events.append(int(values[coefficient] < 0.0))
+            events = self._build_bitplane_events(
+                magnitude, values < 0.0, precision[element], max_planes
+            )
 
             encoded_symbols = self._run_length_encode_bits(events)
             symbol_counts[element] = encoded_symbols.size
@@ -772,65 +743,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         return bitplane_data, stats
 
     @staticmethod
-    def _allocate_coupled(
-        coefficient_error, error_gram, gram_times_error, gram_diagonal,
-        candidates, next_extension, target_sse, precision_row,
-        reconstructed_magnitude,
-    ):
-        """Greedy allocation using every diagonal and cross term in G.
-
-        Selecting one coefficient changes ``G @ coefficient_error`` for all
-        coefficients.  Consequently every active benefit must be recomputed.
-        The rescore below is vectorized; only creation of the selected next
-        extension remains scalar.
-        """
-        total_sse = float(coefficient_error @ gram_times_error)
-        n_coeff = coefficient_error.size
-        delta = np.zeros(n_coeff, dtype=np.float64)
-        cost = np.ones(n_coeff, dtype=np.float64)
-        available = np.zeros(n_coeff, dtype=bool)
-
-        def cache_candidate(coefficient):
-            candidate = candidates[coefficient]
-            available[coefficient] = candidate is not None
-            if candidate is not None:
-                delta[coefficient] = candidate[2]
-                cost[coefficient] = candidate[3]
-
-        for coefficient in range(n_coeff):
-            cache_candidate(coefficient)
-
-        while total_sse > target_sse and np.any(available):
-            benefit = (
-                2.0 * delta * gram_times_error
-                - delta * delta * gram_diagonal
-            )
-            score = benefit / cost
-            score[~available] = -np.inf
-
-            # np.argmax chooses the first tie, which is deterministic because
-            # the arrays already follow spectral-zigzag order.
-            best = int(np.argmax(score))
-            if not np.isfinite(score[best]):
-                break
-
-            new_precision, new_mag, signed_delta, _ = candidates[best]
-            precision_row[best] = new_precision
-            reconstructed_magnitude[best] = np.uint64(new_mag)
-
-            coefficient_error[best] -= signed_delta
-            gram_times_error -= signed_delta * error_gram[:, best]
-            total_sse -= float(benefit[best])
-
-            candidates[best] = next_extension(best, new_precision)
-            cache_candidate(best)
-
-        return total_sse
-
-    @staticmethod
     def _allocate_diagonal(
         coefficient_error, gram_diagonal, candidates, next_extension,
-        target_sse, precision_row, reconstructed_magnitude,
+        target_sse, precision_row,
     ):
         """Greedy allocation using only the diagonal sensitivity of G.
 
@@ -847,7 +762,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             if candidate is None:
                 return
 
-            _, _, signed_delta, candidate_cost = candidate
+            _, signed_delta, candidate_cost = candidate
             old_error = coefficient_error[coefficient]
             new_error = old_error - signed_delta
             benefit = gram_diagonal[coefficient] * (
@@ -866,10 +781,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         while total_sse > target_sse and heap:
             _, best, benefit = heapq.heappop(heap)
-            new_precision, new_mag, signed_delta, _ = candidates[best]
+            new_precision, signed_delta, _ = candidates[best]
 
             precision_row[best] = new_precision
-            reconstructed_magnitude[best] = np.uint64(new_mag)
             coefficient_error[best] -= signed_delta
             total_sse -= benefit
 
@@ -877,6 +791,37 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             push_candidate(best)
 
         return total_sse
+
+    @staticmethod
+    def _build_bitplane_events(magnitude, negative, precision, max_planes):
+        """Build the plane-major event stream with vectorized coefficient work."""
+        events = []
+        significant = np.zeros(magnitude.size, dtype=bool)
+        for plane in range(int(np.max(precision, initial=0))):
+            active = precision > plane
+            if not np.any(active):
+                continue
+            indices = np.flatnonzero(active)
+            bit_position = max_planes - 1 - plane
+            bits = ((magnitude[indices] >> np.uint64(bit_position)) & np.uint64(1)).astype(np.uint8)
+            first_one = bits.astype(bool) & ~significant[indices]
+            significant[indices[first_one]] = True
+
+            if not np.any(first_one):
+                events.extend(bits.tolist())
+                continue
+
+            signs = negative[indices]
+            first_positions = np.flatnonzero(first_one)
+            chunks = []
+            start = 0
+            for position in first_positions:
+                chunks.extend(bits[start:position + 1].tolist())
+                chunks.append(int(signs[position]))
+                start = position + 1
+            chunks.extend(bits[start:].tolist())
+            events.extend(chunks)
+        return events
 
     @staticmethod
     def _spectral_zigzag_order(lz, ly, lx):
