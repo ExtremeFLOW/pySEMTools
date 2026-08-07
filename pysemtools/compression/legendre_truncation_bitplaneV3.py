@@ -14,7 +14,7 @@ import os
 import torch
 import math
 
-class DiscreetLegendreTruncationBPAdaptiveDerivative:
+class DiscreetLegendreTruncationBPAdaptiveV3:
 
     """ 
     Class to perform direct sampling on a field in the SEM format
@@ -166,9 +166,9 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
             array = array.detach().cpu().numpy()
         return np.asarray(array)
 
-    def _build_derivative_gram(self, element, derivative_direction, zigzag_order):
+    def _build_error_gram(self, element, target_quantity, zigzag_order):
         """
-        Build the element-local Gram matrix for the requested physical derivative.
+        Build the element-local Gram matrix for field or gradient error.
 
         Let ``L`` map Legendre coefficients to nodal values.  For the physical
         x derivative in three dimensions,
@@ -179,24 +179,31 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
 
         ``W`` contains the reference quadrature weights multiplied pointwise by
         the element Jacobian determinant.  The y and z operators are analogous.
-        For ``derivative_direction='gradient'``, the returned matrix is
+        For ``target_quantity='gradient'``, the returned matrix is
 
             Ggradient = Gx + Gy (+ Gz in 3-D),
 
         corresponding to the weighted squared L2 error of the full gradient.
+        For ``target_quantity='field'``, the returned matrix is
+
+            Gfield = L.T W L,
+
+        corresponding to the weighted squared L2 error of the nodal field.
 
         The final row/column permutation places G in the same spectral-zigzag
         coefficient order used by the adaptive bitplane allocator.
         """
         if self.coef is None:
             raise ValueError(
-                "V3 derivative scoring requires a Coef object with stored "
-                "multidimensional operators and inverse-Jacobian factors"
+                "V3 scoring requires a Coef object with stored multidimensional "
+                "operators"
             )
 
-        required = ["dr_xd", "ds_xd", "v_xd", "w_xd", "jac"]
-        if self.gdim == 3:
-            required.append("dt_xd")
+        required = ["v_xd", "w_xd", "jac"]
+        if target_quantity == "gradient":
+            required.extend(["dr_xd", "ds_xd"])
+            if self.gdim == 3:
+                required.append("dt_xd")
         missing = [name for name in required if not hasattr(self.coef, name)]
         if missing:
             raise ValueError(
@@ -204,9 +211,6 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
                 + ". Initialize Coef with store_multidimensional_operators=True."
             )
 
-        Dr = self._as_numpy(self.coef.dr_xd)
-        Ds = self._as_numpy(self.coef.ds_xd)
-        Dt = self._as_numpy(self.coef.dt_xd) if self.gdim == 3 else None
         L = self._as_numpy(self.coef.v_xd)
 
         # coef.w_xd is stored as a diagonal matrix.  Only its diagonal is needed,
@@ -219,6 +223,18 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
 
         jacobian = self._as_numpy(self.coef.jac)[element].reshape(-1)
         physical_weights = reference_weights * jacobian
+
+        # Field error requires no derivative or inverse-Jacobian operators.
+        if target_quantity == "field":
+            gram = L.T @ (physical_weights[:, None] * L)
+            gram = 0.5 * (gram + gram.T)
+            return gram[np.ix_(zigzag_order, zigzag_order)], float(
+                np.sum(physical_weights)
+            )
+
+        Dr = self._as_numpy(self.coef.dr_xd)
+        Ds = self._as_numpy(self.coef.ds_xd)
+        Dt = self._as_numpy(self.coef.dt_xd) if self.gdim == 3 else None
 
         def geometry(name):
             if not hasattr(self.coef, name):
@@ -250,10 +266,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
 
             raise ValueError(f"Derivative direction '{direction}' is unavailable")
 
-        if derivative_direction == "gradient":
-            directions = ["x", "y"] if self.gdim == 2 else ["x", "y", "z"]
-        else:
-            directions = [derivative_direction]
+        directions = ["x", "y"] if self.gdim == 2 else ["x", "y", "z"]
 
         gram = np.zeros((L.shape[1], L.shape[1]), dtype=self.dtype)
         for direction in directions:
@@ -263,7 +276,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
             gram += K.T @ (physical_weights[:, None] * K)
 
         # Numerical roundoff can introduce a tiny asymmetry.  Enforce the exact
-        # symmetry expected by the quadratic derivative-error form.
+        # symmetry expected by the quadratic error form.
         gram = 0.5 * (gram + gram.T)
         return gram[np.ix_(zigzag_order, zigzag_order)], float(np.sum(physical_weights))
     
@@ -272,7 +285,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
         field: np.ndarray = None,
         field_name: str = "field",
         target_error: float = None,
-        derivative_direction: str = "x",
+        target_quantity: str = "gradient",
     ):
         
         self.log.write("info", f"Sampling field \"{field_name}\" with target_error={target_error}")
@@ -293,17 +306,15 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
             raise ValueError("target_error must be non-negative")
         if self.bckend != "numpy":
             raise NotImplementedError("bitplane sampling is currently implemented only for the numpy backend")
-        if derivative_direction not in {"x", "y", "z", "gradient"}:
+        if target_quantity not in {"field", "gradient"}:
             raise ValueError(
-                "derivative_direction must be 'x', 'y', 'z', or 'gradient'"
+                "target_quantity must be either 'field' or 'gradient'"
             )
-        if self.gdim == 2 and derivative_direction == "z":
-            raise ValueError("The z derivative is not available for a 2-D mesh")
 
         self.settings["compression"] = {
-            "method": "fixed_derivative_error_bitplane",
+            "method": "fixed_error_bitplane_v3",
             "target_error": target_error,
-            "derivative_direction": derivative_direction,
+            "target_quantity": target_quantity,
         }
 
         self.log.write("info", f"Sampling the field using bitplane coding. using settings: {self.settings['compression']}")
@@ -509,16 +520,16 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
     def _sample_fixed_error(self, field_hat: np.ndarray, field_name: str, settings: dict):
         """
         Allocate a separate contiguous bit prefix to every coefficient using
-        physical-derivative error as the greedy distortion measure.
+        either physical-field or physical-gradient error as the distortion.
 
         As in V2, a useful extension ends at the coefficient's next 1 bit; any
         intervening zero planes are included in its rate cost.  Bits are never
         skipped inside a coefficient.
 
-        Unlike V2, candidate benefits are coupled.  If ``G`` is the derivative
+        Candidate benefits are coupled.  If ``G`` is the selected field/gradient
         Gram matrix, ``e`` is the current coefficient-error vector, and refining
         coefficient c changes its reconstructed value by signed amount delta,
-        then the exact reduction in derivative SSE is
+        then the exact reduction in the selected SSE is
 
             benefit_c = 2 * delta * (G @ e)[c] - delta**2 * G[c, c].
 
@@ -539,7 +550,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
         """
 
         target_error = settings["compression"]["target_error"]
-        derivative_direction = settings["compression"]["derivative_direction"]
+        target_quantity = settings["compression"]["target_quantity"]
         nelv = settings["mesh_information"]["nelv"]
 
         # Flatten within each element and reorder the coefficients using the
@@ -568,21 +579,21 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
 
             # G is expressed in the same zigzag ordering as values.  With an
             # initially zero reconstruction, coefficient_error equals values.
-            derivative_gram, element_volume = self._build_derivative_gram(
+            error_gram, element_volume = self._build_error_gram(
                 element,
-                derivative_direction,
+                target_quantity,
                 zigzag_order,
             )
             element_volume = element_volume if element_volume > 0.0 else 1.0
             coefficient_error = values.astype(np.float64, copy=True)
-            gram_times_error = derivative_gram @ coefficient_error
+            gram_times_error = error_gram @ coefficient_error
             initial_sse = float(coefficient_error @ gram_times_error)
             initial_sse = max(initial_sse, 0.0)
             initial_error = np.sqrt(initial_sse / element_volume)
 
             # Before transmitting anything the decoder reconstructs all
             # coefficients as zero.  If that already meets the requested
-            # derivative RMS, this element requires no stream data.
+            # target RMS, this element requires no stream data.
             if maximum == 0.0:
                 achieved_error[element] = initial_error
                 symbols_per_element.append(np.empty(0, dtype=np.uint32))
@@ -636,34 +647,30 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
                         return new_precision, new_mag, signed_delta, cost
                 return None
 
-            # Preserve the constant Legendre mode explicitly.  Its physical
-            # derivative is zero, so a derivative-only distortion score cannot
-            # detect an error in this coefficient and would otherwise allow the
-            # element mean to drift.  The spectral zigzag always places the
-            # constant mode at coefficient index zero.
-            mean_coefficient = 0
-            mean_precision = 0
+            if target_quantity == "gradient":
+                # Preserve the constant Legendre mode explicitly for a gradient
+                # target.  Its gradient is zero, so the objective cannot detect
+                # an error in it and would otherwise allow the mean to drift.
+                # The zigzag puts this mode at coefficient index zero.
+                mean_coefficient = 0
+                mean_precision = 0
 
-            while True:
-                candidate = next_extension(mean_coefficient, mean_precision)
-                if candidate is None:
-                    break
+                while True:
+                    candidate = next_extension(mean_coefficient, mean_precision)
+                    if candidate is None:
+                        break
 
-                new_precision, new_mag, signed_delta, _ = candidate
-                precision[element, mean_coefficient] = new_precision
-                reconstructed_magnitude[mean_coefficient] = np.uint64(new_mag)
+                    new_precision, new_mag, signed_delta, _ = candidate
+                    precision[element, mean_coefficient] = new_precision
+                    reconstructed_magnitude[mean_coefficient] = np.uint64(new_mag)
 
-                coefficient_error[mean_coefficient] -= signed_delta
-                gram_times_error -= (
-                    signed_delta * derivative_gram[:, mean_coefficient]
-                )
-                mean_precision = new_precision
+                    coefficient_error[mean_coefficient] -= signed_delta
+                    gram_times_error -= signed_delta * error_gram[:, mean_coefficient]
+                    mean_precision = new_precision
 
-            # Refresh the derivative SSE after the forced constant-mode update.
-            # Mathematically it should be unchanged because the derivative of a
-            # constant is zero, but recomputing avoids relying on exact numerical
-            # cancellation in the discrete operators.
-            total_sse = float(coefficient_error @ gram_times_error)
+                # This should leave the gradient SSE unchanged mathematically,
+                # but recomputing avoids relying on exact discrete cancellation.
+                total_sse = float(coefficient_error @ gram_times_error)
 
             # Cache only the geometry-independent description of each next
             # extension.  Its benefit is deliberately recomputed every greedy
@@ -672,7 +679,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
                 next_extension(c, int(precision[element, c]))
                 for c in range(n_coeff)
             ]
-            gram_diagonal = np.diag(derivative_gram)
+            gram_diagonal = np.diag(error_gram)
 
             while total_sse > target_sse:
                 best_score = -np.inf
@@ -705,9 +712,9 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
                 precision[element, best_coefficient] = new_precision
                 reconstructed_magnitude[best_coefficient] = np.uint64(new_mag)
 
-                # Exact O(n_coeff) update of the coupled derivative-error state.
+                # Exact O(n_coeff) update of the coupled error state.
                 coefficient_error[best_coefficient] -= signed_delta
-                gram_times_error -= signed_delta * derivative_gram[:, best_coefficient]
+                gram_times_error -= signed_delta * error_gram[:, best_coefficient]
                 total_sse -= best_benefit
 
                 candidates[best_coefficient] = next_extension(
@@ -716,8 +723,8 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
                 )
 
             # Re-evaluate the quadratic form once to remove accumulated scalar
-            # update roundoff before recording the achieved derivative RMS.
-            total_sse = float(coefficient_error @ (derivative_gram @ coefficient_error))
+            # update roundoff before recording the achieved target RMS.
+            total_sse = float(coefficient_error @ (error_gram @ coefficient_error))
             achieved_error[element] = np.sqrt(max(total_sse, 0.0) / element_volume)
 
             # Construct a plane-major stream, but omit coefficients whose chosen
@@ -745,8 +752,8 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
             symbols = np.empty(0, dtype=np.uint32)
 
         stats = {
-            "bitplane_format": "adaptive_derivative_precision_rle_uint32",
-            "derivative_direction": derivative_direction,
+            "bitplane_format": "adaptive_gram_precision_rle_uint32",
+            "target_quantity": target_quantity,
             "avg_bitplanes": float(np.mean(precision)),
             "avg_achieved_error": float(np.mean(achieved_error)),
             "target_reached": bool(np.all(achieved_error <= target_error)),
@@ -957,7 +964,7 @@ class DiscreetLegendreTruncationBPAdaptiveDerivative:
 
     def reconstruct_field(self, field_name: str = None):
         data = self.uncompressed_data[field_name]
-        if self.settings["compression"]["method"] == "fixed_derivative_error_bitplane":
+        if self.settings["compression"]["method"] == "fixed_error_bitplane_v3":
             field_hat = self._decode_fixed_error(data)
         else:
             raise ValueError("Unsupported compression method")
