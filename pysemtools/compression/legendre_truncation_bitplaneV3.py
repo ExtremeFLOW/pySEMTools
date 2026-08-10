@@ -56,6 +56,13 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         self.coef = coef
         self.jac = self._build_jac(msh=msh, coef=coef)
         self.B = self._build_B(msh=msh, coef=coef)
+        self._gram_diagonal_cache = {}
+        self._element_volume_cache = {}
+        if coef is not None:
+            # Gradient compression is the primary V3 use case.  Pay the
+            # geometry-dependent cost once at construction, then reuse Gcc for
+            # every field and snapshot compressed with this object.
+            self.precompute_gram_diagonal("gradient")
 
     def _build_jac(self, msh: Mesh = None, coef: Coef = None):
         """
@@ -205,8 +212,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         self._v3_diagonal_operators = operators
         return operators
 
-    def _build_error_diagonal(self, element, target_quantity, zigzag_order):
-        """Return only ``diag(G)`` and a direct physical SSE evaluator.
+    def _build_error_diagonal(self, element, target_quantity):
+        """Build one element's ``diag(G)`` in native coefficient order.
 
         No full Gram matrix is formed.  The diagonal is accumulated as
         ``sum_q weight[q] * K[q, c]**2``.  The returned evaluator computes the
@@ -222,7 +229,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         ``W`` contains the reference quadrature weights multiplied pointwise by
         the element Jacobian determinant.  The y and z operators are analogous.
-        For ``target_quantity='gradient'``, the returned matrix is
+        For ``target_quantity='gradient'``, the returned diagonal is
 
             Ggradient = Gx + Gy (+ Gz in 3-D),
 
@@ -233,7 +240,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         corresponding to the weighted squared L2 error of the nodal field.
 
-        All inputs and outputs use spectral-zigzag coefficient order.
+        This routine is mesh preprocessing.  It never runs inside the per-field
+        allocation loop after the diagonal has been cached.
         """
         required = ["v_xd", "w_xd", "jac"]
         if target_quantity == "gradient":
@@ -256,12 +264,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         if target_quantity == "field":
             diagonal = np.einsum("q,qc,qc->c", physical_weights, L, L, optimize=True)
-
-            def evaluate(error_zigzag):
-                nodal_error = L @ error_zigzag[np.argsort(zigzag_order)]
-                return float(np.dot(physical_weights, nodal_error * nodal_error))
-
-            return diagonal[zigzag_order], float(np.sum(physical_weights)), evaluate
+            return diagonal, float(np.sum(physical_weights))
 
         def geometry(name):
             if not hasattr(self.coef, name):
@@ -300,20 +303,42 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         directions = ["x", "y"] if self.gdim == 2 else ["x", "y", "z"]
 
         diagonal = np.zeros(L.shape[1], dtype=np.float64)
-        physical_operators = []
         for direction in directions:
             K = physical_modal_operator(direction)
             diagonal += np.einsum("q,qc,qc->c", physical_weights, K, K, optimize=True)
-            physical_operators.append(K[:, zigzag_order])
+            del K
 
-        def evaluate(error_zigzag):
-            sse = 0.0
-            for K in physical_operators:
-                derivative_error = K @ error_zigzag
-                sse += float(np.dot(physical_weights, derivative_error * derivative_error))
-            return sse
+        return diagonal, float(np.sum(physical_weights))
 
-        return diagonal[zigzag_order], float(np.sum(physical_weights)), evaluate
+    def precompute_gram_diagonal(self, target_quantity="gradient"):
+        """Compute and cache element-local Gcc once for the current mesh.
+
+        The stored array has the same element-local shape as ``B``:
+        ``(nelv, lz, ly, lx)``.  It may therefore be supplied, retained and
+        reused exactly like any other mesh-dependent scalar field.
+        """
+        if target_quantity not in {"field", "gradient"}:
+            raise ValueError("target_quantity must be either 'field' or 'gradient'")
+        if target_quantity in self._gram_diagonal_cache:
+            return self._gram_diagonal_cache[target_quantity]
+
+        n_coeff = self.lz * self.ly * self.lx
+        diagonal = np.empty((self.nelv, n_coeff), dtype=np.float64)
+        volumes = np.empty(self.nelv, dtype=np.float64)
+        for element in range(self.nelv):
+            diagonal[element], volumes[element] = self._build_error_diagonal(
+                element, target_quantity
+            )
+
+        diagonal = diagonal.reshape(self.nelv, self.lz, self.ly, self.lx)
+        self._gram_diagonal_cache[target_quantity] = diagonal
+        self._element_volume_cache[target_quantity] = volumes
+        # Public aliases make the common gradient diagonal easy to inspect or
+        # pass alongside Coef.B and Coef.jac.
+        if target_quantity == "gradient":
+            self.Gcc = diagonal
+            self.Gcc_volume = volumes
+        return diagonal
     
     def sample_field(
         self,
@@ -583,8 +608,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
         The sweep minimizes ``sum_c G[c,c] * error[c]**2``.  Candidates are
         independent, so only the selected coefficient is updated in a heap.
-        The final achieved RMS is evaluated directly with the physical field or
-        derivative operators, without constructing the full Gram matrix.
+        No exact physical validation is performed.  The recorded error is the
+        diagonal estimate used by the allocator itself.
 
         ``bitplane_precision[e, c]`` records the number of MSB planes assigned
         to coefficient c of element e.  During plane-major stream construction,
@@ -611,6 +636,12 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         # Float32 has fewer useful mantissa bits, so 31 planes are ample there.
         max_planes = 31 if self.dtype == np.float32 else 63
 
+        # Gcc is mesh-dependent, not field-dependent.  Fetch the cached array
+        # once, then only index it during compression.
+        Gcc = self.precompute_gram_diagonal(target_quantity).reshape(nelv, -1)
+        Gcc = Gcc[:, zigzag_order]
+        element_volumes = self._element_volume_cache[target_quantity]
+
         symbols_per_element = []
         symbol_counts = np.zeros(nelv, dtype=np.uint32)
         exponents = np.zeros(nelv, dtype=np.int16)
@@ -622,14 +653,11 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             abs_values = np.abs(values)
             maximum = float(np.max(abs_values))
 
-            gram_diagonal, element_volume, evaluate_sse = self._build_error_diagonal(
-                element,
-                target_quantity,
-                zigzag_order,
-            )
+            gram_diagonal = Gcc[element]
+            element_volume = float(element_volumes[element])
             element_volume = element_volume if element_volume > 0.0 else 1.0
             coefficient_error = values.astype(np.float64, copy=True)
-            initial_sse = evaluate_sse(coefficient_error)
+            initial_sse = float(np.dot(gram_diagonal, coefficient_error**2))
             initial_sse = max(initial_sse, 0.0)
             initial_error = np.sqrt(initial_sse / element_volume)
 
@@ -700,14 +728,14 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 next_extension(c, int(precision[element, c]))
                 for c in range(n_coeff)
             ]
-            self._allocate_diagonal(
+            total_sse = self._allocate_diagonal(
                 coefficient_error, gram_diagonal, candidates,
                 next_extension, target_sse, precision[element],
             )
 
-            # Re-evaluate the quadratic form once to remove accumulated scalar
-            # update roundoff before recording the achieved target RMS.
-            total_sse = evaluate_sse(coefficient_error)
+            # This is deliberately only the diagonal estimate.  Exact physical
+            # validation can be performed globally after decoding, outside the
+            # codec hot path.
             achieved_error[element] = np.sqrt(max(total_sse, 0.0) / element_volume)
 
             # Construct a plane-major stream, but omit coefficients whose chosen
@@ -730,8 +758,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             "target_quantity": target_quantity,
             "allocation_mode": allocation_mode,
             "avg_bitplanes": float(np.mean(precision)),
-            "avg_achieved_error": float(np.mean(achieved_error)),
-            "target_reached": bool(np.all(achieved_error <= target_error)),
+            "avg_estimated_achieved_error": float(np.mean(achieved_error)),
+            "estimated_target_reached": bool(np.all(achieved_error <= target_error)),
         }
 
         bitplane_data = {
@@ -752,7 +780,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         The approximate SSE is ``sum(G[c,c] * error[c]**2)``.  Refining c
         cannot alter another coefficient's score, so candidates can remain in
         a heap until selected.  The caller subsequently measures the result
-        with the complete Gram quadratic form, including the omitted coupling.
+        with the same diagonal estimate; exact validation is intentionally
+        outside this codec.
         """
         total_sse = float(np.dot(gram_diagonal, coefficient_error**2))
         heap = []
