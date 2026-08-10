@@ -588,6 +588,12 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 elif data_key == "bitplane_precision":
                     shape = (nelv, lz * ly * lx)
                     array_dtype = np.uint8
+                elif data_key == "bitplane_sign_bytes":
+                    shape = (-1,)
+                    array_dtype = np.uint8
+                elif data_key == "bitplane_sign_counts":
+                    shape = (nelv,)
+                    array_dtype = np.uint32
                 else:
                     raise ValueError("Invalid data key")
 
@@ -643,7 +649,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         element_volumes = self._element_volume_cache[target_quantity]
 
         symbols_per_element = []
+        sign_bytes_per_element = []
         symbol_counts = np.zeros(nelv, dtype=np.uint32)
+        sign_counts = np.zeros(nelv, dtype=np.uint32)
         exponents = np.zeros(nelv, dtype=np.int16)
         precision = np.zeros((nelv, n_coeff), dtype=np.uint8)
         achieved_error = np.zeros(nelv, dtype=self.dtype)
@@ -667,6 +675,7 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             if maximum == 0.0:
                 achieved_error[element] = initial_error
                 symbols_per_element.append(np.empty(0, dtype=np.uint32))
+                sign_bytes_per_element.append(np.empty(0, dtype=np.uint8))
                 continue
 
             # Build a block-floating-point representation for this element.
@@ -740,21 +749,29 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
             # Construct a plane-major stream, but omit coefficients whose chosen
             # prefix has already ended.  Sign follows the first emitted 1.
-            events = self._build_bitplane_events(
+            events, sign_bits = self._build_bitplane_events(
                 magnitude, values < 0.0, precision[element], max_planes
             )
 
             encoded_symbols = self._run_length_encode_bits(events)
             symbol_counts[element] = encoded_symbols.size
             symbols_per_element.append(encoded_symbols)
+            sign_counts[element] = len(sign_bits)
+            sign_bytes_per_element.append(
+                np.packbits(np.asarray(sign_bits, dtype=np.uint8), bitorder="little")
+            )
 
         if symbols_per_element:
             symbols = np.concatenate(symbols_per_element).astype(np.uint32, copy=False)
         else:
             symbols = np.empty(0, dtype=np.uint32)
+        if sign_bytes_per_element:
+            sign_bytes = np.concatenate(sign_bytes_per_element).astype(np.uint8, copy=False)
+        else:
+            sign_bytes = np.empty(0, dtype=np.uint8)
 
         stats = {
-            "bitplane_format": "adaptive_gram_precision_rle_uint32",
+            "bitplane_format": "adaptive_gram_precision_rle_uint32_separate_packed_signs",
             "target_quantity": target_quantity,
             "allocation_mode": allocation_mode,
             "avg_bitplanes": float(np.mean(precision)),
@@ -767,6 +784,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             "bitplane_symbol_counts": symbol_counts,
             "bitplane_exponents": exponents,
             "bitplane_precision": precision,
+            "bitplane_sign_bytes": sign_bytes,
+            "bitplane_sign_counts": sign_counts,
         }
         return bitplane_data, stats
 
@@ -823,8 +842,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
 
     @staticmethod
     def _build_bitplane_events(magnitude, negative, precision, max_planes):
-        """Build the plane-major event stream with vectorized coefficient work."""
+        """Build magnitude events and separate first-significance sign bits."""
         events = []
+        sign_bits = []
         significant = np.zeros(magnitude.size, dtype=bool)
         for plane in range(int(np.max(precision, initial=0))):
             active = precision > plane
@@ -840,17 +860,9 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                 events.extend(bits.tolist())
                 continue
 
-            signs = negative[indices]
-            first_positions = np.flatnonzero(first_one)
-            chunks = []
-            start = 0
-            for position in first_positions:
-                chunks.extend(bits[start:position + 1].tolist())
-                chunks.append(int(signs[position]))
-                start = position + 1
-            chunks.extend(bits[start:].tolist())
-            events.extend(chunks)
-        return events
+            events.extend(bits.tolist())
+            sign_bits.extend(negative[indices[first_one]].astype(np.uint8).tolist())
+        return events, sign_bits
 
     @staticmethod
     def _spectral_zigzag_order(lz, ly, lx):
@@ -976,8 +988,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         Decode the adaptive per-coefficient precision stream.
 
         The precision map tells the decoder whether each coefficient appears on
-        a plane.  Significance, sign, and magnitude are otherwise reconstructed
-        from the same event grammar used by the encoder.
+        a plane. Magnitudes use the RLE stream; signs use a separate packed
+        stream in first-significance order.
         """
         n_coeff = self.lx * self.ly * self.lz
         max_planes = 31 if self.dtype == np.float32 else 63
@@ -988,7 +1000,10 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         counts = data["bitplane_symbol_counts"]
         exponents = data["bitplane_exponents"]
         precision = data["bitplane_precision"]
+        sign_bytes = data["bitplane_sign_bytes"]
+        sign_counts = data["bitplane_sign_counts"]
         symbol_offset = 0
+        sign_byte_offset = 0
 
         for element in range(self.nelv):
             # Streams from all elements live in one concatenated symbol array.
@@ -999,14 +1014,23 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
             symbol_offset += count
             element_precision = precision[element]
             number_of_planes = int(np.max(element_precision))
+            element_sign_count = int(sign_counts[element])
+            element_sign_nbytes = (element_sign_count + 7) // 8
+            packed_element_signs = sign_bytes[
+                sign_byte_offset:sign_byte_offset + element_sign_nbytes
+            ]
+            sign_byte_offset += element_sign_nbytes
+            element_signs = np.unpackbits(
+                packed_element_signs, bitorder="little"
+            )[:element_sign_count]
+            sign_offset = 0
 
             # An element that met the target as the all-zero approximation wrote
             # no events.  output was initialized to zero, so nothing is needed.
             if number_of_planes == 0:
                 continue
 
-            # Expand RLE on demand.  The significance and sign arrays are decoder
-            # state reconstructed solely from the events seen so far.
+            # Expand magnitude RLE on demand. Signs are consumed independently.
             bits = self._run_length_decode_bits(element_symbols)
             significant = np.zeros(n_coeff, dtype=bool)
             negative = np.zeros(n_coeff, dtype=bool)
@@ -1025,11 +1049,17 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
                         if bit:
                             magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                     elif bit:
-                        # A newly significant coefficient has one immediately
-                        # following sign event: 0=positive, 1=negative.
+                        # A newly significant coefficient consumes one packed
+                        # sign bit: 0=positive, 1=negative.
                         significant[coefficient] = True
                         magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
-                        negative[coefficient] = bool(next(bits))
+                        if sign_offset >= element_sign_count:
+                            raise ValueError("Separate sign stream ended early")
+                        negative[coefficient] = bool(element_signs[sign_offset])
+                        sign_offset += 1
+
+            if sign_offset != element_sign_count:
+                raise ValueError("Separate sign stream has unused sign bits")
 
             # Recover the same quantum used by the encoder and map integer
             # magnitudes back to floating point before restoring the signs.
@@ -1042,6 +1072,8 @@ class DiscreetLegendreTruncationBPAdaptiveV3:
         # RLE symbols outside every element slice.
         if symbol_offset != symbols.size:
             raise ValueError("Bitplane stream has unused symbols; metadata are inconsistent")
+        if sign_byte_offset != sign_bytes.size:
+            raise ValueError("Separate sign stream has unused bytes")
         zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
         output = np.zeros_like(output_zigzag)
         output[:, zigzag_order] = output_zigzag
