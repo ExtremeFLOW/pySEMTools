@@ -1,5 +1,7 @@
 """ Module that contains the class and methods to perform direct sampling on a field """
 
+from __future__ import annotations
+
 import random
 from mpi4py import MPI
 from ..monitoring.logger import Logger
@@ -11,7 +13,10 @@ import bz2
 import sys
 import h5py
 import os
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 import math
 import heapq
 
@@ -24,6 +29,8 @@ class DiscreetLegendreTruncationBPAdaptive:
     def __init__(self, comm: MPI.Comm = None, dtype: np.dtype = np.double,  msh: Mesh = None, filename: str = None, max_elements_to_process: int = 256, bckend: str = "numpy", coef: Coef = None):
         
         self.log = Logger(comm=comm, module_name="DirectSampler")
+        if bckend == "torch" and torch is None:
+            raise ImportError("The torch backend was requested, but PyTorch is not installed. Use bckend='numpy' or install torch.")
         
         if msh is not None:
             self.init_from_msh(msh, dtype=dtype, max_elements_to_process=max_elements_to_process)
