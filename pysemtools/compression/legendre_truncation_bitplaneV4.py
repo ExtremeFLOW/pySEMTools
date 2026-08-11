@@ -14,7 +14,7 @@ import os
 import torch
 import math
 
-class DiscreetLegendreTruncationBP:
+class DiscreetLegendreTruncationBPWeightedV4:
 
     """ 
     Class to perform direct sampling on a field in the SEM format
@@ -55,6 +55,13 @@ class DiscreetLegendreTruncationBP:
         self.coef = coef
         self.jac = self._build_jac(msh=msh, coef=coef)
         self.B = self._build_B(msh=msh, coef=coef)
+        self._gram_diagonal_cache = {}
+        self._element_volume_cache = {}
+        if coef is not None:
+            # Gradient compression is the primary V4 use case.  Pay the
+            # geometry-dependent cost once at construction, then reuse Gcc for
+            # every field and snapshot compressed with this object.
+            self.precompute_gram_diagonal("gradient")
 
     def _build_jac(self, msh: Mesh = None, coef: Coef = None):
         """
@@ -158,8 +165,204 @@ class DiscreetLegendreTruncationBP:
         self.settings = {}
         self.uncompressed_data = {}
         self.compressed_data = {}
+
+    @staticmethod
+    def _as_numpy(array):
+        """Return a NumPy view/copy of a NumPy or torch-backed coefficient array."""
+        if hasattr(array, "detach"):
+            array = array.detach().cpu().numpy()
+        return np.asarray(array)
+
+    def _prepare_diagonal_error_operators(self):
+        """Cache geometry-independent operators used by diagonal V4.
+
+        ``L`` maps modal coefficients to nodal values.  For a gradient target
+        the matrices ``Dr @ L``, ``Ds @ L`` and ``Dt @ L`` are also independent
+        of the element geometry, so computing them once avoids an expensive
+        dense matrix product for every element and physical direction.
+        """
+        if hasattr(self, "_v3_diagonal_operators"):
+            return self._v3_diagonal_operators
+
+        if self.coef is None:
+            raise ValueError("V4 weighting requires a Coef object")
+
+        required = ["v_xd", "w_xd", "jac"]
+        missing = [name for name in required if not hasattr(self.coef, name)]
+        if missing:
+            raise ValueError("Missing Coef data required by V4: " + ", ".join(missing))
+
+        L = self._as_numpy(self.coef.v_xd)
+        weight_data = self._as_numpy(self.coef.w_xd)
+        reference_weights = (
+            np.diag(weight_data) if weight_data.ndim == 2
+            else weight_data.reshape(-1)
+        )
+        operators = {"L": L, "reference_weights": reference_weights}
+
+        if hasattr(self.coef, "dr_xd") and hasattr(self.coef, "ds_xd"):
+            operators["DrL"] = self._as_numpy(self.coef.dr_xd) @ L
+            operators["DsL"] = self._as_numpy(self.coef.ds_xd) @ L
+            if self.gdim == 3:
+                if not hasattr(self.coef, "dt_xd"):
+                    raise ValueError("Missing Coef data required by V4: dt_xd")
+                operators["DtL"] = self._as_numpy(self.coef.dt_xd) @ L
+
+        self._v3_diagonal_operators = operators
+        return operators
+
+    def _build_error_diagonal(self, element, target_quantity):
+        """Build one element's ``diag(G)`` in native coefficient order.
+
+        No full Gram matrix is formed.  The diagonal is accumulated as
+        ``sum_q weight[q] * K[q, c]**2``.  The returned evaluator computes the
+        exact physical quadratic error from ``K @ coefficient_error`` and is
+        used only for final validation.
+
+        Let ``L`` map Legendre coefficients to nodal values.  For the physical
+        x derivative in three dimensions,
+
+            Ax = diag(drdx) Dr + diag(dsdx) Ds + diag(dtdx) Dt,
+            Kx = Ax L,
+            Gx = Kx.T W Kx.
+
+        ``W`` contains the reference quadrature weights multiplied pointwise by
+        the element Jacobian determinant.  The y and z operators are analogous.
+        For ``target_quantity='gradient'``, the returned diagonal is
+
+            Ggradient = Gx + Gy (+ Gz in 3-D),
+
+        corresponding to the weighted squared L2 error of the full gradient.
+        For ``target_quantity='field'``, the returned matrix is
+
+            Gfield = L.T W L,
+
+        corresponding to the weighted squared L2 error of the nodal field.
+
+        This routine is mesh preprocessing.  It never runs inside the per-field
+        allocation loop after the diagonal has been cached.
+        """
+        required = ["v_xd", "w_xd", "jac"]
+        if target_quantity == "gradient":
+            required.extend(["dr_xd", "ds_xd"])
+            if self.gdim == 3:
+                required.append("dt_xd")
+        missing = [name for name in required if not hasattr(self.coef, name)]
+        if missing:
+            raise ValueError(
+                "Missing Coef data required by V4: " + ", ".join(missing)
+                + ". Initialize Coef with store_multidimensional_operators=True."
+            )
+
+        cached = self._prepare_diagonal_error_operators()
+        L = cached["L"]
+        reference_weights = cached["reference_weights"]
+
+        jacobian = self._as_numpy(self.coef.jac)[element].reshape(-1)
+        physical_weights = reference_weights * jacobian
+
+        if target_quantity == "field":
+            diagonal = np.einsum("q,qc,qc->c", physical_weights, L, L, optimize=True)
+            return diagonal, float(np.sum(physical_weights))
+
+        def geometry(name):
+            if not hasattr(self.coef, name):
+                raise ValueError(
+                    f"Coef does not contain inverse-Jacobian factor '{name}'"
+                )
+            return self._as_numpy(getattr(self.coef, name))[element].reshape(-1)
+
+        DrL = cached["DrL"]
+        DsL = cached["DsL"]
+        DtL = cached.get("DtL")
+
+        def physical_modal_operator(direction):
+            if direction == "x":
+                operator = geometry("drdx")[:, None] * DrL
+                operator += geometry("dsdx")[:, None] * DsL
+                if self.gdim == 3:
+                    operator += geometry("dtdx")[:, None] * DtL
+                return operator
+
+            if direction == "y":
+                operator = geometry("drdy")[:, None] * DrL
+                operator += geometry("dsdy")[:, None] * DsL
+                if self.gdim == 3:
+                    operator += geometry("dtdy")[:, None] * DtL
+                return operator
+
+            if direction == "z" and self.gdim == 3:
+                operator = geometry("drdz")[:, None] * DrL
+                operator += geometry("dsdz")[:, None] * DsL
+                operator += geometry("dtdz")[:, None] * DtL
+                return operator
+
+            raise ValueError(f"Derivative direction '{direction}' is unavailable")
+
+        directions = ["x", "y"] if self.gdim == 2 else ["x", "y", "z"]
+
+        diagonal = np.zeros(L.shape[1], dtype=np.float64)
+        for direction in directions:
+            K = physical_modal_operator(direction)
+            diagonal += np.einsum("q,qc,qc->c", physical_weights, K, K, optimize=True)
+            del K
+
+        return diagonal, float(np.sum(physical_weights))
+
+    def precompute_gram_diagonal(self, target_quantity="gradient"):
+        """Compute and cache element-local Gcc once for the current mesh.
+
+        The stored array has the same element-local shape as ``B``:
+        ``(nelv, lz, ly, lx)``.  It may therefore be supplied, retained and
+        reused exactly like any other mesh-dependent scalar field.
+        """
+        if target_quantity not in {"field", "gradient"}:
+            raise ValueError("target_quantity must be either 'field' or 'gradient'")
+        if target_quantity in self._gram_diagonal_cache:
+            return self._gram_diagonal_cache[target_quantity]
+
+        n_coeff = self.lz * self.ly * self.lx
+        diagonal = np.empty((self.nelv, n_coeff), dtype=np.float64)
+        volumes = np.empty(self.nelv, dtype=np.float64)
+        for element in range(self.nelv):
+            diagonal[element], volumes[element] = self._build_error_diagonal(
+                element, target_quantity
+            )
+
+        diagonal = diagonal.reshape(self.nelv, self.lz, self.ly, self.lx)
+        self._gram_diagonal_cache[target_quantity] = diagonal
+        self._element_volume_cache[target_quantity] = volumes
+        # Public aliases make the common gradient diagonal easy to inspect or
+        # pass alongside Coef.B and Coef.jac.
+        if target_quantity == "gradient":
+            self.Gcc = diagonal
+            self.Gcc_volume = volumes
+        return diagonal
     
-    def sample_field(self, field: np.ndarray = None, field_name: str = "field", target_error: float = None):
+    def sample_field(
+        self,
+        field: np.ndarray = None,
+        field_name: str = "field",
+        target_error: float = None,
+        target_quantity: str = "gradient",
+        allocation_mode: str = "weighted_planes",
+    ):
+        """Transform and encode one field to a requested physical RMS.
+
+        Parameters
+        ----------
+        field:
+            SEM nodal values with one ``(lz, ly, lx)`` block per element.
+        field_name:
+            Name used as the key in the stored stream dictionaries.
+        target_error:
+            Requested element-local RMS tolerance.
+        target_quantity:
+            ``"field"`` targets physical field RMS; ``"gradient"`` targets
+            the RMS norm of the complete 2-D or 3-D physical gradient.
+        allocation_mode:
+            Kept as metadata. V4 supports only ``"weighted_planes"``.
+        """
         
         self.log.write("info", f"Sampling field \"{field_name}\" with target_error={target_error}")
 
@@ -179,10 +382,18 @@ class DiscreetLegendreTruncationBP:
             raise ValueError("target_error must be non-negative")
         if self.bckend != "numpy":
             raise NotImplementedError("bitplane sampling is currently implemented only for the numpy backend")
+        if target_quantity not in {"field", "gradient"}:
+            raise ValueError(
+                "target_quantity must be either 'field' or 'gradient'"
+            )
+        if allocation_mode != "weighted_planes":
+            raise ValueError("V4 supports only allocation_mode='weighted_planes'")
 
         self.settings["compression"] = {
-            "method": "fixed_error_bitplane",
+            "method": "fixed_error_bitplane_v4",
             "target_error": target_error,
+            "target_quantity": target_quantity,
+            "allocation_mode": allocation_mode,
         }
 
         self.log.write("info", f"Sampling the field using bitplane coding. using settings: {self.settings['compression']}")
@@ -202,10 +413,18 @@ class DiscreetLegendreTruncationBP:
             self.compressed_data[field] = {}
             for data in self.uncompressed_data[field].keys():
                 self.log.write("info", f"Compressing [\"{data}\"] for field [\"{field}\"]")
+                # These streams are already bit-packed. Their values are
+                # assumed to be close to random, so keep them raw. Structured
+                # significance symbols, counts, exponents and precision maps
+                # still benefit from bzip2.
+                store_raw = data in {
+                    "bitplane_sign_bytes", "bitplane_refinement_bytes"
+                }
                 if self.bckend == "numpy":
-                    self.compressed_data[field][data] = bz2.compress(self.uncompressed_data[field][data].tobytes())
+                    raw = self.uncompressed_data[field][data].tobytes()
                 elif self.bckend == "torch":
-                    self.compressed_data[field][data] = bz2.compress(self.uncompressed_data[field][data].cpu().numpy().tobytes())
+                    raw = self.uncompressed_data[field][data].cpu().numpy().tobytes()
+                self.compressed_data[field][data] = raw if store_raw else bz2.compress(raw)
 
 
     def write_compressed_samples(self, comm = None,  filename="compressed_samples.h5"):
@@ -375,8 +594,8 @@ class DiscreetLegendreTruncationBP:
                 elif data_key == "bitplane_exponents":
                     shape = (nelv,)
                     array_dtype = np.int16
-                elif data_key == "bitplane_nplanes":
-                    shape = (nelv,)
+                elif data_key == "bitplane_precision":
+                    shape = (nelv, lz * ly * lx)
                     array_dtype = np.uint8
                 elif data_key == "bitplane_sign_bytes":
                     shape = (-1,)
@@ -393,7 +612,14 @@ class DiscreetLegendreTruncationBP:
                 else:
                     raise ValueError("Invalid data key")
 
-                temp = np.frombuffer(bz2.decompress(compressed_bytes), dtype=array_dtype)
+                # Sign and refinement bits are already densely packed and are
+                # treated as approximately random. Store them verbatim rather
+                # than risking bzip2 header/block expansion.
+                if data_key in {"bitplane_sign_bytes", "bitplane_refinement_bytes"}:
+                    raw = compressed_bytes
+                else:
+                    raw = bz2.decompress(compressed_bytes)
+                temp = np.frombuffer(raw, dtype=array_dtype)
 
                 uncompressed_data[field][data_key] = temp.reshape(shape)
 
@@ -401,109 +627,40 @@ class DiscreetLegendreTruncationBP:
  
     def _sample_fixed_error(self, field_hat: np.ndarray, field_name: str, settings: dict):
         """
-        Encode each Legendre element as an embedded bitplane stream.
+        V4: sensitivity-weighted, V1-style embedded bitplane coding.
 
-        The main inspiration is Section 4.2, "Bit-plane Coding", of:
+        V3 greedily selected one coefficient extension at a time. V4 instead
+        visits complete *weighted* planes. For coefficient c, define
 
-            Ballester-Ripoll, Lindstrom and Pajarola,
-            "TTHRESH: Tensor Compression for Multidimensional Visual Data".
+            shift[c] = round(0.5 * log2(Gcc[c] / Gref)).
 
-        In particular, this implementation follows these ideas from that section:
+        Ordinary magnitude plane p is visited at weighted plane p-shift[c].
+        Consequently, a coefficient with high sensitivity enters earlier, but
+        every retained coefficient still receives one contiguous MSB prefix.
+        The encoder stops only after completing a weighted plane, just as V1
+        stops only after completing an ordinary plane.
 
-        1. Convert floating-point coefficient magnitudes to unsigned integers
-           sharing one scale.  This corresponds conceptually to Eq. (9).
-        2. Visit the integer bits plane by plane, from the most-significant plane
-           to progressively less-important planes.
-        3. Stop the embedded stream as soon as the requested error is reached.
-           This plays the role of the SSE constraint in Eq. (8), although here
-           the stopping metric is a weighted RMS error for each SEM element.
-        4. Exploit long binary runs before applying the final lossless coder.
-           The paper discusses zero-run symbols in Section 4.2 and Fig. 6.
+        Gref is the median positive Gcc in the element. It removes the arbitrary
+        units/common scale of Gcc: only relative coefficient sensitivities
+        affect scheduling. The target test remains
 
-        This is deliberately described as "TTHRESH-style", not as an exact
-        implementation of TTHRESH:
+            sum_c Gcc[c] * (c[c] - c_hat[c])**2 <= target_error**2 * volume.
 
-        * TTHRESH encodes the full HOSVD core; this code encodes every local
-          Legendre element independently.
-        * TTHRESH can stop partway through its final bitplane.  This code tests
-          the error only after completing a whole plane for one element.
-        * TTHRESH handles every bitplane as a separate binary sequence.  Within
-          that plane, it represents each sequence of k zeroes followed by a one
-          (or terminated by the end of the plane) using only the integer k.  The
-          following one is normally implicit and therefore is not stored as a
-          second symbol.  For example, the paper maps 01110001 to [1, 0, 0, 3].
-
-          This implementation instead applies ordinary binary RLE to the entire
-          event stream after all selected planes have been joined.  It stores
-          both ``run_length`` and the repeated value (zero or one).  Consequently:
-
-          - runs of ones are represented explicitly;
-          - a run can continue across the boundary between two bitplanes;
-          - sign events are mixed into the same RLE stream;
-          - the decoder does not need bitplane boundaries during RLE expansion.
-
-          This representation is simpler to understand and decode, but it is not
-          the insignificance-run representation used by TTHRESH.
-        * TTHRESH arithmetic-codes its run symbols.  This code sends the arrays
-          to bzip2 later in ``compress_samples``.
-
-        Stream grammar
-        --------------
-        For every coefficient and every encoded plane, one magnitude event is
-        written.  Its interpretation depends on decoder state:
-
-        * not significant yet: 0 means "still insignificant"; 1 means "becomes
-          significant now", and one additional sign event follows immediately;
-        * already significant: the event is the next refinement bit.
-
-        Thus, the decoder needs no separate significance map: it recreates that
-        map while consuming the events in the same order as the encoder.
-
-        The binary events are finally represented as uint32 RLE symbols using
-
-            symbol = (run_length << 1) | bit.
-
-        The least-significant symbol bit stores the repeated event value (0 or
-        1); the remaining 31 bits store its run length.  Therefore a uint32
-        symbol can represent a run of at most 2**31 - 1 events.
+        The precision map is retained for a simple, robust decoder. Unlike V3,
+        it is not the result of independent greedy choices; one weighted-plane
+        cutoff determines the whole row.
         """
 
         target_error = settings["compression"]["target_error"]
+        target_quantity = settings["compression"]["target_quantity"]
+        allocation_mode = "weighted_planes"
         nelv = settings["mesh_information"]["nelv"]
 
-        # Flatten within each element, then replace ordinary NumPy C-order by a
-        # deterministic 3-D spectral zigzag.  Coefficients are grouped in shells
-        # of equal total polynomial degree ix + iy + iz.  Therefore (0, 0, 0)
-        # comes first and the traversal moves progressively towards higher
-        # spatial frequencies.  Consecutive shells reverse direction, as in a
-        # serpentine/JPEG-style scan.
-        #
-        # The order depends only on (lz, ly, lx), so it is reproduced by the
-        # decoder and does not need to be included in the compressed data.
+        # Flatten within each element and use V1's spectral zigzag. Zigzag is a
+        # deterministic tie-break/order inside each weighted plane.
         zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
         y = field_hat.reshape(nelv, -1)[:, zigzag_order]
         n_coeff = y.shape[1]
-
-        if self.jac is None:
-            jac_flat = np.ones_like(y, dtype=self.dtype)
-        else:
-            jac_flat = self.jac.reshape(nelv, -1)[:, zigzag_order]
-
-        if self.B is None:
-            B_flat = np.ones_like(y, dtype=self.dtype)
-        else:
-            B_flat = self.B.reshape(nelv, -1)[:, zigzag_order]
-
-        # The distortion accumulated below is
-        #
-        #     error^2 = sum_i jac_i * (y_i - y_tilde_i)^2 / volume.
-        #
-        # TTHRESH can use an ordinary coefficient SSE because the HOSVD factor
-        # matrices are orthogonal (discussion surrounding Eq. (8)).  Here the
-        # Jacobian weights adapt the test to the element-wise Legendre setting,
-        # while B supplies the physical element volume used for normalization.
-        vol = np.sum(B_flat, axis=1)
-        vol = np.where(vol > 0, vol, 1.0)
 
         # The integer magnitude itself remains uint64.  This is different from
         # the RLE symbol type: a magnitude needs enough bits to expose many
@@ -511,20 +668,20 @@ class DiscreetLegendreTruncationBP:
         # Float32 has fewer useful mantissa bits, so 31 planes are ample there.
         max_planes = 31 if self.dtype == np.float32 else 63
 
-        # Element streams are encoded separately so that each element can stop
-        # at its own number of planes.  They are concatenated only after all
-        # elements have been processed; symbol_counts stores the boundaries.
+        # Gcc is constructed differently for field and gradient targets, but
+        # the weighted-plane encoder below is identical for both quantities.
+        Gcc = self.precompute_gram_diagonal(target_quantity).reshape(nelv, -1)
+        Gcc = Gcc[:, zigzag_order]
+        element_volumes = self._element_volume_cache[target_quantity]
+
         symbols_per_element = []
         sign_bytes_per_element = []
         refinement_bytes_per_element = []
         symbol_counts = np.zeros(nelv, dtype=np.uint32)
         sign_counts = np.zeros(nelv, dtype=np.uint32)
         refinement_counts = np.zeros(nelv, dtype=np.uint32)
-
-        # exponent stores the binary scale for each element; nplanes tells the
-        # decoder how many complete magnitude planes it should consume.
         exponents = np.zeros(nelv, dtype=np.int16)
-        nplanes = np.zeros(nelv, dtype=np.uint8)
+        precision = np.zeros((nelv, n_coeff), dtype=np.uint8)
         achieved_error = np.zeros(nelv, dtype=self.dtype)
 
         for element in range(nelv):
@@ -532,14 +689,18 @@ class DiscreetLegendreTruncationBP:
             abs_values = np.abs(values)
             maximum = float(np.max(abs_values))
 
+            gram_diagonal = Gcc[element]
+            element_volume = float(element_volumes[element])
+            element_volume = element_volume if element_volume > 0.0 else 1.0
+            coefficient_error = values.astype(np.float64, copy=True)
+            initial_sse = float(np.dot(gram_diagonal, coefficient_error**2))
+            initial_sse = max(initial_sse, 0.0)
+            initial_error = np.sqrt(initial_sse / element_volume)
+
             # Before transmitting anything the decoder reconstructs all
-            # coefficients as zero.  This is therefore the error of an empty
-            # stream.  If it already satisfies the target, this element requires
-            # no symbols, exponent, or planes at all.
-            initial_error = np.sqrt(
-                np.sum(jac_flat[element] * values * values) / vol[element]
-            )
-            if maximum == 0.0 or initial_error <= target_error:
+            # coefficients as zero.  If that already meets the requested
+            # target RMS, this element requires no stream data.
+            if maximum == 0.0:
                 achieved_error[element] = initial_error
                 symbols_per_element.append(np.empty(0, dtype=np.uint32))
                 sign_bytes_per_element.append(np.empty(0, dtype=np.uint8))
@@ -562,62 +723,97 @@ class DiscreetLegendreTruncationBP:
             magnitude = np.floor(abs_values / quantum).astype(np.uint64)
             exponents[element] = exponent
 
-            # significant[c] becomes True when coefficient c emits its first 1.
-            # reconstructed_magnitude contains exactly the magnitude bits the
-            # decoder would know at the current point in the stream.
-            significant = np.zeros(n_coeff, dtype=bool)
-            reconstructed_magnitude = np.zeros(n_coeff, dtype=np.uint64)
+            target_sse = float(target_error * target_error * element_volume)
 
-            for plane in range(max_planes):
-                # plane=0 visits the MSB first.  Each later plane decreases
-                # bit_position by one and adds one bit of precision.
-                bit_position = max_planes - 1 - plane
-                plane_bits = ((magnitude >> np.uint64(bit_position)) & np.uint64(1)).astype(np.uint8)
+            # Integer shifts keep the schedule discrete and decoder-friendly.
+            # Zero-sensitivity coefficients are scheduled last; for a gradient
+            # target this includes the constant mode, which is handled below.
+            positive = gram_diagonal > 0.0
+            if np.any(positive):
+                reference = float(np.median(gram_diagonal[positive]))
+                shifts = np.full(n_coeff, -max_planes, dtype=np.int16)
+                relative = gram_diagonal[positive] / reference
+                shifts[positive] = np.rint(0.5 * np.log2(relative)).astype(np.int16)
+                shifts = np.clip(shifts, -max_planes, max_planes)
+            else:
+                shifts = np.full(n_coeff, -max_planes, dtype=np.int16)
 
-                for coefficient in range(n_coeff):
-                    bit = int(plane_bits[coefficient])
+            reconstructed = np.zeros(n_coeff, dtype=np.float64)
 
-                    if significant[coefficient]:
-                        # The coefficient was discovered on an earlier plane, so
-                        # this event is a refinement bit.  A zero requires no
-                        # numerical update; a one activates this power of two.
-                        if bit:
-                            reconstructed_magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
-                    elif bit:
-                        # First 1 for this coefficient: it becomes significant.
-                        # Its sign is emitted exactly once, immediately after the
-                        # significance event.  Convention: 0=positive, 1=negative.
-                        significant[coefficient] = True
-                        reconstructed_magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
+            if target_quantity == "gradient":
+                # The constant mode has zero gradient and cannot be protected
+                # by a gradient objective. Preserve all of its available bits
+                # so compression does not change the element mean.
+                mean_magnitude = int(magnitude[0])
+                if mean_magnitude:
+                    lowest = (mean_magnitude & -mean_magnitude).bit_length() - 1
+                    precision[element, 0] = max_planes - lowest
+                    reconstructed[0] = mean_magnitude * quantum
+                    if values[0] < 0.0:
+                        reconstructed[0] *= -1.0
 
-                # Reconstruct from transmitted bits exactly as the decoder would.
-                # Testing this partial reconstruction is what makes the stream
-                # embedded: stopping after any completed plane produces a valid,
-                # progressively more accurate approximation.
-                reconstructed = reconstructed_magnitude.astype(np.float64) * quantum
-                reconstructed = np.where(values < 0.0, -reconstructed, reconstructed)
-                error = np.sqrt(
-                    np.sum(jac_flat[element] * (values - reconstructed) ** 2) / vol[element]
-                )
+            coefficient_error = values.astype(np.float64) - reconstructed
+            total_sse = float(np.dot(gram_diagonal, coefficient_error**2))
 
-                # Store the stopping point even if all available planes are
-                # eventually needed.  uint8 is enough because max_planes <= 63.
-                nplanes[element] = plane + 1
-                achieved_error[element] = error
-                if error <= target_error:
+            # Complete weighted planes are the only stopping points. At a
+            # weighted plane q, coefficient c contributes its ordinary plane
+            # p=q+shift[c], if that plane exists and was not already forced.
+            first_weighted_plane = int(np.min(-shifts))
+            last_weighted_plane = int(np.max((max_planes - 1) - shifts))
+            for weighted_plane in range(first_weighted_plane, last_weighted_plane + 1):
+                if total_sse <= target_sse:
                     break
+                for coefficient in range(n_coeff):
+                    if not positive[coefficient]:
+                        continue
+                    ordinary_plane = weighted_plane + int(shifts[coefficient])
+                    if ordinary_plane < 0 or ordinary_plane >= max_planes:
+                        continue
+                    if ordinary_plane < int(precision[element, coefficient]):
+                        continue
 
-            # Rebuild only the retained planes into three representation
-            # streams.  This does not change which planes V1 selected.
+                    # Contiguous-prefix rule: reaching plane p retains every
+                    # original coefficient bit from the MSB through p.
+                    new_precision = ordinary_plane + 1
+                    old_value = reconstructed[coefficient]
+                    retained_shift = max_planes - new_precision
+                    retained = (
+                        int(magnitude[coefficient]) >> retained_shift
+                    ) << retained_shift
+                    new_value = retained * quantum
+                    if values[coefficient] < 0.0:
+                        new_value = -new_value
+                    reconstructed[coefficient] = new_value
+                    precision[element, coefficient] = new_precision
+
+                    old_error = values[coefficient] - old_value
+                    new_error = values[coefficient] - new_value
+                    total_sse += gram_diagonal[coefficient] * (
+                        new_error * new_error - old_error * old_error
+                    )
+
+            # This is deliberately only the diagonal estimate.  Exact physical
+            # validation can be performed globally after decoding, outside the
+            # codec hot path.
+            achieved_error[element] = np.sqrt(max(total_sse, 0.0) / element_volume)
+
+            # Only first-significance decisions are run-length encoded.
+            # Refinement bits for coefficients that are already significant are
+            # expected to be much closer to 50/50, so store them densely rather
+            # than expanding short runs into uint32 symbols.  Signs remain in a
+            # third packed stream and follow first significance.
             significance_events, refinement_bits, sign_bits = self._build_bitplane_streams(
-                magnitude, values < 0.0, int(nplanes[element]), max_planes
+                magnitude, values < 0.0, precision[element], max_planes
             )
+
             encoded_symbols = self._run_length_encode_bits(significance_events)
             symbol_counts[element] = encoded_symbols.size
             symbols_per_element.append(encoded_symbols)
             refinement_counts[element] = len(refinement_bits)
             refinement_bytes_per_element.append(
-                np.packbits(np.asarray(refinement_bits, dtype=np.uint8), bitorder="little")
+                np.packbits(
+                    np.asarray(refinement_bits, dtype=np.uint8), bitorder="little"
+                )
             )
             sign_counts[element] = len(sign_bits)
             sign_bytes_per_element.append(
@@ -628,27 +824,31 @@ class DiscreetLegendreTruncationBP:
             symbols = np.concatenate(symbols_per_element).astype(np.uint32, copy=False)
         else:
             symbols = np.empty(0, dtype=np.uint32)
-        sign_bytes = (
-            np.concatenate(sign_bytes_per_element).astype(np.uint8, copy=False)
-            if sign_bytes_per_element else np.empty(0, dtype=np.uint8)
-        )
-        refinement_bytes = (
-            np.concatenate(refinement_bytes_per_element).astype(np.uint8, copy=False)
-            if refinement_bytes_per_element else np.empty(0, dtype=np.uint8)
-        )
+        if sign_bytes_per_element:
+            sign_bytes = np.concatenate(sign_bytes_per_element).astype(np.uint8, copy=False)
+        else:
+            sign_bytes = np.empty(0, dtype=np.uint8)
+        if refinement_bytes_per_element:
+            refinement_bytes = np.concatenate(refinement_bytes_per_element).astype(
+                np.uint8, copy=False
+            )
+        else:
+            refinement_bytes = np.empty(0, dtype=np.uint8)
 
         stats = {
-            "bitplane_format": "v1_rle_significance_packed_refinement_signs",
-            "avg_bitplanes": float(np.mean(nplanes)),
-            "avg_achieved_error": float(np.mean(achieved_error)),
-            "target_reached": bool(np.all(achieved_error <= target_error)),
+            "bitplane_format": "v4_weighted_planes_rle_significance_raw_refinement_signs",
+            "target_quantity": target_quantity,
+            "allocation_mode": allocation_mode,
+            "avg_bitplanes": float(np.mean(precision)),
+            "avg_estimated_achieved_error": float(np.mean(achieved_error)),
+            "estimated_target_reached": bool(np.all(achieved_error <= target_error)),
         }
 
         bitplane_data = {
             "bitplane_symbols": symbols,
             "bitplane_symbol_counts": symbol_counts,
             "bitplane_exponents": exponents,
-            "bitplane_nplanes": nplanes,
+            "bitplane_precision": precision,
             "bitplane_sign_bytes": sign_bytes,
             "bitplane_sign_counts": sign_counts,
             "bitplane_refinement_bytes": refinement_bytes,
@@ -657,25 +857,36 @@ class DiscreetLegendreTruncationBP:
         return bitplane_data, stats
 
     @staticmethod
-    def _build_bitplane_streams(magnitude, negative, number_of_planes, max_planes):
-        """Split retained V1 data into significance, refinement, and sign streams."""
+    def _build_bitplane_streams(magnitude, negative, precision, max_planes):
+        """Split significance decisions, refinement bits, and signs.
+
+        A coefficient that has not yet emitted a one contributes to the
+        significance stream.  Its first one makes it significant and emits its
+        sign.  Every later retained bit contributes to the refinement stream.
+        The decoder reproduces this state machine from the precision map, so no
+        per-bit tags are needed.
+        """
         significance_events = []
         refinement_bits = []
         sign_bits = []
         significant = np.zeros(magnitude.size, dtype=bool)
-
-        for plane in range(number_of_planes):
+        for plane in range(int(np.max(precision, initial=0))):
+            active = precision > plane
+            if not np.any(active):
+                continue
+            indices = np.flatnonzero(active)
             bit_position = max_planes - 1 - plane
-            bits = ((magnitude >> np.uint64(bit_position)) & np.uint64(1)).astype(np.uint8)
-            was_significant = significant.copy()
+            bits = ((magnitude[indices] >> np.uint64(bit_position)) & np.uint64(1)).astype(np.uint8)
+            was_significant = significant[indices]
+            if np.any(was_significant):
+                refinement_bits.extend(bits[was_significant].tolist())
 
-            refinement_bits.extend(bits[was_significant].tolist())
-            insignificant = ~was_significant
-            insignificant_bits = bits[insignificant]
+            insignificant_indices = indices[~was_significant]
+            insignificant_bits = bits[~was_significant]
             significance_events.extend(insignificant_bits.tolist())
-
-            newly_significant = np.flatnonzero(insignificant & bits.astype(bool))
-            if newly_significant.size:
+            first_one = insignificant_bits.astype(bool)
+            if np.any(first_one):
+                newly_significant = insignificant_indices[first_one]
                 significant[newly_significant] = True
                 sign_bits.extend(negative[newly_significant].astype(np.uint8).tolist())
 
@@ -686,21 +897,9 @@ class DiscreetLegendreTruncationBP:
         """
         Return C-order flat indices for a reversible 3-D spectral zigzag.
 
-        The first ordering key is total degree ``ix + iy + iz``.  This is the
-        three-dimensional counterpart of traversing the anti-diagonals of a
-        JPEG block.  Reversing alternate degree shells makes the scan
-        serpentine instead of repeatedly restarting each shell from the same
-        side.
-
-        For example, the beginning of a sufficiently large cubic element is
-        formed by the shells
-
-            degree 0: (0, 0, 0)
-            degree 1: (0, 0, 1), (0, 1, 0), (1, 0, 0)
-            degree 2: (2, 0, 0), (1, 1, 0), ..., (0, 0, 2)
-
-        Coordinates are written as ``(ix, iy, iz)`` in this explanation, while
-        the returned flat indices address arrays shaped ``(lz, ly, lx)``.
+        Coefficients are grouped by total degree ``ix + iy + iz``.  Alternate
+        degree shells are reversed to obtain a serpentine traversal.  The
+        returned indices address arrays shaped ``(lz, ly, lx)``.
         """
         shells = [[] for _ in range((lx - 1) + (ly - 1) + (lz - 1) + 1)]
         for iz in range(lz):
@@ -710,11 +909,12 @@ class DiscreetLegendreTruncationBP:
 
         order = []
         for degree, shell in enumerate(shells):
-            # C-order supplies a deterministic within-shell traversal.  Reverse
-            # odd shells so adjacent shells are scanned in opposite directions.
             if degree % 2 == 1:
                 shell.reverse()
-            order.extend(np.ravel_multi_index(coord, (lz, ly, lx)) for coord in shell)
+            order.extend(
+                np.ravel_multi_index(coord, (lz, ly, lx))
+                for coord in shell
+            )
 
         return np.asarray(order, dtype=np.intp)
 
@@ -753,11 +953,10 @@ class DiscreetLegendreTruncationBP:
             runs:       (1, 0), (3, 1), (3, 0), (1, 1)
             symbols:    2, 7, 6, 3
 
-        Here both the run length and its binary value are explicit.  Moreover,
-        the caller supplies one stream containing magnitude, sign, and refinement
-        events from all retained planes, so runs can cross plane boundaries.
-        This is easier to decode but generally creates a different symbol
-        distribution from TTHRESH.  bzip2 later compresses the uint32 symbols.
+        Here both the run length and its binary value are explicit.  The caller
+        now supplies only first-significance decisions; refinement and sign bits
+        are densely bit-packed in separate streams.  Runs may still cross plane
+        boundaries.  bzip2 later compresses the uint32 symbols.
 
         One bit of a uint32 is reserved for the event value, leaving 31 bits for
         the run.  If a future element can exceed that limit, a long run can be
@@ -813,29 +1012,21 @@ class DiscreetLegendreTruncationBP:
 
     def _decode_fixed_error(self, data):
         """
-        Decode the embedded stream back into approximate Legendre coefficients.
+        Decode the V4 weighted-plane result from its retained precision map.
 
-        This function deliberately mirrors _sample_fixed_error in reverse:
-
-        1. use symbol_counts to isolate each element's RLE stream;
-        2. expand symbols lazily into binary events;
-        3. revisit the same planes and coefficients in the same order;
-        4. rebuild significance state, signs, and integer magnitudes;
-        5. undo the shared block-floating-point scale.
-
-        The decoder does not need target_error or the original field.  The
-        stored number of planes is the complete stopping information.
+        The precision map tells the decoder whether each coefficient appears on
+        a plane. First-significance decisions use the RLE stream. Refinements
+        and signs use separate packed streams.
         """
         n_coeff = self.lx * self.ly * self.lz
         max_planes = 31 if self.dtype == np.float32 else 63
-        # output_zigzag uses the transmitted spectral order.  It is mapped back
-        # to ordinary C-order after all elements have been decoded.
+        # Decode in transmitted zigzag order, then invert that permutation.
         output_zigzag = np.zeros((self.nelv, n_coeff), dtype=self.dtype)
 
         symbols = data["bitplane_symbols"]
         counts = data["bitplane_symbol_counts"]
         exponents = data["bitplane_exponents"]
-        planes_per_element = data["bitplane_nplanes"]
+        precision = data["bitplane_precision"]
         sign_bytes = data["bitplane_sign_bytes"]
         sign_counts = data["bitplane_sign_counts"]
         refinement_bytes = data["bitplane_refinement_bytes"]
@@ -851,26 +1042,28 @@ class DiscreetLegendreTruncationBP:
             count = int(counts[element])
             element_symbols = symbols[symbol_offset:symbol_offset + count]
             symbol_offset += count
-            number_of_planes = int(planes_per_element[element])
-
+            element_precision = precision[element]
+            number_of_planes = int(np.max(element_precision))
             element_sign_count = int(sign_counts[element])
             element_sign_nbytes = (element_sign_count + 7) // 8
-            element_signs = np.unpackbits(
-                sign_bytes[sign_byte_offset:sign_byte_offset + element_sign_nbytes],
-                bitorder="little",
-            )[:element_sign_count]
+            packed_element_signs = sign_bytes[
+                sign_byte_offset:sign_byte_offset + element_sign_nbytes
+            ]
             sign_byte_offset += element_sign_nbytes
+            element_signs = np.unpackbits(
+                packed_element_signs, bitorder="little"
+            )[:element_sign_count]
             sign_offset = 0
-
             element_refinement_count = int(refinement_counts[element])
             element_refinement_nbytes = (element_refinement_count + 7) // 8
-            element_refinements = np.unpackbits(
-                refinement_bytes[
-                    refinement_byte_offset:refinement_byte_offset + element_refinement_nbytes
-                ],
-                bitorder="little",
-            )[:element_refinement_count]
+            packed_element_refinements = refinement_bytes[
+                refinement_byte_offset:
+                refinement_byte_offset + element_refinement_nbytes
+            ]
             refinement_byte_offset += element_refinement_nbytes
+            element_refinements = np.unpackbits(
+                packed_element_refinements, bitorder="little"
+            )[:element_refinement_count]
             refinement_offset = 0
 
             # An element that met the target as the all-zero approximation wrote
@@ -878,8 +1071,8 @@ class DiscreetLegendreTruncationBP:
             if number_of_planes == 0:
                 continue
 
-            # Expand RLE on demand.  The significance and sign arrays are decoder
-            # state reconstructed solely from the events seen so far.
+            # Expand significance RLE on demand. Refinements and signs are
+            # consumed independently from their packed streams.
             significance_bits = self._run_length_decode_bits(element_symbols)
             significant = np.zeros(n_coeff, dtype=bool)
             negative = np.zeros(n_coeff, dtype=bool)
@@ -888,9 +1081,8 @@ class DiscreetLegendreTruncationBP:
             for plane in range(number_of_planes):
                 bit_position = max_planes - 1 - plane
                 for coefficient in range(n_coeff):
-                    # This is either a significance event or a refinement event,
-                    # depending on whether this coefficient was significant at
-                    # the start of the current step.
+                    if plane >= int(element_precision[coefficient]):
+                        continue
                     if significant[coefficient]:
                         if refinement_offset >= element_refinement_count:
                             raise ValueError("Packed refinement stream ended early")
@@ -902,19 +1094,20 @@ class DiscreetLegendreTruncationBP:
                         try:
                             bit = next(significance_bits)
                         except StopIteration as exc:
-                            raise ValueError("Significance stream ended early") from exc
-                    if not significant[coefficient] and bit:
-                        # A newly significant coefficient has one immediately
-                        # following sign event: 0=positive, 1=negative.
+                            raise ValueError("Significance RLE stream ended early") from exc
+                        if not bit:
+                            continue
+                        # A newly significant coefficient consumes one packed
+                        # sign bit: 0=positive, 1=negative.
                         significant[coefficient] = True
                         magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
                         if sign_offset >= element_sign_count:
-                            raise ValueError("Packed sign stream ended early")
+                            raise ValueError("Separate sign stream ended early")
                         negative[coefficient] = bool(element_signs[sign_offset])
                         sign_offset += 1
 
             if sign_offset != element_sign_count:
-                raise ValueError("Packed sign stream has unused bits")
+                raise ValueError("Separate sign stream has unused sign bits")
             if refinement_offset != element_refinement_count:
                 raise ValueError("Packed refinement stream has unused bits")
             try:
@@ -922,7 +1115,7 @@ class DiscreetLegendreTruncationBP:
             except StopIteration:
                 pass
             else:
-                raise ValueError("Significance stream has unused events")
+                raise ValueError("Significance RLE stream has unused bits")
 
             # Recover the same quantum used by the encoder and map integer
             # magnitudes back to floating point before restoring the signs.
@@ -936,7 +1129,7 @@ class DiscreetLegendreTruncationBP:
         if symbol_offset != symbols.size:
             raise ValueError("Bitplane stream has unused symbols; metadata are inconsistent")
         if sign_byte_offset != sign_bytes.size:
-            raise ValueError("Packed sign stream has unused bytes")
+            raise ValueError("Separate sign stream has unused bytes")
         if refinement_byte_offset != refinement_bytes.size:
             raise ValueError("Packed refinement stream has unused bytes")
         zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
@@ -946,7 +1139,7 @@ class DiscreetLegendreTruncationBP:
 
     def reconstruct_field(self, field_name: str = None):
         data = self.uncompressed_data[field_name]
-        if self.settings["compression"]["method"] == "fixed_error_bitplane":
+        if self.settings["compression"]["method"] == "fixed_error_bitplane_v4":
             field_hat = self._decode_fixed_error(data)
         else:
             raise ValueError("Unsupported compression method")
