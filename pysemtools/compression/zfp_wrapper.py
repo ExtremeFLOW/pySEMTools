@@ -115,19 +115,62 @@ class ZFPWrapper:
         self.uncompressed_data = {}
         self.compressed_data = {}
     
-    def sample_field(self, field: np.ndarray = None, field_name: str = "field", compression_method: str = "fixed_bitrate", bitrate: float = 1/2):
+    def sample_field(
+        self,
+        field: np.ndarray = None,
+        field_name: str = "field",
+        compression_method: str = "fixed_bitrate",
+        bitrate: float = 1 / 2,
+        tolerance: float = None,
+    ):
+        """Register a field for compression using a ZFP rate or tolerance.
+
+        Parameters
+        ----------
+        field : np.ndarray
+            Field to compress.
+        field_name : str
+            Name used to store the field in the output file.
+        compression_method : {"fixed_bitrate", "fixed_tolerance"}
+            ZFP compression mode. ``fixed_bitrate`` uses ``bitrate`` and
+            ``fixed_tolerance`` uses the absolute-error ``tolerance``.
+        bitrate : float
+            Number of compressed bits per value in fixed-bitrate mode.
+        tolerance : float, optional
+            Absolute error tolerance passed to ZFP in fixed-tolerance mode.
+        """
         
         if compression_method == "fixed_bitrate":
+            if bitrate <= 0:
+                raise ValueError("bitrate must be greater than zero")
+
             self.settings["compression"] =  {"method": compression_method,
                                              "bitrate": bitrate,
                                              "n_samples" : 0,
                                              "update_noise": False}
-            
-            self.uncompressed_data[f"{field_name}"] = {}
-            self.uncompressed_data[f"{field_name}"]["field"] = np.copy(field)
+
+        elif compression_method == "fixed_tolerance":
+            if tolerance is None or tolerance <= 0:
+                raise ValueError(
+                    "A tolerance greater than zero is required for "
+                    "fixed_tolerance compression"
+                )
+
+            self.settings["compression"] = {
+                "method": compression_method,
+                "tolerance": tolerance,
+                "n_samples": 0,
+                "update_noise": False,
+            }
 
         else:
-            raise ValueError("Invalid method to sample the field")
+            raise ValueError(
+                "compression_method must be 'fixed_bitrate' or "
+                "'fixed_tolerance'"
+            )
+
+        self.uncompressed_data[f"{field_name}"] = {}
+        self.uncompressed_data[f"{field_name}"]["field"] = np.copy(field)
         
     def compress_samples(self):
         """
@@ -140,7 +183,23 @@ class ZFPWrapper:
             for data in self.uncompressed_data[field].keys():
                 self.log.write("info", f"Compressing [\"{data}\"] for field [\"{field}\"]")
                 if self.bckend == "numpy":
-                    self.compressed_data[field][data] = zfpy.compress_numpy(self.uncompressed_data[field][data], rate = self.settings["compression"]["bitrate"])
+                    compression_settings = self.settings["compression"]
+                    compression_method = compression_settings["method"]
+
+                    if compression_method == "fixed_bitrate":
+                        self.compressed_data[field][data] = zfpy.compress_numpy(
+                            self.uncompressed_data[field][data],
+                            rate=compression_settings["bitrate"],
+                        )
+                    elif compression_method == "fixed_tolerance":
+                        self.compressed_data[field][data] = zfpy.compress_numpy(
+                            self.uncompressed_data[field][data],
+                            tolerance=compression_settings["tolerance"],
+                        )
+                    else:
+                        raise ValueError(
+                            f"Unsupported compression method: {compression_method}"
+                        )
 
     def write_compressed_samples(self, comm = None,  filename="compressed_samples.h5"):
         """
