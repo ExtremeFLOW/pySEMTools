@@ -51,6 +51,10 @@ class ZFPWrapper:
 
         self.settings, self.compressed_data = self.read_compressed_samples(comm = comm, filename=filename)
 
+        self.compression_settings = self.settings.get(
+            "compression_by_field", {}
+        )
+
         self.init_common(max_elements_to_process)
 
         self.uncompressed_data = self.decompress_samples(self.settings, self.compressed_data)
@@ -79,6 +83,11 @@ class ZFPWrapper:
 
         # Create a dictionary that will hold the data after compressed
         self.compressed_data = {}
+
+        # Compression is deferred until ``compress_samples``.  Keep the
+        # settings that were selected for each field so registering another
+        # field cannot change how an earlier one is compressed.
+        self.compression_settings = {}
 
         # Initialize the common parameters
         self.init_common(max_elements_to_process)
@@ -121,6 +130,7 @@ class ZFPWrapper:
         self.settings = {}
         self.uncompressed_data = {}
         self.compressed_data = {}
+        self.compression_settings = {}
     
     def sample_field(
         self,
@@ -151,10 +161,12 @@ class ZFPWrapper:
             if bitrate <= 0:
                 raise ValueError("bitrate must be greater than zero")
 
-            self.settings["compression"] =  {"method": compression_method,
-                                             "bitrate": bitrate,
-                                             "n_samples" : 0,
-                                             "update_noise": False}
+            compression_settings = {
+                "method": compression_method,
+                "bitrate": bitrate,
+                "n_samples": 0,
+                "update_noise": False,
+            }
 
         elif compression_method == "fixed_tolerance":
             if tolerance is None or tolerance <= 0:
@@ -163,7 +175,7 @@ class ZFPWrapper:
                     "fixed_tolerance compression"
                 )
 
-            self.settings["compression"] = {
+            compression_settings = {
                 "method": compression_method,
                 "tolerance": tolerance,
                 "n_samples": 0,
@@ -175,6 +187,12 @@ class ZFPWrapper:
                 "compression_method must be 'fixed_bitrate' or "
                 "'fixed_tolerance'"
             )
+
+        self.compression_settings[field_name] = compression_settings
+        # Retain the historical global entry for files/readers that expect it,
+        # and persist the authoritative per-field entries as metadata.
+        self.settings["compression"] = compression_settings
+        self.settings["compression_by_field"] = self.compression_settings
 
         self.uncompressed_data[f"{field_name}"] = {}
         self.uncompressed_data[f"{field_name}"]["field"] = np.copy(field)
@@ -190,7 +208,9 @@ class ZFPWrapper:
             for data in self.uncompressed_data[field].keys():
                 self.log.write("info", f"Compressing [\"{data}\"] for field [\"{field}\"]")
                 if self.bckend == "numpy":
-                    compression_settings = self.settings["compression"]
+                    compression_settings = self.compression_settings.get(
+                        field, self.settings["compression"]
+                    )
                     compression_method = compression_settings["method"]
 
                     if compression_method == "fixed_bitrate":
