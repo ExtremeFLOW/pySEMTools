@@ -518,9 +518,83 @@ class Router:
         check_sendrecv_counts(self.comm, sendcounts)
 
         rank = self.comm.Get_rank()
+        sendcounts = np.asarray(sendcounts, dtype=np.int64)
         recvbuf = np.ones(sendcounts[rank], dtype=dtype) * -100
 
-        self.comm.Scatterv(sendbuf=(sendbuf, sendcounts), recvbuf=recvbuf, root=root)
+        # Chunk the data if it is too large.
+        # NOTE: even when every per-rank count is < int32_limit, Scatterv also
+        # needs displacements into the root buffer (the cumulative sums of the
+        # counts), which exceed the int32 limit as soon as the TOTAL does.
+        # This is the same condition already used in gather_in_root.
+        if np.any(sendcounts >= int32_limit) or np.sum(sendcounts) >= int32_limit:
+
+            if rank == root:
+                print("Data size is too large for a single send, using chunks")
+
+            # Initialize buffers to keep track of moved data
+            chunk_received = np.zeros_like(sendcounts)
+            chunk_sendcounts = np.zeros_like(sendcounts)
+            send_pos = np.int64(0)
+            chunk_msg = True
+
+            while chunk_msg:
+
+                # Identify the number of data that is left to send
+                chunk_sendcounts = sendcounts - chunk_received
+                # Get the cumulative sum of the sendcounts to be sent
+                sum_chunk_sendcounts = np.cumsum(chunk_sendcounts)
+
+                # As soon as one rank has too much data, only send data up to
+                # that rank (identical frontier logic to gather_in_root)
+                already_found_limit = False
+                for i in range(len(chunk_sendcounts)):
+                    if not already_found_limit:
+                        if sum_chunk_sendcounts[i] >= int32_limit:
+                            if i == 0:
+                                chunk_sendcounts[i] = int32_limit
+                            else:
+                                chunk_sendcounts[i] = (
+                                    int32_limit - sum_chunk_sendcounts[i - 1]
+                                )
+                            already_found_limit = True
+                    else:
+                        chunk_sendcounts[i] = 0
+
+                # The data sent this round is a contiguous slice of the root
+                # buffer, because the cut is a single frontier in cumulative
+                # rank order (same reason gather_in_root can append linearly)
+                if rank == root:
+                    temp_sendbuf = sendbuf[
+                        send_pos : send_pos + np.sum(chunk_sendcounts)
+                    ]
+                    send_pos = send_pos + np.sum(chunk_sendcounts)
+                else:
+                    temp_sendbuf = None
+
+                # Each rank receives into the slice of its buffer that
+                # continues from the previous iteration
+                recv_start_id = chunk_received[rank]
+                recv_end_id = recv_start_id + chunk_sendcounts[rank]
+                self.comm.Scatterv(
+                    sendbuf=(temp_sendbuf, chunk_sendcounts),
+                    recvbuf=recvbuf[recv_start_id:recv_end_id],
+                    root=root,
+                )
+
+                # Update the sendcounts that have been received
+                chunk_received = chunk_received + chunk_sendcounts
+
+                # Once everything has been moved, the process is over
+                if np.sum(chunk_received) == np.sum(sendcounts):
+                    chunk_msg = False
+                    break
+
+        # Or simply send the data
+        else:
+
+            self.comm.Scatterv(
+                sendbuf=(sendbuf, sendcounts), recvbuf=recvbuf, root=root
+            )
 
         return recvbuf
 
