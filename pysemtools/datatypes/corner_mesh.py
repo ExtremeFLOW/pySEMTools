@@ -6,7 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..io.utils import linear_distribution, allgather_records, gather_records
-from .corner_geometry import to_sem_mesh
+from .corner_mesh_geometry import to_sem_mesh
 
 __all__ = ["CornerMesh"]
 
