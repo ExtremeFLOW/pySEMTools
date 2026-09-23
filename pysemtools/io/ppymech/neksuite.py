@@ -12,6 +12,7 @@ from .parallel_io import (
     fld_file_write_metadata,
 )
 from ...monitoring.logger import Logger
+from ..utils import linear_distribution
 
 # from memory_profiler import profile
 class NekHeader:
@@ -196,12 +197,8 @@ class IoHelper:
         self.n = np.int64(0)
         self.offset_el = np.int64(0)
 
-        self.m = np.int64(0)
         self.pe_rank = np.int64(0)
         self.pe_size = np.int64(0)
-        self.l = np.int64(0)
-        self.r = np.int64(0)
-        self.ip = np.int64(0)
 
         self.tmp_sp_vector = None
         self.tmp_dp_vector = None
@@ -244,23 +241,11 @@ class IoHelper:
         -------
 
         """
-        self.m = self.glb_nelv
         self.pe_rank = np.int64(comm.Get_rank())
         self.pe_size = np.int64(comm.Get_size())
-        self.l = np.floor(np.double(self.m) / np.double(self.pe_size))
-        self.r = np.mod(self.m, self.pe_size)
-        self.ip = np.floor(
-            (
-                np.double(self.m)
-                + np.double(self.pe_size)
-                - np.double(self.pe_rank)
-                - np.double(1)
-            )
-            / np.double(self.pe_size)
-        )
-
-        self.nelv = np.int64(self.ip)
-        self.offset_el = np.int64(self.pe_rank * self.l + min(self.pe_rank, self.r))
+        nelv, offset_el = linear_distribution(self.glb_nelv, comm)
+        self.nelv = np.int64(nelv)
+        self.offset_el = np.int64(offset_el)
         self.n = self.lxyz * self.nelv
 
     def element_mapping_from_parallel_hexadata(self, comm):

@@ -10,6 +10,7 @@ from . import MeshConnectivity
 from .msh import Mesh
 from .field import Field, FieldRegistry
 from ..comm.router import Router
+from ..io.utils import linear_distribution
 from ..monitoring.logger import Logger
 
 __all__ = ['MeshPartitioner']
@@ -255,23 +256,9 @@ def load_balanced_linear_map(
     offset_el = []
     n = []
     for pe_rank in range(comm.Get_size()):
-
-        m = np.int64(glb_nelv)
-        pe_rank = np.int64(pe_rank)
-        pe_size = np.int64(comm.Get_size())
-        l = np.floor(np.double(m) / np.double(pe_size))
-        r = np.mod(m, pe_size)
-        ip = np.floor(
-            (np.double(m) + np.double(pe_size) - np.double(pe_rank) - np.double(1))
-            / np.double(pe_size)
-        )
-
-        nelv_ = np.int64(ip)
-        offset_el_ = np.int64(pe_rank * l + min(pe_rank, r))
-        n_ = lxyz * nelv
-
-        nelv.append(nelv_)
-        offset_el.append(offset_el_)
-        n.append(n_)
+        nelv_, offset_el_ = linear_distribution(glb_nelv, comm, rank=pe_rank)
+        nelv.append(np.int64(nelv_))
+        offset_el.append(np.int64(offset_el_))
+        n.append(np.int64(lxyz * nelv_))
 
     return nelv, offset_el, n

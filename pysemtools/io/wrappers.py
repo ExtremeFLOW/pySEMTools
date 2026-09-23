@@ -12,6 +12,7 @@ import numpy as np
 from mpi4py import MPI
 from ..monitoring.logger import Logger
 from .hdf.hdf5 import HDF5File
+from .utils import linear_distribution
 from .hdf.vtkhdf import VTKHDFFile
 
 def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):
@@ -40,24 +41,11 @@ def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):
             # Get the global array shape and sizes
             global_array_shape = f[key].shape
 
-            # Determine how many axis zero elements to get locally
+            # Determine how many elements of the distributed axis to get locally
             # This corresponds to a linearly load balanced partitioning
-            i_rank = comm.Get_rank()
-            m = global_array_shape[distributed_axis]
-            pe_rank = i_rank
-            pe_size = comm.Get_size()
-            ip = np.floor(
-                (
-                    np.double(m)
-                    + np.double(pe_size)
-                    - np.double(pe_rank)
-                    - np.double(1)
-                )
-                / np.double(pe_size)
+            local_axis_0_shape, offset = linear_distribution(
+                global_array_shape[distributed_axis], comm
             )
-            local_axis_0_shape = int(ip)
-            #determine the offset
-            offset = comm.scan(local_axis_0_shape) - local_axis_0_shape
 
             # Determine the local array shape
             temp = list(global_array_shape)

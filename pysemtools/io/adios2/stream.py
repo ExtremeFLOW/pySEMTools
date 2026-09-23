@@ -2,6 +2,7 @@
 other codes that have matching pair adios streams."""
 
 import numpy as np
+from ..utils import linear_distribution
 
 # Adios2 is assumed to be available
 try:
@@ -222,21 +223,7 @@ def element_mapping_load_balanced_linear(self, comm):
     :meta private:
     """
 
-    self.M = self.glb_nelv
     self.pe_rank = comm.Get_rank()
     self.pe_size = comm.Get_size()
-    self.L = np.floor(np.double(self.M) / np.double(self.pe_size))
-    self.R = np.mod(self.M, self.pe_size)
-    self.Ip = np.floor(
-        (
-            np.double(self.M)
-            + np.double(self.pe_size)
-            - np.double(self.pe_rank)
-            - np.double(1)
-        )
-        / np.double(self.pe_size)
-    )
-
-    self.nelv = int(self.Ip)
-    self.offset_el = int(self.pe_rank * self.L + min(self.pe_rank, self.R))
+    self.nelv, self.offset_el = linear_distribution(self.glb_nelv, comm)
     self.n = self.lxyz * self.nelv
