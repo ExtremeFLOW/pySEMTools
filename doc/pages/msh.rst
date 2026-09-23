@@ -29,7 +29,23 @@ See :doc:`nmsh` for the tools built on it.
     :members:
     :exclude-members: __weakref__ __dict__
 
-The straight-sided geometry of an NmshMesh at the GLL points, used by ``NmshMesh.to_sem_mesh``:
+Re2Mesh
+----
+
+Descriptions of the contents of the Re2Mesh class, the in-memory form of a NEKTON ``.re2`` mesh file: element
+corners with group ids, curved edges and boundary conditions, distributed over the ranks like Mesh.
+
+.. autoclass :: pysemtools.datatypes.re2.Re2Mesh
+    :members:
+    :exclude-members: __weakref__ __dict__
+
+Both mesh file types share the behaviour of their base class:
+
+.. autoclass :: pysemtools.datatypes.corner_mesh.CornerMesh
+    :members:
+    :exclude-members: __weakref__ __dict__
+
+The straight-sided geometry of the element corners at the GLL points, used by ``to_sem_mesh``:
 
 .. automodule :: pysemtools.datatypes.nmsh_geometry
     :members:

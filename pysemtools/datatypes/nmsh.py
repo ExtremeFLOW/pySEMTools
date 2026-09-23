@@ -6,12 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..monitoring.logger import Logger
-from ..io.utils import (
-    linear_distribution,
-    linear_owner,
-    redistribute_records,
-    allgather_records,
-)
+from ..io.utils import linear_owner, redistribute_records
 from ..io.nmsh import (
     EL_DT,
     ZONE_DT,
@@ -25,10 +20,12 @@ from ..io.nmsh import (
     validate_curves,
 )
 
+from .corner_mesh import CornerMesh
+
 __all__ = ["NmshMesh"]
 
 
-class NmshMesh:
+class NmshMesh(CornerMesh):
     """
     A Neko ``.nmsh`` mesh held in memory as its raw record arrays.
 
@@ -101,12 +98,7 @@ class NmshMesh:
         self.trailing = int(trailing)
         self.zone_index = None
         self.curve_index = None
-        if comm is None:
-            self.glb_nelv = self.nelv
-            self.offset_el = 0
-        else:
-            self.glb_nelv = int(comm.allreduce(self.nelv, op=MPI.SUM))
-            self.offset_el = int(comm.scan(self.nelv, op=MPI.SUM)) - self.nelv
+        super().__init__(self.elems.shape[0], comm)
 
     # -- construction -------------------------------------------------------
     @classmethod
@@ -203,18 +195,19 @@ class NmshMesh:
             comm.Barrier()
 
     # -- distribution -------------------------------------------------------
-    @property
-    def is_distributed(self):
-        """True if the mesh carries a communicator and holds only local records."""
-        return self.comm is not None
-
-    def gather(self):
+    def gather(self, root=None):
         """
-        Collect the whole mesh on every rank.
+        Collect the whole mesh on every rank, or on one rank.
+
+        Parameters
+        ----------
+        root : int, optional
+            If given, only this rank receives the mesh and the others get
+            None. Default is None, every rank receives it.
 
         Returns
         -------
-        NmshMesh
+        NmshMesh or None
             A replicated mesh. Elements are in file order. Zones and curves
             are restored to file order when the record positions are known
             (a mesh read with :meth:`from_file`), otherwise they are ordered
@@ -222,16 +215,17 @@ class NmshMesh:
         """
         if self.comm is None:
             return self
-        comm = self.comm
-        elems = allgather_records(comm, self.elems)
-        zones = allgather_records(comm, self.zones)
-        curves = allgather_records(comm, self.curves)
+        elems = self._gather_records(self.elems, root)
         if self.zone_index is not None:
-            zones = zones[np.argsort(allgather_records(comm, self.zone_index), kind="stable")]
+            zones = self._gather_in_file_order(self.zones, self.zone_index, root)
+        else:
+            zones = self._gather_records(self.zones, root)
         if self.curve_index is not None:
-            curves = curves[
-                np.argsort(allgather_records(comm, self.curve_index), kind="stable")
-            ]
+            curves = self._gather_in_file_order(self.curves, self.curve_index, root)
+        else:
+            curves = self._gather_records(self.curves, root)
+        if elems is None:
+            return None
         return NmshMesh(elems, zones, curves, trailing=self.trailing)
 
     def distribute(self, comm):
@@ -255,7 +249,7 @@ class NmshMesh:
         if self.comm is not None:
             return self
         glb_nelv = self.nelv
-        nelv, offset_el = linear_distribution(glb_nelv, comm)
+        nelv, offset_el = self._local_block(comm)
         size = comm.Get_size()
         rank = comm.Get_rank()
         elems = self.elems[offset_el : offset_el + nelv]
@@ -312,11 +306,6 @@ class NmshMesh:
             )
 
     # -- basic properties ---------------------------------------------------
-    @property
-    def nelv(self):
-        """Number of elements owned by this rank."""
-        return int(self.elems.shape[0])
-
     @property
     def element_ids(self):
         """Global element ids of the local elements in record order, shape (nelv,), 1-based."""
@@ -382,69 +371,3 @@ class NmshMesh:
                 "Element ids are not a permutation of 1..nelv (duplicate or missing id)"
             )
         return pos
-
-    def centroids(self):
-        """
-        Centroids of the local straight-sided elements.
-
-        Returns
-        -------
-        ndarray
-            Array of shape (nelv, 3).
-        """
-        return self.corner_coordinates.mean(axis=1)
-
-    def bounding_box(self):
-        """
-        Bounding box of the whole mesh.
-
-        Returns
-        -------
-        lo : ndarray
-            Minimum x, y, z, shape (3,).
-        hi : ndarray
-            Maximum x, y, z, shape (3,).
-        """
-        xyz = self.corner_coordinates.reshape(-1, 3)
-        if xyz.shape[0]:
-            lo, hi = xyz.min(axis=0), xyz.max(axis=0)
-        else:
-            lo, hi = np.full(3, np.inf), np.full(3, -np.inf)
-        if self.comm is not None:
-            lo = np.ascontiguousarray(lo, dtype=np.float64)
-            hi = np.ascontiguousarray(hi, dtype=np.float64)
-            self.comm.Allreduce(MPI.IN_PLACE, lo, op=MPI.MIN)
-            self.comm.Allreduce(MPI.IN_PLACE, hi, op=MPI.MAX)
-        return lo, hi
-
-    def to_sem_mesh(self, comm=None, lx=3, create_connectivity=False):
-        """
-        Build a :class:`pysemtools.datatypes.msh.Mesh` from the straight-sided geometry.
-
-        The GLL points of every element are obtained from the trilinear map
-        of its eight corners. Curve records are not applied. A distributed
-        ``NmshMesh`` gives a ``Mesh`` distributed the same way; a replicated
-        one is distributed over ``comm`` first.
-
-        Parameters
-        ----------
-        comm : MPI.Comm, optional
-            MPI communicator for the ``Mesh`` object. Default is the
-            communicator of a distributed mesh, or ``MPI.COMM_WORLD``.
-        lx : int, optional
-            Number of GLL points per direction. Default is 3.
-        create_connectivity : bool, optional
-            Passed on to the ``Mesh`` constructor. Default is False.
-
-        Returns
-        -------
-        Mesh
-            Mesh with ``x``, ``y``, ``z`` of shape (nelv, lx, lx, lx) and
-            ``elmap`` set to the global element ids.
-        """
-        from .nmsh_geometry import to_sem_mesh  # pylint: disable=import-outside-toplevel
-
-        if comm is None:
-            comm = self.comm if self.comm is not None else MPI.COMM_WORLD
-        source = self if self.comm is not None else self.distribute(comm)
-        return to_sem_mesh(source, comm, lx=lx, create_connectivity=create_connectivity)

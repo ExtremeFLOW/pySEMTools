@@ -26,8 +26,8 @@ from pysemtools.io.nmsh import (
     write_nmsh,
     iter_nmsh_elements,
 )
-from pysemtools.io.re2 import read_re2, Re2FormatError
-from pysemtools.datatypes import NmshMesh, Coef
+from pysemtools.io.re2 import read_re2, write_re2, Re2FormatError, RE2_EL_DT
+from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
 from pysemtools.datatypes.nmsh_geometry import gll_nodes, gll_coordinates, min_jacobian
 
 #==============================================================================
@@ -89,17 +89,18 @@ def test_write_read_roundtrip(tmp_path):
     nmsh = NmshMesh.from_file(fname, comm)
     assert nmsh.is_distributed and nmsh.glb_nelv == elems.shape[0]
     assert comm.allreduce(nmsh.nelv) == elems.shape[0]
-    copy = str(tmp_path / "copy.nmsh")
+    copy = comm.bcast(str(tmp_path / "copy.nmsh"), root=0)
     nmsh.write(copy, inputs=(fname,))
-    if comm.Get_size() == 1:
-        with open(fname, "rb") as f1, open(copy, "rb") as f2:
-            assert f1.read() == f2.read()
+    back = read_nmsh(copy)
+    assert np.array_equal(back.elems, elems)
+    assert np.array_equal(np.sort(back.zones.view("V36")), np.sort(zones.view("V36")))
 
     # gather restores file order, distribute goes back
     gathered = nmsh.gather()
     assert not gathered.is_distributed
     assert np.array_equal(gathered.elems, elems)
-    assert np.array_equal(gathered.zones, np.concatenate([zones[zones["t"] == 5], zones[zones["t"] == 7]]))
+    in_file_order = np.concatenate([zones[zones["t"] == 5], zones[zones["t"] == 7]])
+    assert np.array_equal(gathered.zones, in_file_order)
     again = gathered.distribute(comm)
     assert np.array_equal(again.elems, nmsh.elems)
 
@@ -197,7 +198,9 @@ def test_re2_reader(tmp_path):
     re2 = read_re2(fname)
     assert re2.nelv == 1 and re2.version == "#v002"
     assert np.array_equal(re2.xyz[0], VERTEX_IJK)
-    assert re2.bcs.shape[0] == 1 and re2.curves.shape[0] == 0
+    assert re2.bcs.shape[0] == 1
+    assert re2.curves.shape[0] == 0
+    assert re2.elems.dtype == RE2_EL_DT
 
     with open(fname, "wb") as f:
         f.write(hdr[:40])
@@ -227,3 +230,60 @@ def test_read_neko_hemi_mesh():
     re2 = read_re2("examples/data/hemi.re2")
     assert re2.nelv == 2042 and re2.version == "#v002"
     assert np.array_equal(re2.xyz, gathered.corner_coordinates)
+
+
+def test_re2_mesh(tmp_path):
+
+    # Every rank gets its own tmp_path from pytest; share the one of rank 0
+    tmp_path = comm.bcast(tmp_path, root=0)
+    fname = "examples/data/hemi.re2"
+    serial = Re2Mesh.from_file(fname)
+    assert not serial.is_distributed
+    assert serial.nelv == serial.glb_nelv == 2042
+    assert serial.curves.shape[0] == 700 and serial.bcs.shape[0] == 1232
+    assert set(serial.bc_types()) == {"O", "SYM", "W", "v"}
+    assert np.array_equal(serial.element_ids, np.arange(1, 2043))
+    serial.validate()
+
+    # Distributed read agrees with the serial one, gather restores file order
+    dist = Re2Mesh.from_file(fname, comm)
+    assert dist.is_distributed and dist.glb_nelv == 2042
+    assert comm.allreduce(dist.nelv) == 2042
+    assert np.array_equal(dist.elems, serial.elems[dist.offset_el : dist.offset_el + dist.nelv])
+    owned = (dist.bcs["e"] - 1 >= dist.offset_el) & (dist.bcs["e"] - 1 < dist.offset_el + dist.nelv)
+    assert owned.all()
+    gathered = dist.gather()
+    assert np.array_equal(gathered.elems, serial.elems)
+    assert np.array_equal(gathered.curves, serial.curves)
+    assert np.array_equal(gathered.bcs, serial.bcs)
+    on_root = dist.gather(root=0)
+    if comm.Get_rank() == 0:
+        assert np.array_equal(on_root.bcs, serial.bcs)
+    else:
+        assert on_root is None
+    again = serial.distribute(comm)
+    assert np.array_equal(again.elems, dist.elems) and np.array_equal(again.bcs, dist.bcs)
+
+    # Writing hemi back reproduces the file byte for byte (it is a #v002 file)
+    out = str(tmp_path / "hemi_copy.re2")
+    serial.write(out, inputs=(fname,), comm=comm)
+    with open(fname, "rb") as f1, open(out, "rb") as f2:
+        assert f1.read() == f2.read()
+    out_dist = str(tmp_path / "hemi_dist.re2")
+    dist.write(out_dist, inputs=(fname,))
+    back = Re2Mesh.from_file(out_dist)
+    assert np.array_equal(back.elems, serial.elems)
+    assert np.array_equal(np.sort(back.bcs.view("V64")), np.sort(serial.bcs.view("V64")))
+    with pytest.raises(ValueError):
+        write_re2(fname, serial.elems, serial.curves, serial.bcs, inputs=(fname,))
+
+    # The GLL mesh of the re2 equals the one of the nmsh written by Neko from it
+    lx = 4
+    msh_re2 = dist.to_sem_mesh(lx=lx)
+    msh_nmsh = NmshMesh.from_file("examples/data/hemi.nmsh", comm).to_sem_mesh(lx=lx)
+    assert np.allclose(msh_re2.x, msh_nmsh.x) and np.allclose(msh_re2.z, msh_nmsh.z)
+    lo, hi = dist.bounding_box()
+    assert np.all(np.isfinite(lo))
+    assert np.all(hi > lo)
+    coef = Coef(msh_re2, comm)
+    assert comm.allreduce(float(coef.B.sum())) > 0

@@ -248,3 +248,38 @@ def allgather_records(comm, records):
     )
     rec_t.Free()
     return recv
+
+
+def gather_records(comm, records, root=0):
+    """
+    Gather structured records from all ranks onto one rank, ordered by rank.
+
+    Parameters
+    ----------
+    comm : MPI.Comm
+        MPI communicator.
+    records : ndarray
+        Local structured records.
+    root : int, optional
+        Rank that receives the records. Default is 0.
+
+    Returns
+    -------
+    ndarray or None
+        The concatenated records of all ranks on ``root``, None elsewhere.
+    """
+    counts = np.array(comm.allgather(int(records.shape[0])), dtype=np.int64)
+    displs = np.concatenate(([0], np.cumsum(counts)[:-1]))
+    rec_t = record_datatype(records.dtype)
+    if comm.Get_rank() == root:
+        recv = np.empty(int(counts.sum()), dtype=records.dtype)
+        recvbuf = [recv.view(np.uint8), counts, displs, rec_t]
+    else:
+        recv, recvbuf = None, None
+    comm.Gatherv(
+        [np.ascontiguousarray(records).view(np.uint8), int(records.shape[0]), rec_t],
+        recvbuf,
+        root=root,
+    )
+    rec_t.Free()
+    return recv
