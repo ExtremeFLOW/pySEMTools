@@ -28,7 +28,7 @@ from pysemtools.io.nmsh import (
 )
 from pysemtools.io.re2 import read_re2, write_re2, Re2FormatError, RE2_EL_DT
 from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
-from pysemtools.datatypes.nmsh_geometry import gll_nodes, gll_coordinates, min_jacobian
+from pysemtools.datatypes.corner_geometry import gll_nodes, gll_coordinates, min_jacobian
 
 #==============================================================================
 

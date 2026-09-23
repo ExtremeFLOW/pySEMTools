@@ -6,6 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..io.utils import linear_distribution, allgather_records, gather_records
+from .corner_geometry import to_sem_mesh
 
 __all__ = ["CornerMesh"]
 
@@ -142,8 +143,6 @@ class CornerMesh:
             Mesh with ``x``, ``y``, ``z`` of shape (nelv, lx, lx, lx) and
             ``elmap`` set to the global element ids.
         """
-        from .nmsh_geometry import to_sem_mesh  # pylint: disable=import-outside-toplevel
-
         if comm is None:
             comm = self.comm if self.comm is not None else MPI.COMM_WORLD
         source = self if self.comm is not None else self.distribute(comm)

@@ -1,5 +1,5 @@
 """
-Geometry of the straight-sided elements described by a Neko ``.nmsh`` mesh.
+Geometry of straight-sided hexahedral elements given by their eight corners.
 
 The eight corners of an element define a trilinear map from the reference
 cube to physical space. This module evaluates that map and its Jacobian at
@@ -205,12 +205,12 @@ def facet_gll_mask(n=3):
 
 def to_sem_mesh(nmsh, comm, lx=3, create_connectivity=False):
     """
-    Build a :class:`pysemtools.datatypes.msh.Mesh` from a :class:`pysemtools.datatypes.nmsh.NmshMesh`.
+    Build a :class:`pysemtools.datatypes.msh.Mesh` from a :class:`pysemtools.datatypes.corner_mesh.CornerMesh`.
 
     Parameters
     ----------
-    nmsh : NmshMesh
-        The topological mesh.
+    nmsh : CornerMesh
+        The mesh given by its element corners (an ``NmshMesh`` or ``Re2Mesh``).
     comm : MPI.Comm
         MPI communicator for the ``Mesh`` object.
     lx : int, optional

@@ -47,7 +47,7 @@ Both mesh file types share the behaviour of their base class:
 
 The straight-sided geometry of the element corners at the GLL points, used by ``to_sem_mesh``:
 
-.. automodule :: pysemtools.datatypes.nmsh_geometry
+.. automodule :: pysemtools.datatypes.corner_geometry
     :members:
 
 MeshPartitioner
