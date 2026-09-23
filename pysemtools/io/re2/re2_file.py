@@ -75,7 +75,7 @@ def _re2_count(f, double_precision, what):
     return n
 
 
-def read_re2(path, chunk=1 << 21):
+def read_re2(path, chunk=2**21):
     """
     Read a NEKTON ``.re2`` file (versions ``#v001`` to ``#v004``, little endian, 3D).
 

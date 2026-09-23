@@ -360,7 +360,7 @@ def read_nmsh(path, comm=None):
     return _read_nmsh_distributed(path, comm)
 
 
-def iter_nmsh_elements(path, chunk=1 << 21):
+def iter_nmsh_elements(path, chunk=2**21):
     """
     Iterate over the element section of a ``.nmsh`` in chunks on one process.
 
