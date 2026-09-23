@@ -21,7 +21,8 @@ import numpy as np
 from mpi4py import MPI
 
 from ...comm.router import Router, record_datatype
-from ..utils import AtomicOutput, linear_distribution, linear_owner
+from ...comm.distribution import linear_distribution, linear_owner
+from ..utils import AtomicOutput
 
 __all__ = [
     "EL_DT",

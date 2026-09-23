@@ -5,7 +5,7 @@ import json
 import numpy as np
 from ...datatypes.msh import Mesh
 from ...datatypes.field import Field
-from ..utils import linear_distribution
+from ...comm.distribution import linear_distribution
 
 # Adios2 is assumed to be available
 try:

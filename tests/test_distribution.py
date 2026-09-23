@@ -6,7 +6,7 @@ comm = MPI.COMM_WORLD
 import numpy as np
 
 # Import relevant modules
-from pysemtools.io.utils import linear_distribution, linear_owner
+from pysemtools.comm.distribution import linear_distribution, linear_owner
 
 
 class FakeComm:

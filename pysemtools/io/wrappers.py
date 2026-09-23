@@ -12,7 +12,7 @@ import numpy as np
 from mpi4py import MPI
 from ..monitoring.logger import Logger
 from .hdf.hdf5 import HDF5File
-from .utils import linear_distribution
+from ..comm.distribution import linear_distribution
 from .hdf.vtkhdf import VTKHDFFile
 
 def partition_read_data(comm, fname: str = None, distributed_axis: int = 0):

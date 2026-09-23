@@ -12,7 +12,7 @@ from .parallel_io import (
     fld_file_write_metadata,
 )
 from ...monitoring.logger import Logger
-from ..utils import linear_distribution
+from ...comm.distribution import linear_distribution
 
 # from memory_profiler import profile
 class NekHeader:

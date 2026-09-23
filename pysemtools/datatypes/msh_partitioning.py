@@ -10,7 +10,7 @@ from . import MeshConnectivity
 from .msh import Mesh
 from .field import Field, FieldRegistry
 from ..comm.router import Router
-from ..io.utils import linear_distribution
+from ..comm.distribution import linear_distribution
 from ..monitoring.logger import Logger
 
 __all__ = ['MeshPartitioner']

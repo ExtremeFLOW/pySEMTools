@@ -6,7 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..comm.router import Router
-from ..io.utils import linear_distribution
+from ..comm.distribution import linear_distribution
 from .corner_mesh_geometry import to_sem_mesh
 
 __all__ = ["CornerMesh"]

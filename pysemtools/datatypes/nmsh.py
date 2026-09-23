@@ -6,7 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..monitoring.logger import Logger
-from ..io.utils import linear_owner
+from ..comm.distribution import linear_owner
 from ..io.nmsh import (
     EL_DT,
     ZONE_DT,

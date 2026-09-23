@@ -2,7 +2,7 @@
 other codes that have matching pair adios streams."""
 
 import numpy as np
-from ..utils import linear_distribution
+from ...comm.distribution import linear_distribution
 
 # Adios2 is assumed to be available
 try:

@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 from mpi4py import MPI
 from ...monitoring.logger import Logger
-from ..utils import linear_distribution
+from ...comm.distribution import linear_distribution
 
 class HDF5File:
     """

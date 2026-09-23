@@ -10,7 +10,7 @@ from tqdm import tqdm
 from .point_interpolator.point_interpolator_factory import get_point_interpolator
 from ..monitoring.logger import Logger
 from ..comm.router import Router
-from ..io.utils import linear_distribution
+from ..comm.distribution import linear_distribution
 from collections import Counter as collections_counter
 import threading
 import time
