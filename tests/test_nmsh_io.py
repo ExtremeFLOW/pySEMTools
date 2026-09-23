@@ -203,3 +203,27 @@ def test_re2_reader(tmp_path):
         f.write(hdr[:40])
     with pytest.raises(Re2FormatError):
         read_re2(fname)
+
+
+def test_read_neko_hemi_mesh():
+
+    # hemi.nmsh was written by Neko's own rea2nbin from hemi.re2 (both from the Neko repository)
+    fname = "examples/data/hemi.nmsh"
+    data = read_nmsh(fname)
+    assert data.glb_nelv == 2042
+    assert data.zones.shape[0] == 1232
+    assert data.curves.shape[0] == 0  # hemi has an 's' curve, so Neko treats it as non-curved
+    assert (data.zones["t"] == ZONE_LABELLED).all()
+
+    nmsh = NmshMesh.from_file(fname, comm)
+    assert nmsh.glb_nelv == 2042
+    gathered = nmsh.gather()
+    assert np.array_equal(gathered.elems, data.elems)
+    assert np.array_equal(gathered.zones, data.zones)
+    lo, hi = nmsh.bounding_box()
+    assert np.all(np.isfinite(lo)) and np.all(hi > lo)
+    assert (min_jacobian(gathered.corner_coordinates) > 0).all()
+
+    re2 = read_re2("examples/data/hemi.re2")
+    assert re2.nelv == 2042 and re2.version == "#v002"
+    assert np.array_equal(re2.xyz, gathered.corner_coordinates)
