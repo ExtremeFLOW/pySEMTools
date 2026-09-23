@@ -1,10 +1,42 @@
 "This module contains the class router"
 
 import numpy as np
+from mpi4py import MPI
 
 NoneType = type(None)
 
 int32_limit = np.int64(2 ** 31 - 1)
+
+
+def record_datatype(dtype):
+    """
+    Committed MPI datatype spanning one record of a structured numpy dtype.
+
+    mpi4py infers the MPI datatype of scalar numpy dtypes on its own, but not
+    of structured ones. Treating a record as an opaque block of bytes lets
+    structured arrays travel through the collectives and through MPI-IO with
+    counts expressed in records, which keeps them below the 32-bit limit of
+    MPI counts.
+
+    Parameters
+    ----------
+    dtype : numpy.dtype
+        The structured dtype.
+
+    Returns
+    -------
+    MPI.Datatype
+        The committed datatype. Call ``Free()`` when done.
+
+    Examples
+    --------
+    >>> rec_t = record_datatype(records.dtype)
+    >>> fh.Read_at_all(offset, [records.view(np.uint8), records.size, rec_t])
+    >>> rec_t.Free()
+    """
+    rec_t = MPI.BYTE.Create_contiguous(np.dtype(dtype).itemsize)
+    rec_t.Commit()
+    return rec_t
 
 class Router:
     """
@@ -33,6 +65,9 @@ class Router:
     The data is always flattened before sending and recieved data is always flattened.
     The user must reshape the data after recieving it.
 
+    Structured (record) dtypes are supported as well as scalar ones. Records are
+    sent as blocks of bytes, see :func:`record_datatype`, and counts are in records.
+
     Examples
     --------
     To initialize simply use the communicator
@@ -53,6 +88,50 @@ class Router:
         # Displacements for all to all communication
         self.destination_displacement = np.zeros((comm.Get_size()), dtype=np.int64)
         self.source_displacement = np.zeros((comm.Get_size()), dtype=np.int64)
+        # MPI datatypes of the structured dtypes seen so far, keyed by record size
+        self._record_types = {}
+
+    def __del__(self):
+        for rec_t in getattr(self, "_record_types", {}).values():
+            try:
+                rec_t.Free()
+            except Exception:  # pylint: disable=broad-except
+                pass
+
+    def _buffer(self, array, counts=None):
+        """
+        Message specification of an array for the buffer based collectives.
+
+        Scalar dtypes are passed as they are and mpi4py infers the MPI datatype.
+        Structured dtypes are passed as a byte view with an explicit record
+        datatype, so that the counts stay in records.
+
+        Parameters
+        ----------
+        array : ndarray or None
+            Contiguous, flattened data. None is passed through (for the ranks
+            that do not take part in a gather or scatter).
+        counts : ndarray or tuple, optional
+            Per rank counts, or a ``(counts, displacements)`` tuple, for the
+            vector collectives.
+
+        Returns
+        -------
+        object
+            The specification to pass as ``sendbuf`` or ``recvbuf``.
+        """
+        if array is None:
+            return None
+        if array.dtype.fields is None:
+            return array if counts is None else (array, counts)
+        key = array.dtype.itemsize
+        if key not in self._record_types:
+            self._record_types[key] = record_datatype(array.dtype)
+        rec_t = self._record_types[key]
+        raw = np.ascontiguousarray(array).view(np.uint8)
+        if counts is None:
+            return (raw, array.size, rec_t)
+        return (raw, counts, rec_t)
 
     def transfer_data(self, comm_pattern, **kwargs):
         """
@@ -324,8 +403,10 @@ class Router:
         # =========================
 
         self.comm.Alltoallv(
-            sendbuf=(sendbuff, (self.destination_count, self.destination_displacement)),
-            recvbuf=(recvbuff, (self.source_count, self.source_displacement)),
+            sendbuf=self._buffer(
+                sendbuff, (self.destination_count, self.destination_displacement)
+            ),
+            recvbuf=self._buffer(recvbuff, (self.source_count, self.source_displacement)),
         )
 
         # =========================
@@ -444,7 +525,11 @@ class Router:
                 send_start_id = chunk_sent[rank]
                 # and end at the sendcount of the current iteration
                 send_end_id = send_start_id + chunk_sendcounts[rank]
-                self.comm.Gatherv(sendbuf=sendbuff[send_start_id:send_end_id], recvbuf=(temp_recvbuf, chunk_sendcounts), root=root)
+                self.comm.Gatherv(
+                    sendbuf=self._buffer(sendbuff[send_start_id:send_end_id]),
+                    recvbuf=self._buffer(temp_recvbuf, chunk_sendcounts),
+                    root=root,
+                )
 
                 # In the root rank, update the recieve buffer with the data recieved this iteration
                 if rank == root:
@@ -463,7 +548,11 @@ class Router:
         # Or simply send the data
         else:
 
-            self.comm.Gatherv(sendbuf=sendbuff, recvbuf=(recvbuf, sendcounts), root=root)
+            self.comm.Gatherv(
+                sendbuf=self._buffer(sendbuff),
+                recvbuf=self._buffer(recvbuf, sendcounts),
+                root=root,
+            )
 
         return recvbuf, sendcounts
 
@@ -519,7 +608,10 @@ class Router:
 
         rank = self.comm.Get_rank()
         sendcounts = np.asarray(sendcounts, dtype=np.int64)
-        recvbuf = np.ones(sendcounts[rank], dtype=dtype) * -100
+        if np.dtype(dtype).fields is None:
+            recvbuf = np.ones(sendcounts[rank], dtype=dtype) * -100
+        else:
+            recvbuf = np.zeros(sendcounts[rank], dtype=dtype)
 
         # Chunk the data if it is too large.
         # NOTE: even when every per-rank count is < int32_limit, Scatterv also
@@ -576,8 +668,8 @@ class Router:
                 recv_start_id = chunk_received[rank]
                 recv_end_id = recv_start_id + chunk_sendcounts[rank]
                 self.comm.Scatterv(
-                    sendbuf=(temp_sendbuf, chunk_sendcounts),
-                    recvbuf=recvbuf[recv_start_id:recv_end_id],
+                    sendbuf=self._buffer(temp_sendbuf, chunk_sendcounts),
+                    recvbuf=self._buffer(recvbuf[recv_start_id:recv_end_id]),
                     root=root,
                 )
 
@@ -593,7 +685,9 @@ class Router:
         else:
 
             self.comm.Scatterv(
-                sendbuf=(sendbuf, sendcounts), recvbuf=recvbuf, root=root
+                sendbuf=self._buffer(sendbuf, sendcounts),
+                recvbuf=self._buffer(recvbuf),
+                root=root,
             )
 
         return recvbuf
@@ -645,7 +739,9 @@ class Router:
 
         recvbuf = np.empty(np.sum(sendcounts), dtype=dtype)
 
-        self.comm.Allgatherv(sendbuf=data, recvbuf=(recvbuf, sendcounts))
+        self.comm.Allgatherv(
+            sendbuf=self._buffer(data), recvbuf=self._buffer(recvbuf, sendcounts)
+        )
 
         return recvbuf, sendcounts
 

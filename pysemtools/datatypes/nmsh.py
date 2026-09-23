@@ -6,7 +6,7 @@ import numpy as np
 from mpi4py import MPI
 
 from ..monitoring.logger import Logger
-from ..io.utils import linear_owner, redistribute_records
+from ..io.utils import linear_owner
 from ..io.nmsh import (
     EL_DT,
     ZONE_DT,
@@ -297,7 +297,7 @@ class NmshMesh(CornerMesh):
         if bad:
             raise NmshFormatError(f"Element id out of [1,{self.glb_nelv}]")
         owner = linear_owner(ids - 1, self.glb_nelv, comm.Get_size())
-        received, _ = redistribute_records(comm, ids, owner)
+        received = self._route_to_owner(ids, owner)
         expected = np.arange(self.offset_el + 1, self.offset_el + self.nelv + 1)
         ok = received.size == expected.size and np.array_equal(np.sort(received), expected)
         if not int(comm.allreduce(int(ok), op=MPI.MIN)):

@@ -20,13 +20,8 @@ import os
 import numpy as np
 from mpi4py import MPI
 
-from ..utils import (
-    AtomicOutput,
-    linear_distribution,
-    linear_owner,
-    record_datatype,
-    redistribute_records,
-)
+from ...comm.router import Router, record_datatype
+from ..utils import AtomicOutput, linear_distribution, linear_owner
 
 __all__ = [
     "EL_DT",
@@ -235,6 +230,26 @@ def _read_nmsh_serial(path):
     return NmshData(elems, zones, curves, nelv, 0, trailing=trailing)
 
 
+def _route_to_owner(comm, records, owner):
+    """
+    Send every record to the rank in ``owner`` and return what this rank receives.
+
+    The received records are ordered by source rank and, within a source, in
+    the order they were sent, so a companion array routed with the same
+    ``owner`` stays aligned.
+    """
+    rt = Router(comm)
+    destinations = list(range(comm.Get_size()))
+    _, chunks = rt.all_to_all(
+        destination=destinations,
+        data=[records[owner == r] for r in destinations],
+        dtype=records.dtype,
+    )
+    if len(chunks) == 0:
+        return np.empty(0, dtype=records.dtype)
+    return np.concatenate(chunks)
+
+
 def _read_section_distributed(fh, offset, count, dtype, glb_nelv, comm, path, what):
     """
     Read a record section collectively and hand each record to the owner of its element.
@@ -257,8 +272,8 @@ def _read_section_distributed(fh, offset, count, dtype, glb_nelv, comm, path, wh
         )
     owner = linear_owner(e - 1, glb_nelv, comm.Get_size())
     index = np.arange(start, start + n, dtype=np.int64)
-    records, order = redistribute_records(comm, block, owner)
-    index, _ = redistribute_records(comm, index[order], owner[order])
+    records = _route_to_owner(comm, block, owner)
+    index = _route_to_owner(comm, index, owner)
     return records, index
 
 

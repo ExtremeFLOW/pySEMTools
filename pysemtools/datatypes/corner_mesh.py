@@ -5,7 +5,8 @@ Contains the base class of the mesh file data types, meshes stored as element co
 import numpy as np
 from mpi4py import MPI
 
-from ..io.utils import linear_distribution, allgather_records, gather_records
+from ..comm.router import Router
+from ..io.utils import linear_distribution
 from .corner_mesh_geometry import to_sem_mesh
 
 __all__ = ["CornerMesh"]
@@ -39,6 +40,8 @@ class CornerMesh:
     ----------
     comm : MPI.Comm or None
         The communicator, None for a replicated mesh.
+    rt : Router or None
+        The router used to move records between ranks, None for a replicated mesh.
     glb_nelv : int
         Global number of elements.
     offset_el : int
@@ -47,10 +50,12 @@ class CornerMesh:
 
     def __init__(self, nelv, comm=None):
         self.comm = comm
+        self.rt = None
         if comm is None:
             self.glb_nelv = int(nelv)
             self.offset_el = 0
         else:
+            self.rt = Router(comm)
             self.glb_nelv = int(comm.allreduce(int(nelv), op=MPI.SUM))
             self.offset_el = int(comm.scan(int(nelv), op=MPI.SUM)) - int(nelv)
 
@@ -156,8 +161,22 @@ class CornerMesh:
     def _gather_records(self, records, root=None):
         """Gather local records to all ranks (``root`` None) or to ``root``."""
         if root is None:
-            return allgather_records(self.comm, records)
-        return gather_records(self.comm, records, root=root)
+            gathered, _ = self.rt.all_gather(data=records, dtype=records.dtype)
+        else:
+            gathered, _ = self.rt.gather_in_root(data=records, root=root, dtype=records.dtype)
+        return gathered
+
+    def _route_to_owner(self, records, owner):
+        """Send every record to the rank in ``owner``; the result is ordered by source rank."""
+        destinations = list(range(self.comm.Get_size()))
+        _, chunks = self.rt.all_to_all(
+            destination=destinations,
+            data=[records[owner == r] for r in destinations],
+            dtype=records.dtype,
+        )
+        if len(chunks) == 0:
+            return np.empty(0, dtype=records.dtype)
+        return np.concatenate(chunks)
 
     def _gather_in_file_order(self, records, index, root=None):
         """Gather records and restore their file order from their global record positions."""
