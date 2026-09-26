@@ -126,9 +126,9 @@ class Re2Mesh(CornerMesh):
         log.toc()
         return mesh
 
-    def write(self, path, inputs=(), comm=None, log_level=None):
+    def write(self, path, comm=None, log_level=None):
         """
-        Write the mesh to a ``.re2`` file (version ``#v002``) atomically.
+        Write the mesh to a ``.re2`` file (version ``#v002``).
 
         A distributed mesh is written collectively, every rank writing its own
         block of elements. A replicated mesh is written by the calling
@@ -138,8 +138,6 @@ class Re2Mesh(CornerMesh):
         ----------
         path : str
             Destination path.
-        inputs : sequence of str, optional
-            Input files that must not be overwritten.
         comm : MPI.Comm, optional
             For a replicated mesh, the communicator whose rank 0 writes the
             file; the other ranks wait at a barrier. Ignored for a
@@ -150,12 +148,12 @@ class Re2Mesh(CornerMesh):
         if self.comm is not None:
             log = Logger(comm=self.comm, module_name="Re2Mesh", level=log_level)
             log.write("info", f"Writing mesh file: {path}")
-            write_re2(path, self.elems, self.curves, self.bcs, inputs=inputs, comm=self.comm)
+            write_re2(path, self.elems, self.curves, self.bcs, comm=self.comm)
             return
         log = Logger(comm=comm or MPI.COMM_WORLD, module_name="Re2Mesh", level=log_level)
         log.write("info", f"Writing mesh file: {path}")
         if comm is None or comm.Get_rank() == 0:
-            write_re2(path, self.elems, self.curves, self.bcs, inputs=inputs)
+            write_re2(path, self.elems, self.curves, self.bcs)
         if comm is not None:
             comm.Barrier()
 

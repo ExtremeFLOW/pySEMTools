@@ -26,7 +26,7 @@ from pysemtools.io.nmsh import (
     write_nmsh,
     iter_nmsh_elements,
 )
-from pysemtools.io.re2 import read_re2, write_re2, Re2FormatError, RE2_EL_DT
+from pysemtools.io.re2 import read_re2, Re2FormatError, RE2_EL_DT
 from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
 from pysemtools.datatypes.corner_mesh_geometry import gll_nodes, gll_coordinates, min_jacobian
 
@@ -90,7 +90,7 @@ def test_write_read_roundtrip(tmp_path):
     assert nmsh.is_distributed and nmsh.glb_nelv == elems.shape[0]
     assert comm.allreduce(nmsh.nelv) == elems.shape[0]
     copy = comm.bcast(str(tmp_path / "copy.nmsh"), root=0)
-    nmsh.write(copy, inputs=(fname,))
+    nmsh.write(copy)
     back = read_nmsh(copy)
     assert np.array_equal(back.elems, elems)
     assert np.array_equal(np.sort(back.zones.view("V36")), np.sort(zones.view("V36")))
@@ -150,9 +150,6 @@ def test_validation_errors(tmp_path):
         f.write(payload[: len(payload) // 2])
     with pytest.raises(NmshFormatError):
         read_nmsh(truncated)
-
-    with pytest.raises(ValueError):
-        write_nmsh(fname, elems, (zones,), curves, inputs=(fname,))
 
 
 def test_geometry_and_sem_mesh():
@@ -266,16 +263,14 @@ def test_re2_mesh(tmp_path):
 
     # Writing hemi back reproduces the file byte for byte (it is a #v002 file)
     out = str(tmp_path / "hemi_copy.re2")
-    serial.write(out, inputs=(fname,), comm=comm)
+    serial.write(out, comm=comm)
     with open(fname, "rb") as f1, open(out, "rb") as f2:
         assert f1.read() == f2.read()
     out_dist = str(tmp_path / "hemi_dist.re2")
-    dist.write(out_dist, inputs=(fname,))
+    dist.write(out_dist)
     back = Re2Mesh.from_file(out_dist)
     assert np.array_equal(back.elems, serial.elems)
     assert np.array_equal(np.sort(back.bcs.view("V64")), np.sort(serial.bcs.view("V64")))
-    with pytest.raises(ValueError):
-        write_re2(fname, serial.elems, serial.curves, serial.bcs, inputs=(fname,))
 
     # The GLL mesh of the re2 equals the one of the nmsh written by Neko from it
     lx = 4

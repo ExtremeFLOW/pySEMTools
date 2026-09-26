@@ -22,7 +22,6 @@ from mpi4py import MPI
 
 from ...comm.router import Router, record_datatype
 from ...comm.distribution import linear_distribution, linear_owner
-from ..utils import AtomicOutput
 
 __all__ = [
     "EL_DT",
@@ -433,9 +432,9 @@ def _write_block_collective(fh, offset, records, comm):
     return offset + int(counts.sum()) * records.dtype.itemsize
 
 
-def write_nmsh(path, elems, zone_arrays, curves, inputs=(), comm=None):
+def write_nmsh(path, elems, zone_arrays, curves, comm=None):
     """
-    Write a ``.nmsh`` file atomically.
+    Write a ``.nmsh`` file.
 
     Parameters
     ----------
@@ -450,15 +449,13 @@ def write_nmsh(path, elems, zone_arrays, curves, inputs=(), comm=None):
         communicator every array is written as one section ordered by rank.
     curves : ndarray
         Curve records of dtype :data:`CURVE_DT`.
-    inputs : sequence of str, optional
-        Input files that must not be overwritten.
     comm : MPI.Comm, optional
         Communicator for a collective write. Default is a serial write by
         the calling process.
     """
     if comm is None:
         nzones = sum(int(z.shape[0]) for z in zone_arrays)
-        with AtomicOutput(path, inputs) as f:
+        with open(path, "wb") as f:
             np.array([elems.shape[0], 3], dtype="<i4").tofile(f)
             np.ascontiguousarray(elems, dtype=EL_DT).tofile(f)
             np.array([nzones], dtype="<i4").tofile(f)
@@ -472,7 +469,9 @@ def write_nmsh(path, elems, zone_arrays, curves, inputs=(), comm=None):
     nzones = comm.allreduce(sum(int(z.shape[0]) for z in zone_arrays), op=MPI.SUM)
     ncurves = comm.allreduce(int(curves.shape[0]), op=MPI.SUM)
     root = comm.Get_rank() == 0
-    with AtomicOutput(path, inputs, comm=comm) as fh:
+    fh = MPI.File.Open(comm, path, MPI.MODE_WRONLY | MPI.MODE_CREATE)
+    try:
+        fh.Set_size(0)
         if root:
             fh.Write_at(0, np.array([glb_nelv, 3], dtype="<i4"))
         offset = _write_block_collective(fh, HEADER_BYTES, elems, comm)
@@ -485,6 +484,8 @@ def write_nmsh(path, elems, zone_arrays, curves, inputs=(), comm=None):
             fh.Write_at(offset, np.array([ncurves], dtype="<i4"))
         offset += COUNT_BYTES
         _write_block_collective(fh, offset, curves, comm)
+    finally:
+        fh.Close()
 
 
 def validate_zones(nelv, zones, path=""):

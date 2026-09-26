@@ -21,7 +21,6 @@ from mpi4py import MPI
 
 from ...comm.router import Router, record_datatype
 from ...comm.distribution import linear_distribution, linear_owner
-from ..utils import AtomicOutput
 
 __all__ = [
     "RE2_EL_DT",
@@ -411,9 +410,9 @@ def _write_block_collective(fh, offset, records, comm):
     return offset + int(counts.sum()) * records.dtype.itemsize
 
 
-def write_re2(path, elems, curves, bcs, inputs=(), comm=None):
+def write_re2(path, elems, curves, bcs, comm=None):
     """
-    Write a ``.re2`` file (version ``#v002``, double precision) atomically.
+    Write a ``.re2`` file (version ``#v002``, double precision).
 
     Parameters
     ----------
@@ -426,8 +425,6 @@ def write_re2(path, elems, curves, bcs, inputs=(), comm=None):
         Curve records of dtype :data:`RE2_CURVE_DT`.
     bcs : ndarray
         Boundary condition records of dtype :data:`RE2_BC_DT`.
-    inputs : sequence of str, optional
-        Input files that must not be overwritten.
     comm : MPI.Comm, optional
         Communicator for a collective write. Default is a serial write by
         the calling process.
@@ -437,7 +434,7 @@ def write_re2(path, elems, curves, bcs, inputs=(), comm=None):
     bcs = np.ascontiguousarray(bcs, dtype=RE2_BC_DT)
     tag = np.array([RE2_ENDIAN_TEST], dtype="<f4")
     if comm is None:
-        with AtomicOutput(path, inputs) as f:
+        with open(path, "wb") as f:
             f.write(_header(elems.shape[0]))
             tag.tofile(f)
             elems.tofile(f)
@@ -451,7 +448,9 @@ def write_re2(path, elems, curves, bcs, inputs=(), comm=None):
     ncurves = comm.allreduce(int(curves.shape[0]), op=MPI.SUM)
     nbcs = comm.allreduce(int(bcs.shape[0]), op=MPI.SUM)
     root = comm.Get_rank() == 0
-    with AtomicOutput(path, inputs, comm=comm) as fh:
+    fh = MPI.File.Open(comm, path, MPI.MODE_WRONLY | MPI.MODE_CREATE)
+    try:
+        fh.Set_size(0)
         if root:
             fh.Write_at(0, np.frombuffer(_header(glb_nelv), dtype=np.uint8))
             fh.Write_at(HEADER_BYTES, tag)
@@ -462,6 +461,8 @@ def write_re2(path, elems, curves, bcs, inputs=(), comm=None):
         if root:
             fh.Write_at(offset, np.array([nbcs], dtype="<f8"))
         _write_block_collective(fh, offset + 8, bcs, comm)
+    finally:
+        fh.Close()
 
 
 def bc_type_str(raw):
