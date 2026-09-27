@@ -27,6 +27,8 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
                                 find_points_max_iter: int = 50,
                                 local_data_structure: str = "kdtree",
                                 use_oriented_bbox: bool = False, 
+                                find_points_test_tol: float = 1e-4,
+                                find_points_rst_tol: float = np.finfo(np.single).eps,
                                 ) -> None:
     """
     Interpolates fields from disk using the probes object.
@@ -76,6 +78,10 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
         The tolerance for finding points, by default np.finfo(np.double).eps * 10
     find_points_max_iter : int, optional
         The maximum number of iterations for finding points, by default 50 
+    find_points_test_tol : float, optional
+        Tolerance of the test pattern used to accept points not strictly inside an element, by default 1e-4. See Probes.
+    find_points_rst_tol : float, optional
+        Slack allowed outside the reference element to consider a point found, by default np.finfo(np.single).eps. See Probes.
     """
 
     # Initialize the probes object given the inputs
@@ -96,6 +102,8 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
         find_points_max_iter = find_points_max_iter,
         local_data_structure = local_data_structure,
         use_oriented_bbox= use_oriented_bbox,
+        find_points_test_tol = find_points_test_tol,
+        find_points_rst_tol = find_points_rst_tol,
     )
 
     # Prepare a list with the inputs

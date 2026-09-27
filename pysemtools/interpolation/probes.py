@@ -76,7 +76,10 @@ class Probes:
     use_autograd : bool
         If True, autograd is used. Default is False.
     find_points_tol : float
-        The tolerance to use when finding points. Default is np.finfo(np.double).eps * 10.
+        Convergence tolerance of the Newton iteration that finds the rst coordinates of
+        a point: the iteration stops when the norm of x(rst) - x_probe, in physical
+        length units, is below it. Default is np.finfo(np.double).eps * 10. It is raised
+        to twice the machine epsilon of the mesh dtype if it is smaller than that.
     find_points_max_iter : int
         The maximum number of iterations to use when finding points. Default is
         50.
@@ -88,6 +91,36 @@ class Probes:
     clean_search_traces : bool
         If True, cleans all the data used for searching points after initialization.
         This saves memory if only interpolation is needed afterwards. Default is False.
+    find_points_test_tol : float
+        Tolerance for the test pattern used to accept points that are not found strictly
+        inside any element, for example points in the tiny gaps between elements of a
+        mesh stored in single precision, or points a fraction of an element outside the
+        domain. For such points, the candidate element in which the interpolation of the
+        test field x**2 + y**2 + z**2 best matches its exact value is kept and the error,
+        normalized by max(1, x**2 + y**2 + z**2) at the probe, is stored in test_pattern.
+        The test field is evaluated in double precision for any mesh dtype. Points with
+        an error above this tolerance are marked as not found (error code 0) and
+        interpolate to 0. Points below it get error code -10 and are interpolated
+        normally. Points with error code 0 and -10 are both listed in the warning file.
+        Default is 1e-4. Note that test_pattern is a diagnostic of the consistency of
+        the geometry mapping at the rst coordinates found, not a measure of the distance
+        of the point to the element: how far outside an element a point can be and still
+        be accepted is bounded by elem_percent_expansion, which decides the candidate
+        elements.
+    find_points_rst_tol : float
+        Slack allowed outside of the reference element when deciding that a point has
+        been found in an element (error code 1): a point is inside if
+        max(|r|, |s|, |t|) <= 1 + find_points_rst_tol. Default is np.finfo(np.single).eps.
+        For meshes stored in single precision, neighbouring elements may not share
+        exactly the same face nodes and points on shared faces may fall in the gaps
+        between elements. A slack of the order of the size of the gaps divided by the
+        element size, i.e. roughly the machine epsilon of the mesh dtype times the
+        magnitude of the coordinates divided by the element size (for example 1e-4 for a
+        single precision mesh with coordinates ~3e3 and elements ~5), makes such points
+        be found normally instead of relying on the test pattern. Within the slack band
+        around a shared face the owner is the first candidate element checked, and
+        points that far outside the domain are accepted with error code 1 and do not
+        appear in the warning file. A warning is logged if the value exceeds 1e-2.
 
     Attributes
     ----------
@@ -149,6 +182,8 @@ class Probes:
         local_data_structure: str = "kdtree",
         use_oriented_bbox: bool = False,
         clean_search_traces: bool = False,
+        find_points_test_tol: float = 1e-4,
+        find_points_rst_tol: float = np.finfo(np.single).eps,
     ):
 
         rank = comm.Get_rank()
@@ -170,9 +205,27 @@ class Probes:
         self.log.write("debug", f"use_autograd: {use_autograd}")
         self.log.write("debug", f"find_points_tol: {find_points_tol}")
         self.log.write("debug", f"find_points_max_iter: {find_points_max_iter}")
+        self.log.write("debug", f"find_points_test_tol: {find_points_test_tol}")
+        self.log.write("debug", f"find_points_rst_tol: {find_points_rst_tol}")
         self.log.write("debug", f"local_data_structure: {local_data_structure}")
         self.log.write("debug", f"use_oriented_bbox: {use_oriented_bbox}")
         self.log.write("debug", f" ========================")
+
+        # Sanity checks on the tolerances
+        if find_points_rst_tol > 1e-2:
+            self.log.write(
+                "warning",
+                f"find_points_rst_tol = {find_points_rst_tol} allows points to be found "
+                "up to a percent of an element outside of it. Points slightly outside of "
+                "the domain will be extrapolated without warning",
+            )
+        if find_points_test_tol >= 1:
+            self.log.write(
+                "warning",
+                f"find_points_test_tol = {find_points_test_tol} is not smaller than the "
+                "initial value of the test pattern. Points without candidate elements "
+                "will not be marked as not found",
+            )
 
         # Check for errors
         if clean_search_traces and point_interpolator_type != "multiple_point_legendre_numpy":
@@ -297,6 +350,8 @@ class Probes:
             elem_percent_expansion=elem_percent_expansion,
             tol=find_points_tol,
             max_iter=find_points_max_iter,
+            test_tol=find_points_test_tol,
+            rst_tol=find_points_rst_tol,
             local_data_structure=local_data_structure,
             use_oriented_bbox=use_oriented_bbox
         )
