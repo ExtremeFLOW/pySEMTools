@@ -5,6 +5,7 @@ import h5py
 import numpy as np
 from mpi4py import MPI
 from ...monitoring.logger import Logger
+from ...comm.distribution import linear_distribution
 
 class HDF5File:
     """
@@ -245,23 +246,10 @@ class HDF5File:
             Whether to use explicit strides to read the data. This is useful if the data is stored
             as 1D in the file but originally had a different shape.
         """
-        # Perform a load balanced distribution
-        i_rank = self.comm.Get_rank()
-        m = global_shape[distributed_axis]
-        pe_rank = i_rank
-        pe_size = self.comm.Get_size()
-        ip = np.floor(
-            (
-                np.double(m)
-                + np.double(pe_size)
-                - np.double(pe_rank)
-                - np.double(1)
-            )
-            / np.double(pe_size)
+        # Perform a load balanced linear distribution along the distributed axis
+        local_distributed_axis_shape, offset = linear_distribution(
+            global_shape[distributed_axis], self.comm
         )
-        local_distributed_axis_shape = int(ip)
-        #determine the offset and count to read
-        offset = self.comm.scan(local_distributed_axis_shape) - local_distributed_axis_shape
         count = local_distributed_axis_shape
 
         # Update the offset and count to traverse the non distributed axes if explicit strides are used
