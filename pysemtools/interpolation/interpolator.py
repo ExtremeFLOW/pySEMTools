@@ -10,6 +10,7 @@ from tqdm import tqdm
 from .point_interpolator.point_interpolator_factory import get_point_interpolator
 from ..monitoring.logger import Logger
 from ..comm.router import Router
+from ..comm.distribution import linear_distribution
 from collections import Counter as collections_counter
 import threading
 import time
@@ -567,24 +568,8 @@ class Interpolator:
         probe_partition_sendcount = np.zeros((size), dtype=np.int64)
         if rank == io_rank:
             for i_rank in range(0, size):
-                m = self.probes.shape[0]
-                pe_rank = i_rank
-                pe_size = comm.Get_size()
-                # l = np.floor(np.double(m) / np.double(pe_size))
-                # rr = np.mod(m, pe_size)
-                ip = np.floor(
-                    (
-                        np.double(m)
-                        + np.double(pe_size)
-                        - np.double(pe_rank)
-                        - np.double(1)
-                    )
-                    / np.double(pe_size)
-                )
-                nelv = int(ip)
-                # offset_el = int(pe_rank * l + min(pe_rank, rr))
-                # n = 3 * nelv
-                probe_partition_sendcount[i_rank] = int(nelv)
+                nprobes, _ = linear_distribution(self.probes.shape[0], comm, rank=i_rank)
+                probe_partition_sendcount[i_rank] = int(nprobes)
 
         comm.Bcast(probe_partition_sendcount, root=io_rank)
         probe_coord_partition_sendcount = (

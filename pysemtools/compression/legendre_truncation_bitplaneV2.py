@@ -18,8 +18,9 @@ try:
 except ImportError:
     torch = None
 import math
+import heapq
 
-class DiscreetLegendreTruncation:
+class DiscreetLegendreTruncationBPAdaptive:
 
     """ 
     Class to perform direct sampling on a field in the SEM format
@@ -166,9 +167,9 @@ class DiscreetLegendreTruncation:
         self.uncompressed_data = {}
         self.compressed_data = {}
     
-    def sample_field(self, field: np.ndarray = None, field_name: str = "field", compression_method: str = "fixed_bitrate", bitrate: float = 1/2, target_error: float = None, max_samples_per_it: int = 1):
+    def sample_field(self, field: np.ndarray = None, field_name: str = "field", target_error: float = None):
         
-        self.log.write("info", "Sampling the field with options: covariance_method: {covariance_method}, compression_method: {compression_method}")
+        self.log.write("info", f"Sampling field \"{field_name}\" with target_error={target_error}")
 
         # Create a dictionary to store the data that will be compressed
         self.uncompressed_data[f"{field_name}"] = {}
@@ -180,45 +181,23 @@ class DiscreetLegendreTruncation:
         self.log.write("info", "Transforming the field into to legendre space")
         field_hat = self.transform_field(field, to="legendre")
             
-        if compression_method == "fixed_bitrate":
-            self.settings["compression"] =  {"method": compression_method,
-                                             "bitrate": bitrate,
-                                             "n_samples" : int(self.lx*self.ly*self.lz * bitrate)}
-            
-            if self.bckend == "numpy":
-                self.log.write("info", f"Sampling the field using the fixed bitrate method. using settings: {self.settings['compression']}")
-                field_sampled = self._sample_fixed_bitrate(field_hat, field_name, self.settings)
-            elif self.bckend == "torch":
-                self.log.write("info", f"Sampling the field using the fixed bitrate method. using settings: {self.settings['compression']}")
-                self.log.write("info", f"Using backend: {self.bckend} on device: {self.device}")
-                field_sampled = self._sample_fixed_bitrate_torch(field_hat, field_name, self.settings)
+        if target_error is None:
+            raise ValueError("target_error must be provided")
+        if target_error < 0:
+            raise ValueError("target_error must be non-negative")
+        if self.bckend != "numpy":
+            raise NotImplementedError("bitplane sampling is currently implemented only for the numpy backend")
 
-            self.uncompressed_data[f"{field_name}"]["field"] = field_sampled
-            self.log.write("info", f"Sampled_field saved in field uncompressed_data[\"{field_name}\"][\"field\"]")
+        self.settings["compression"] = {
+            "method": "fixed_error_bitplane",
+            "target_error": target_error,
+        }
 
-        elif compression_method == "fixed_error":
-            if target_error is None:
-                raise ValueError("target_error must be provided when compression_method='fixed_error'")
-            if target_error < 0:
-                raise ValueError("target_error must be non-negative")
-            if self.bckend != "numpy":
-                raise NotImplementedError("fixed_error sampling is currently implemented only for the numpy backend")
-
-            self.settings["compression"] = {
-                "method": compression_method,
-                "target_error": target_error,
-                "max_samples_per_it": max_samples_per_it,
-            }
-
-            self.log.write("info", f"Sampling the field using the fixed error method. using settings: {self.settings['compression']}")
-            field_sampled, sampling_stats = self._sample_fixed_error(field_hat, field_name, self.settings)
-
-            self.uncompressed_data[f"{field_name}"]["field"] = field_sampled
-            self.settings["compression"].update(sampling_stats)
-            self.log.write("info", f"Sampled_field saved in field uncompressed_data[\"{field_name}\"][\"field\"]")
-
-        else:
-            raise ValueError("Invalid method to sample the field")
+        self.log.write("info", f"Sampling the field using bitplane coding. using settings: {self.settings['compression']}")
+        bitplane_data, sampling_stats = self._sample_fixed_error(field_hat, field_name, self.settings)
+        self.uncompressed_data[f"{field_name}"].update(bitplane_data)
+        self.settings["compression"].update(sampling_stats)
+        self.log.write("info", f"Bitplane stream saved for field \"{field_name}\"")
         
     def compress_samples(self, lossless_compressor: str = "bzip2"):
         """
@@ -389,183 +368,421 @@ class DiscreetLegendreTruncation:
                 ly = settings["mesh_information"]["ly"]
                 lx = settings["mesh_information"]["lx"]
 
-                if data_key == "field":    
+                if data_key == "field":
                     shape = (nelv, lz, ly, lx)
+                    if dtype == "single":
+                        array_dtype = np.float32
+                    elif dtype == "double":
+                        array_dtype = np.float64
+                elif data_key == "bitplane_symbols":
+                    shape = (-1,)
+                    array_dtype = np.uint32
+                elif data_key == "bitplane_symbol_counts":
+                    shape = (nelv,)
+                    array_dtype = np.uint32
+                elif data_key == "bitplane_exponents":
+                    shape = (nelv,)
+                    array_dtype = np.int16
+                elif data_key == "bitplane_precision":
+                    shape = (nelv, lz * ly * lx)
+                    array_dtype = np.uint8
                 else:
                     raise ValueError("Invalid data key")
 
-                if dtype == "single":
-                    temp = np.frombuffer(bz2.decompress(compressed_bytes), dtype=np.float32)
-                elif dtype == "double":
-                    temp = np.frombuffer(bz2.decompress(compressed_bytes), dtype=np.float64)
+                temp = np.frombuffer(bz2.decompress(compressed_bytes), dtype=array_dtype)
 
                 uncompressed_data[field][data_key] = temp.reshape(shape)
 
         return uncompressed_data
  
-    def _sample_fixed_bitrate(self, field_hat: np.ndarray, field_name: str, settings: dict):
-        """
-        """
-
-        # Retrieve the number of samples
-        nelv = settings["mesh_information"]["nelv"]
-        n_samples = settings["compression"]["n_samples"]
-
-        # Get needed information
-        V = self.v
-        numfreq = n_samples
-
-        # Now reshape the x, y elements into column vectors
-        y = field_hat.reshape(field_hat.shape[0], -1)
-
-        #allocation the truncated field
-        y_truncated = np.copy(y)
-
-        # Set up chunking parameters to avoid processing too many elements at once.
-        chunk_size_e = self.max_elements_to_process
-        n_chunks_e = math.ceil(nelv / chunk_size_e)
-
-        # Loop over chunks along the element dimension.
-        for chunk_id_e in range(n_chunks_e):
-            start_e = chunk_id_e * chunk_size_e
-            end_e = min((chunk_id_e + 1) * chunk_size_e, nelv)
-
-            # Create chunk-specific index helpers.
-            elem_idx = np.arange(start_e, end_e)
-
-            # Get the sorted coefficients in each element in descending order
-            ind = np.argsort(np.abs(y[elem_idx, :]), axis=1)[:, ::-1]
-
-            # Set the entries after the numfreq-th to zero
-            y_truncated[elem_idx.reshape(-1,1), ind[:, numfreq:]] = 0
-
-        # Reshape the field back to its original shape
-        return y_truncated.reshape(field_hat.shape)
-    
-    def _sample_fixed_bitrate_torch(self, field_hat: torch.Tensor,
-                                    field_name: str,
-                                    settings: dict):
-        """
-        """
-
-        # Retrieve compression settings
-        nelv = settings["mesh_information"]["nelv"]
-        n_samples = settings["compression"]["n_samples"]
-        
-        # Reshape so that we have [nelv, -1]
-        y = field_hat.reshape(field_hat.shape[0], -1)  # shape: (nelv, ?)
-
-        # Make a copy for truncation
-        y_truncated = y.clone()
-
-        # Prepare chunking
-        chunk_size_e = self.max_elements_to_process
-        n_chunks_e = math.ceil(nelv / chunk_size_e)
-
-        for chunk_id_e in range(n_chunks_e):
-            start_e = chunk_id_e * chunk_size_e
-            end_e = min((chunk_id_e + 1) * chunk_size_e, nelv)
-
-            # Get the row indices for this chunk
-            elem_idx = torch.arange(start_e, end_e, device=y.device)  # shape: (chunk_size,)
-
-            # Extract the sub-tensor for this chunk: (chunk_size, ?)
-            sub_y = y[elem_idx, :]
-
-            # Sort indices by absolute value in descending order along dim=1
-            ind = torch.argsort(torch.abs(sub_y), dim=1, descending=True)
-
-            # Keep only the top n_samples indices
-            col_idx_to_zero = ind[:, n_samples:]
-
-            # Construct row indices (broadcasted) to match the shape of col_idx_to_zero
-            row_idx = elem_idx.unsqueeze(1).expand(-1, col_idx_to_zero.shape[1])
-
-            # Set those positions to zero
-            y_truncated[row_idx, col_idx_to_zero] = 0
-
-        # Reshape back to the original shape
-        return y_truncated.reshape(field_hat.shape)
-
     def _sample_fixed_error(self, field_hat: np.ndarray, field_name: str, settings: dict):
         """
-        Iteratively remove the lowest-energy coefficients one by one per element,
-        while the weighted RMS error stays below the target threshold.
+        Allocate a separate contiguous bit prefix to every coefficient.
+
+        A heap holds the next useful extension of each coefficient.  "Useful"
+        means extending through its next 1 bit; any intervening zero bits are
+        included in the cost.  The priority is the weighted squared-error
+        reduction divided by the number of emitted events.  Once selected, an
+        extension becomes part of that coefficient's prefix permanently, so
+        bits are never skipped inside a coefficient.
+
+        ``bitplane_precision[e, c]`` records the number of MSB planes assigned
+        to coefficient c of element e.  During plane-major stream construction,
+        a coefficient emits an event only while ``plane < precision[e, c]``.
+        The precision map is itself sent to bzip2, which can exploit patterns
+        shared by coefficients and by the full domain.
         """
 
         target_error = settings["compression"]["target_error"]
         nelv = settings["mesh_information"]["nelv"]
 
-        y = field_hat.reshape(nelv, -1)
-        y_truncated = np.copy(y)
+        # Flatten within each element and reorder the coefficients using the
+        # same low-to-high spectral zigzag as V1.  The precision map and the
+        # plane-major event stream therefore both follow this ordering.
+        zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
+        y = field_hat.reshape(nelv, -1)[:, zigzag_order]
         n_coeff = y.shape[1]
 
         if self.jac is None:
             jac_flat = np.ones_like(y, dtype=self.dtype)
         else:
-            jac_flat = self.jac.reshape(nelv, -1)
+            jac_flat = self.jac.reshape(nelv, -1)[:, zigzag_order]
 
         if self.B is None:
             B_flat = np.ones_like(y, dtype=self.dtype)
         else:
-            B_flat = self.B.reshape(nelv, -1)
+            B_flat = self.B.reshape(nelv, -1)[:, zigzag_order]
 
+        # The distortion accumulated below is
+        #
+        #     error^2 = sum_i jac_i * (y_i - y_tilde_i)^2 / volume.
+        #
+        # TTHRESH can use an ordinary coefficient SSE because the HOSVD factor
+        # matrices are orthogonal (discussion surrounding Eq. (8)).  Here the
+        # Jacobian weights adapt the test to the element-wise Legendre setting,
+        # while B supplies the physical element volume used for normalization.
         vol = np.sum(B_flat, axis=1)
         vol = np.where(vol > 0, vol, 1.0)
 
+        # The integer magnitude itself remains uint64.  This is different from
+        # the RLE symbol type: a magnitude needs enough bits to expose many
+        # precision planes, whereas a symbol only needs to hold one run length.
+        # Float32 has fewer useful mantissa bits, so 31 planes are ample there.
+        max_planes = 31 if self.dtype == np.float32 else 63
+
+        symbols_per_element = []
+        symbol_counts = np.zeros(nelv, dtype=np.uint32)
+        exponents = np.zeros(nelv, dtype=np.int16)
+        precision = np.zeros((nelv, n_coeff), dtype=np.uint8)
         achieved_error = np.zeros(nelv, dtype=self.dtype)
-        n_samples_kept = np.full(nelv, n_coeff, dtype=np.int32)
 
-        chunk_size_e = self.max_elements_to_process
-        n_chunks_e = math.ceil(nelv / chunk_size_e)
+        for element in range(nelv):
+            values = y[element]
+            abs_values = np.abs(values)
+            maximum = float(np.max(abs_values))
 
-        for chunk_id_e in range(n_chunks_e):
-            start_e = chunk_id_e * chunk_size_e
-            end_e = min((chunk_id_e + 1) * chunk_size_e, nelv)
-            elem_idx = np.arange(start_e, end_e)
+            # Before transmitting anything the decoder reconstructs all
+            # coefficients as zero.  This is therefore the error of an empty
+            # stream.  If it already satisfies the target, this element requires
+            # no symbols, exponent, or planes at all.
+            initial_error = np.sqrt(
+                np.sum(jac_flat[element] * values * values) / vol[element]
+            )
+            if maximum == 0.0 or initial_error <= target_error:
+                achieved_error[element] = initial_error
+                symbols_per_element.append(np.empty(0, dtype=np.uint32))
+                continue
 
-            y_chunk = y[elem_idx, :]
-            jac_chunk = jac_flat[elem_idx, :]
-            vol_chunk = vol[elem_idx]
+            # Build a block-floating-point representation for this element.
+            #
+            # exponent locates the largest coefficient in binary.  All
+            # coefficients then share quantum, the value represented by the
+            # least-significant available integer bit.  This is the analogue of
+            # TTHRESH's common scaling in Eq. (9).
+            exponent = int(np.floor(np.log2(maximum)))
+            quantum = np.ldexp(1.0, exponent - (max_planes - 1))
 
-            coeff_sq = y_chunk * y_chunk
+            # floor is intentional.  Since maximum < 2**(exponent + 1), the
+            # scaled value is strictly below 2**max_planes and therefore fits
+            # in the selected uint64 bit positions.  Rounding could push an
+            # extreme value up to 2**max_planes and require one extra bit.
+            magnitude = np.floor(abs_values / quantum).astype(np.uint64)
+            exponents[element] = exponent
 
-            # Rank coefficients by coefficient-space energy (smallest first).
-            ind_low_to_high = np.argsort(coeff_sq, axis=1)
+            reconstructed_magnitude = np.zeros(n_coeff, dtype=np.uint64)
 
-            sorted_coeff_sq = np.take_along_axis(coeff_sq, ind_low_to_high, axis=1)
-            sorted_jac = np.take_along_axis(jac_chunk, ind_low_to_high, axis=1)
+            # Current total weighted SSE.  Updating it coefficient by
+            # coefficient avoids reconstructing the whole element after every
+            # heap operation.
+            coefficient_sse = jac_flat[element] * values * values
+            total_sse = float(np.sum(coefficient_sse))
+            target_sse = float(target_error * target_error * vol[element])
 
-            # Build cumulative weighted error per element for progressively removing
-            # 1, 2, 3, ... coefficients in sorted order.
-            cum_err_sq = np.cumsum(sorted_jac * sorted_coeff_sq, axis=1)
-            threshold_sq = (target_error * target_error) * vol_chunk[:, None]
+            def next_extension(coefficient, old_precision):
+                """Return the next prefix ending at a 1 bit, or None."""
+                for new_precision in range(old_precision + 1, max_planes + 1):
+                    bit_position = max_planes - new_precision
+                    if (int(magnitude[coefficient]) >> bit_position) & 1:
+                        old_mag = int(reconstructed_magnitude[coefficient])
+                        new_mag = old_mag | (1 << bit_position)
+                        old_value = old_mag * quantum
+                        new_value = new_mag * quantum
+                        weight = float(jac_flat[element, coefficient])
+                        benefit = weight * (
+                            (abs(values[coefficient]) - old_value) ** 2
+                            - (abs(values[coefficient]) - new_value) ** 2
+                        )
+                        # Every traversed plane emits one bit.  The first 1 also
+                        # emits the sign, hence one additional event.
+                        cost = new_precision - old_precision
+                        if old_mag == 0:
+                            cost += 1
+                        return benefit / cost, new_precision, new_mag, benefit
+                return None
 
-            removed = np.sum(cum_err_sq <= threshold_sq, axis=1).astype(np.int32)
-            n_samples_kept[elem_idx] = n_coeff - removed
+            heap = []
+            for coefficient in range(n_coeff):
+                candidate = next_extension(coefficient, 0)
+                if candidate is not None:
+                    score, new_precision, new_mag, benefit = candidate
+                    heapq.heappush(heap, (-score, coefficient, new_precision, new_mag, benefit))
 
-            last_idx = np.clip(removed - 1, 0, n_coeff - 1)
-            err_sq_at_removed = cum_err_sq[np.arange(elem_idx.size), last_idx]
-            err_sq_at_removed = np.where(removed > 0, err_sq_at_removed, 0.0)
-            achieved_error[elem_idx] = np.sqrt(err_sq_at_removed / vol_chunk)
+            while total_sse > target_sse and heap:
+                _, coefficient, new_precision, new_mag, benefit = heapq.heappop(heap)
+                precision[element, coefficient] = new_precision
+                reconstructed_magnitude[coefficient] = np.uint64(new_mag)
+                total_sse -= benefit
 
-            remove_sorted = np.arange(n_coeff)[None, :] < removed[:, None]
-            remove_mask = np.zeros_like(y_chunk, dtype=bool)
-            remove_mask[np.arange(elem_idx.size)[:, None], ind_low_to_high] = remove_sorted
-            y_chunk_truncated = y_truncated[elem_idx, :].copy()
-            y_chunk_truncated[remove_mask] = 0
-            y_truncated[elem_idx, :] = y_chunk_truncated
+                candidate = next_extension(coefficient, new_precision)
+                if candidate is not None:
+                    score, following_precision, following_mag, following_benefit = candidate
+                    heapq.heappush(
+                        heap,
+                        (-score, coefficient, following_precision, following_mag, following_benefit),
+                    )
+
+            achieved_error[element] = np.sqrt(max(total_sse, 0.0) / vol[element])
+
+            # Construct a plane-major stream, but omit coefficients whose chosen
+            # prefix has already ended.  Sign follows the first emitted 1.
+            events = []
+            significant = np.zeros(n_coeff, dtype=bool)
+            for plane in range(int(np.max(precision[element]))):
+                bit_position = max_planes - 1 - plane
+                for coefficient in range(n_coeff):
+                    if plane >= int(precision[element, coefficient]):
+                        continue
+                    bit = (int(magnitude[coefficient]) >> bit_position) & 1
+                    events.append(bit)
+                    if not significant[coefficient] and bit:
+                        significant[coefficient] = True
+                        events.append(int(values[coefficient] < 0.0))
+
+            encoded_symbols = self._run_length_encode_bits(events)
+            symbol_counts[element] = encoded_symbols.size
+            symbols_per_element.append(encoded_symbols)
+
+        if symbols_per_element:
+            symbols = np.concatenate(symbols_per_element).astype(np.uint32, copy=False)
+        else:
+            symbols = np.empty(0, dtype=np.uint32)
 
         stats = {
-            "avg_samples_kept": float(np.mean(n_samples_kept)),
+            "bitplane_format": "adaptive_precision_rle_uint32",
+            "avg_bitplanes": float(np.mean(precision)),
             "avg_achieved_error": float(np.mean(achieved_error)),
+            "target_reached": bool(np.all(achieved_error <= target_error)),
         }
 
-        return y_truncated.reshape(field_hat.shape), stats
+        bitplane_data = {
+            "bitplane_symbols": symbols,
+            "bitplane_symbol_counts": symbol_counts,
+            "bitplane_exponents": exponents,
+            "bitplane_precision": precision,
+        }
+        return bitplane_data, stats
+
+    @staticmethod
+    def _spectral_zigzag_order(lz, ly, lx):
+        """
+        Return C-order flat indices for a reversible 3-D spectral zigzag.
+
+        Coefficients are grouped by total degree ``ix + iy + iz``.  Alternate
+        degree shells are reversed to obtain a serpentine traversal.  The
+        returned indices address arrays shaped ``(lz, ly, lx)``.
+        """
+        shells = [[] for _ in range((lx - 1) + (ly - 1) + (lz - 1) + 1)]
+        for iz in range(lz):
+            for iy in range(ly):
+                for ix in range(lx):
+                    shells[ix + iy + iz].append((iz, iy, ix))
+
+        order = []
+        for degree, shell in enumerate(shells):
+            if degree % 2 == 1:
+                shell.reverse()
+            order.extend(
+                np.ravel_multi_index(coord, (lz, ly, lx))
+                for coord in shell
+            )
+
+        return np.asarray(order, dtype=np.intp)
+
+    @staticmethod
+    def _run_length_encode_bits(bits):
+        """
+        Convert a sequence of 0/1 events into uint32 run-length symbols.
+
+        For example, the event sequence
+
+            0, 0, 0, 1, 1, 0
+
+        contains the runs ``(3, 0), (2, 1), (1, 0)`` and becomes
+
+            (3 << 1) | 0, (2 << 1) | 1, (1 << 1) | 0
+            = 6, 5, 2.
+
+        Difference from the TTHRESH insignificance runs
+        ------------------------------------------------
+        TTHRESH Section 4.2 encodes each bitplane independently.  It counts the
+        number k of zeroes before the next one and stores only k; the following
+        one is implicit.  A final run may instead end at the bitplane boundary.
+        The paper's example is:
+
+            bits:       0 1 1 1 0 0 0 1
+            zero runs:  1, 0, 0, 3
+
+        Reading the first three symbols means "one zero then one, zero zeroes
+        then one, zero zeroes then one".  The final 3 means "three zeroes then
+        the last one".  Thus TTHRESH stores zero-run lengths, not ordinary
+        ``(length, value)`` pairs.
+
+        This function uses conventional binary RLE instead.  It turns the same
+        bits into:
+
+            runs:       (1, 0), (3, 1), (3, 0), (1, 1)
+            symbols:    2, 7, 6, 3
+
+        Here both the run length and its binary value are explicit.  Moreover,
+        the caller supplies one stream containing magnitude, sign, and refinement
+        events from all retained planes, so runs can cross plane boundaries.
+        This is easier to decode but generally creates a different symbol
+        distribution from TTHRESH.  bzip2 later compresses the uint32 symbols.
+
+        One bit of a uint32 is reserved for the event value, leaving 31 bits for
+        the run.  If a future element can exceed that limit, a long run can be
+        split into multiple symbols; for now an explicit error prevents silent
+        integer overflow.
+        """
+        if len(bits) == 0:
+            return np.empty(0, dtype=np.uint32)
+
+        symbols = []
+        current = int(bits[0])
+        run_length = 1
+        max_run_length = np.iinfo(np.uint32).max >> 1
+
+        for bit in bits[1:]:
+            bit = int(bit)
+            if bit == current:
+                run_length += 1
+            else:
+                if run_length > max_run_length:
+                    raise OverflowError(
+                        "A bitplane run does not fit in a uint32 symbol; "
+                        "split long runs before packing"
+                    )
+                symbols.append((run_length << 1) | current)
+                current = bit
+                run_length = 1
+
+        if run_length > max_run_length:
+            raise OverflowError(
+                "A bitplane run does not fit in a uint32 symbol; "
+                "split long runs before packing"
+            )
+        symbols.append((run_length << 1) | current)
+        return np.asarray(symbols, dtype=np.uint32)
+
+    @staticmethod
+    def _run_length_decode_bits(symbols):
+        """
+        Yield the original binary events from packed RLE symbols.
+
+        ``packed & 1`` extracts the event value from the least-significant bit.
+        ``packed >> 1`` removes that bit and recovers the run length.  Calling
+        this function as a generator avoids allocating the expanded event stream
+        during decompression.
+        """
+        for symbol in symbols:
+            packed = int(symbol)
+            run_length = packed >> 1
+            bit = packed & 1
+            for _ in range(run_length):
+                yield bit
+
+    def _decode_fixed_error(self, data):
+        """
+        Decode the adaptive per-coefficient precision stream.
+
+        The precision map tells the decoder whether each coefficient appears on
+        a plane.  Significance, sign, and magnitude are otherwise reconstructed
+        from the same event grammar used by the encoder.
+        """
+        n_coeff = self.lx * self.ly * self.lz
+        max_planes = 31 if self.dtype == np.float32 else 63
+        # Decode in transmitted zigzag order, then invert that permutation.
+        output_zigzag = np.zeros((self.nelv, n_coeff), dtype=self.dtype)
+
+        symbols = data["bitplane_symbols"]
+        counts = data["bitplane_symbol_counts"]
+        exponents = data["bitplane_exponents"]
+        precision = data["bitplane_precision"]
+        symbol_offset = 0
+
+        for element in range(self.nelv):
+            # Streams from all elements live in one concatenated symbol array.
+            # count identifies this element's slice and advances the offset to
+            # the beginning of the next one.
+            count = int(counts[element])
+            element_symbols = symbols[symbol_offset:symbol_offset + count]
+            symbol_offset += count
+            element_precision = precision[element]
+            number_of_planes = int(np.max(element_precision))
+
+            # An element that met the target as the all-zero approximation wrote
+            # no events.  output was initialized to zero, so nothing is needed.
+            if number_of_planes == 0:
+                continue
+
+            # Expand RLE on demand.  The significance and sign arrays are decoder
+            # state reconstructed solely from the events seen so far.
+            bits = self._run_length_decode_bits(element_symbols)
+            significant = np.zeros(n_coeff, dtype=bool)
+            negative = np.zeros(n_coeff, dtype=bool)
+            magnitude = np.zeros(n_coeff, dtype=np.uint64)
+
+            for plane in range(number_of_planes):
+                bit_position = max_planes - 1 - plane
+                for coefficient in range(n_coeff):
+                    if plane >= int(element_precision[coefficient]):
+                        continue
+                    # This is either a significance event or a refinement event,
+                    # depending on whether this coefficient was significant at
+                    # the start of the current step.
+                    bit = next(bits)
+                    if significant[coefficient]:
+                        if bit:
+                            magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
+                    elif bit:
+                        # A newly significant coefficient has one immediately
+                        # following sign event: 0=positive, 1=negative.
+                        significant[coefficient] = True
+                        magnitude[coefficient] |= np.uint64(1) << np.uint64(bit_position)
+                        negative[coefficient] = bool(next(bits))
+
+            # Recover the same quantum used by the encoder and map integer
+            # magnitudes back to floating point before restoring the signs.
+            quantum = np.ldexp(1.0, int(exponents[element]) - (max_planes - 1))
+            decoded = magnitude.astype(np.float64) * quantum
+            decoded[negative] *= -1.0
+            output_zigzag[element] = decoded.astype(self.dtype)
+
+        # This catches corrupt counts and format mismatches that leave complete
+        # RLE symbols outside every element slice.
+        if symbol_offset != symbols.size:
+            raise ValueError("Bitplane stream has unused symbols; metadata are inconsistent")
+        zigzag_order = self._spectral_zigzag_order(self.lz, self.ly, self.lx)
+        output = np.zeros_like(output_zigzag)
+        output[:, zigzag_order] = output_zigzag
+        return output.reshape(self.nelv, self.lz, self.ly, self.lx)
 
     def reconstruct_field(self, field_name: str = None):
-        
-        field_hat = self.uncompressed_data[field_name]["field"]            
+        data = self.uncompressed_data[field_name]
+        if self.settings["compression"]["method"] == "fixed_error_bitplane":
+            field_hat = self._decode_fixed_error(data)
+        else:
+            raise ValueError("Unsupported compression method")
         return self.transform_field(field = field_hat, to="physical")
  
     def transform_field(self, field: np.ndarray = None, to: str = "legendre") -> np.ndarray:

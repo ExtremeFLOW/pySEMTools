@@ -17,3 +17,4 @@ def get_fld_from_ndarray(array, lx, ly, lz, nelv):
     fld = array.reshape((nelv, lz, ly, lx))
 
     return fld
+

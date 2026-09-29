@@ -1,5 +1,7 @@
 """ Module that contains the class and methods to perform direct sampling on a field """
 
+from __future__ import annotations
+
 import random
 from mpi4py import MPI
 from ..monitoring.logger import Logger
@@ -11,7 +13,10 @@ import bz2
 import sys
 import h5py
 import os
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 import math
 import zfpy
 
@@ -24,6 +29,8 @@ class ZFPWrapper:
     def __init__(self, comm: MPI.Comm = None, dtype: np.dtype = np.double,  msh: Mesh = None, filename: str = None, max_elements_to_process: int = 256, bckend: str = "numpy", mass_matrix = None):
         
         self.log = Logger(comm=comm, module_name="DirectSampler")
+        if bckend == "torch" and torch is None:
+            raise ImportError("The torch backend was requested, but PyTorch is not installed. Use bckend='numpy' or install torch.")
         
         self.b = mass_matrix
         
@@ -43,6 +50,10 @@ class ZFPWrapper:
         self.log.write("info", f"Initializing the DirectSampler from file: {filename}")
 
         self.settings, self.compressed_data = self.read_compressed_samples(comm = comm, filename=filename)
+
+        self.compression_settings = self.settings.get(
+            "compression_by_field", {}
+        )
 
         self.init_common(max_elements_to_process)
 
@@ -72,6 +83,11 @@ class ZFPWrapper:
 
         # Create a dictionary that will hold the data after compressed
         self.compressed_data = {}
+
+        # Compression is deferred until ``compress_samples``.  Keep the
+        # settings that were selected for each field so registering another
+        # field cannot change how an earlier one is compressed.
+        self.compression_settings = {}
 
         # Initialize the common parameters
         self.init_common(max_elements_to_process)
@@ -114,20 +130,72 @@ class ZFPWrapper:
         self.settings = {}
         self.uncompressed_data = {}
         self.compressed_data = {}
+        self.compression_settings = {}
     
-    def sample_field(self, field: np.ndarray = None, field_name: str = "field", compression_method: str = "fixed_bitrate", bitrate: float = 1/2):
+    def sample_field(
+        self,
+        field: np.ndarray = None,
+        field_name: str = "field",
+        compression_method: str = "fixed_bitrate",
+        bitrate: float = 1 / 2,
+        tolerance: float = None,
+    ):
+        """Register a field for compression using a ZFP rate or tolerance.
+
+        Parameters
+        ----------
+        field : np.ndarray
+            Field to compress.
+        field_name : str
+            Name used to store the field in the output file.
+        compression_method : {"fixed_bitrate", "fixed_tolerance"}
+            ZFP compression mode. ``fixed_bitrate`` uses ``bitrate`` and
+            ``fixed_tolerance`` uses the absolute-error ``tolerance``.
+        bitrate : float
+            Number of compressed bits per value in fixed-bitrate mode.
+        tolerance : float, optional
+            Absolute error tolerance passed to ZFP in fixed-tolerance mode.
+        """
         
         if compression_method == "fixed_bitrate":
-            self.settings["compression"] =  {"method": compression_method,
-                                             "bitrate": bitrate,
-                                             "n_samples" : 0,
-                                             "update_noise": False}
-            
-            self.uncompressed_data[f"{field_name}"] = {}
-            self.uncompressed_data[f"{field_name}"]["field"] = np.copy(field)
+            if bitrate <= 0:
+                raise ValueError("bitrate must be greater than zero")
+
+            compression_settings = {
+                "method": compression_method,
+                "bitrate": bitrate,
+                "n_samples": 0,
+                "update_noise": False,
+            }
+
+        elif compression_method == "fixed_tolerance":
+            if tolerance is None or tolerance <= 0:
+                raise ValueError(
+                    "A tolerance greater than zero is required for "
+                    "fixed_tolerance compression"
+                )
+
+            compression_settings = {
+                "method": compression_method,
+                "tolerance": tolerance,
+                "n_samples": 0,
+                "update_noise": False,
+            }
 
         else:
-            raise ValueError("Invalid method to sample the field")
+            raise ValueError(
+                "compression_method must be 'fixed_bitrate' or "
+                "'fixed_tolerance'"
+            )
+
+        self.compression_settings[field_name] = compression_settings
+        # Retain the historical global entry for files/readers that expect it,
+        # and persist the authoritative per-field entries as metadata.
+        self.settings["compression"] = compression_settings
+        self.settings["compression_by_field"] = self.compression_settings
+
+        self.uncompressed_data[f"{field_name}"] = {}
+        self.uncompressed_data[f"{field_name}"]["field"] = np.copy(field)
         
     def compress_samples(self):
         """
@@ -140,7 +208,25 @@ class ZFPWrapper:
             for data in self.uncompressed_data[field].keys():
                 self.log.write("info", f"Compressing [\"{data}\"] for field [\"{field}\"]")
                 if self.bckend == "numpy":
-                    self.compressed_data[field][data] = zfpy.compress_numpy(self.uncompressed_data[field][data], rate = self.settings["compression"]["bitrate"])
+                    compression_settings = self.compression_settings.get(
+                        field, self.settings["compression"]
+                    )
+                    compression_method = compression_settings["method"]
+
+                    if compression_method == "fixed_bitrate":
+                        self.compressed_data[field][data] = zfpy.compress_numpy(
+                            self.uncompressed_data[field][data],
+                            rate=compression_settings["bitrate"],
+                        )
+                    elif compression_method == "fixed_tolerance":
+                        self.compressed_data[field][data] = zfpy.compress_numpy(
+                            self.uncompressed_data[field][data],
+                            tolerance=compression_settings["tolerance"],
+                        )
+                    else:
+                        raise ValueError(
+                            f"Unsupported compression method: {compression_method}"
+                        )
 
     def write_compressed_samples(self, comm = None,  filename="compressed_samples.h5"):
         """
