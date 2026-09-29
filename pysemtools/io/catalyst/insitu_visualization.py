@@ -112,7 +112,7 @@ class CatalystSession:
 
         # Cell type
         if self.vtk.cell_type == "hex":
-            self.mesh_node["topologies/mesh/elements/shape_map/hex"] = VTK_HEXAHEDRON
+            self.mesh_node["topologies/mesh/elements/shape_map/hex"] = np.int32(VTK_HEXAHEDRON)
         else:
             raise ValueError(f"Unsupported cell type {self.vtk.cell_type}, only 'hex' is supported for now.")
 
@@ -136,7 +136,7 @@ class CatalystSession:
         for key in fields.keys():
             self.mesh_node[f"fields/{key}/association"] = "vertex"
             self.mesh_node[f"fields/{key}/topology"] = "mesh"
-            self.mesh_node[f"fields/{key}/values"].set(fields[key].flatten())
+            self.mesh_node[f"fields/{key}/values"] = fields[key].flatten()
 
     def execute(self, timestep=0, time_value=0.0):
         """ Execute the catalyst pipeline for the current mesh and fields
