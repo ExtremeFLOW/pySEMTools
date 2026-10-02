@@ -377,7 +377,7 @@ register(
         "re2",
         "nmsh",
         re2_to_nmsh,
-        "convert a NEKTON .re2 mesh to Neko .nmsh, like Neko's rea2nbin",
+        "convert a NEKTON .re2 mesh to Neko .nmsh",
         parallel=False,
         options=(
             Option(
