@@ -45,6 +45,10 @@ Both mesh file types share the behaviour of their base class:
     :members:
     :exclude-members: __weakref__ __dict__
 
+Numbering the distinct corner points, as the ``.re2`` reader of Neko does:
+
+.. autofunction :: pysemtools.datatypes.corner_mesh.deduplicate_points
+
 The straight-sided geometry of the element corners at the GLL points, used by ``to_sem_mesh``:
 
 .. automodule :: pysemtools.datatypes.corner_mesh_geometry
