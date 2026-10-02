@@ -9,7 +9,7 @@ from ..comm.router import Router
 from ..comm.distribution import linear_distribution
 from .corner_mesh_geometry import to_sem_mesh
 
-__all__ = ["CornerMesh"]
+__all__ = ["CornerMesh", "deduplicate_points"]
 
 
 class CornerMesh:
@@ -185,3 +185,70 @@ class CornerMesh:
         if all_records is None:
             return None
         return all_records[np.argsort(all_index, kind="stable")]
+
+
+def deduplicate_points(xyz):
+    """
+    Number the distinct corner coordinates.
+
+    Every corner gets the index of its point, 0-based and in order of first
+    appearance. Coordinates are compared bit-exactly as float64 triples,
+    which matches the point table of Neko's ``.re2`` reader.
+
+    Parameters
+    ----------
+    xyz : ndarray
+        Corner coordinates, shape (nelv, 8, 3), float64.
+
+    Returns
+    -------
+    vid : ndarray
+        Point index of every corner, shape (nelv, 8), int64.
+    n_unique : int
+        Number of distinct points.
+
+    Notes
+    -----
+    The corners are viewed as 24-byte keys and sorted, so the transient
+    memory cost is roughly 45 bytes per corner.
+    """
+    # The comments follow a small example with four corners and three distinct
+    # points, written as letters:
+    #
+    #   corner i:  0  1  2  3
+    #   point:     B  A  B  C
+    #
+    # The expected result numbers the points in order of first appearance,
+    # B = 0, A = 1, C = 2, so vid = [0, 1, 0, 2].
+
+    # One row per corner, in element order. The contiguous layout is needed
+    # for the byte view below.
+    n8 = xyz.shape[0] * 8
+    flat = np.ascontiguousarray(xyz, dtype=np.float64).reshape(n8, 3)
+
+    # Reinterpret the three float64 of each row as a single opaque 24-byte
+    # value, without copying. Two corners are then equal exactly when their
+    # bytes are, and np.unique can sort the rows as scalars instead of
+    # comparing them element by element.
+    keys = flat.view([("", "V24")]).ravel()
+
+    # first[k]: row where the k-th unique key, in sorted order, first occurs.
+    # inverse[i]: which sorted unique key corner i is.
+    # Example, with sorted uniques [A, B, C]:
+    #   first   = [1, 0, 3]
+    #   inverse = [1, 0, 1, 2]
+    _, first, inverse = np.unique(keys, return_index=True, return_inverse=True)
+
+    # Sorted byte order is meaningless, so convert it into first-appearance
+    # order. Sorting first gives the uniques in order of appearance, and the
+    # scatter assignment inverts that permutation: rank[u] is the appearance
+    # rank of sorted unique u.
+    # Example: argsort(first) = [1, 0, 2] (B, A, C), so rank = [1, 0, 2],
+    # that is A has rank 1, B rank 0 and C rank 2.
+    rank = np.empty(first.size, dtype=np.int64)
+    rank[np.argsort(first, kind="stable")] = np.arange(first.size)
+
+    # Look up the appearance rank of every corner and restore the (nelv, 8)
+    # layout.
+    # Example: rank[inverse] = [0, 1, 0, 2].
+    return rank[inverse].reshape(-1, 8), int(first.size)
