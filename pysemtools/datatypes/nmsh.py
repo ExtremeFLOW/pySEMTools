@@ -315,6 +315,11 @@ class NmshMesh(CornerMesh):
         return self.elems["v"]["idx"].astype(np.int64)
 
     @property
+    def nelv(self):
+        """Number of elements owned by this rank."""
+        return int(self.elems.shape[0])
+
+    @property
     def corner_coordinates(self):
         """Coordinates of the local element corners, shape (nelv, 8, 3)."""
         return self.elems["v"]["xyz"]

@@ -51,7 +51,8 @@ def shared_tmp(tmp_path):
 def write_re2(fname, bounds, nel):
     """
     Write a NEKTON .re2 (#v002) of a box with periodic BCs between the x-min and x-max faces,
-    wall, inlet and outlet BCs and a user labelled (MSH) BC on the other faces.
+    wall, inlet and outlet BCs and a user labelled (MSH) BC on the other faces. The type
+    fields are blank padded, as the NEKTON tools write them.
     """
     x0, x1, y0, y1, z0, z1 = bounds
     nx, ny, nz = nel
@@ -88,7 +89,7 @@ def write_re2(fname, bounds, nel):
             bcs.append((e + 1, neko_to_re2[5], (0, 0, 0, 0, 7), b"MSH"))
         if ez == nz - 1:
             bcs.append((e + 1, neko_to_re2[6], (0, 0, 0, 0, 0), b"O"))
-    bc_arr = np.array(bcs, dtype=bc_dt)
+    bc_arr = np.array([(e, f, d, t.ljust(8)) for e, f, d, t in bcs], dtype=bc_dt)
     with open(fname, "wb") as f:
         f.write(hdr)
         np.float32(6.54321).tofile(f)

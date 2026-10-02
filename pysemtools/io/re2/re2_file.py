@@ -467,7 +467,12 @@ def write_re2(path, elems, curves, bcs, comm=None):
 
 def bc_type_str(raw):
     """
-    Decode a boundary condition or curve type field as Neko sees it.
+    Decode a boundary condition or curve type field.
+
+    The field is blank padded by the NEKTON tools. Files written by other
+    tools sometimes pad it with NUL bytes instead; those are accepted here
+    and treated as blanks, which is more lenient than Neko, whose ``trim``
+    strips blanks only and therefore rejects such types.
 
     Parameters
     ----------

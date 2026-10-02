@@ -282,6 +282,14 @@ def re2_to_nmsh(re2, nmsh_fname=None, periodic_tol=None, comm=None):
     NmshMesh
         The converted mesh, which has also been written to ``nmsh_fname``.
 
+    Notes
+    -----
+    The output matches Neko's ``rea2nbin`` byte for byte, except that the
+    partner element and point ids of labelled zones, which Neko leaves
+    uninitialised, are written as zeros. One case is handled more leniently
+    than Neko: boundary condition types padded with NUL bytes instead of
+    blanks are accepted, whereas Neko ignores them with a warning.
+
     Examples
     --------
     >>> from pysemtools.convert import re2_to_nmsh
@@ -304,7 +312,11 @@ def re2_to_nmsh(re2, nmsh_fname=None, periodic_tol=None, comm=None):
         re2 = re2.gather()
     nelv = re2.nelv
     xyz = re2.corner_coordinates
-    log.write("info", f"{nelv} hex elements (format {re2.version})")
+    bcs, curves, version = re2.bcs, re2.curves, re2.version
+    # The element records are a second copy of the corners. Drop the mesh so
+    # they are freed if nobody else holds it, before the numbering allocates.
+    del re2
+    log.write("info", f"{nelv} hex elements (format {version})")
 
     log.write("info", "De-duplicating points")
     vid, nuniq = deduplicate_points(xyz)
@@ -317,11 +329,11 @@ def re2_to_nmsh(re2, nmsh_fname=None, periodic_tol=None, comm=None):
     coords[vid.reshape(-1)] = xyz.reshape(-1, 3)
 
     log.write("info", "Classifying boundary conditions and merging periodic points")
-    z_e, z_f, z_lbl, pairs = classify_boundary_conditions(nelv, re2.bcs)
+    z_e, z_f, z_lbl, pairs = classify_boundary_conditions(nelv, bcs)
     pid = np.arange(nuniq, dtype=np.int64)
     if pairs:
         merge_periodic(pid, vid, coords, pairs, periodic_tol)
-    curves_out, curve_skip = aggregate_curves(re2.curves)
+    curves_out, curve_skip = aggregate_curves(curves)
     if curve_skip:
         log.write(
             "warning",
