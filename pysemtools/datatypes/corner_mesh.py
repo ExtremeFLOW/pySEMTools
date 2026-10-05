@@ -7,9 +7,20 @@ from mpi4py import MPI
 
 from ..comm.router import Router
 from ..comm.distribution import linear_distribution
-from .corner_mesh_geometry import to_sem_mesh
 
-__all__ = ["CornerMesh", "deduplicate_points"]
+__all__ = ["CornerMesh", "CORNER_IJK", "deduplicate_points"]
+
+#: Corner convention of :class:`CornerMesh`: the position of each of the eight
+#: corners of an element in the reference cube, as (i, j, k) offsets in {0, 1}
+#: along (r, s, t). Corner ``c`` of ``corner_coordinates[:, c]`` sits at
+#: ``CORNER_IJK[c]``. The first four corners go counter-clockwise round the
+#: bottom face, starting at the origin, and the last four repeat that on the
+#: top face. This is the order in which Nek5000 and Neko mesh files store the
+#: corners, see :data:`pysemtools.io.nmsh.VERTEX_IJK`.
+CORNER_IJK = np.array(
+    [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]],
+    dtype=np.int64,
+)
 
 
 class CornerMesh:
@@ -27,6 +38,14 @@ class CornerMesh:
     linear distribution. Without a communicator the object is replicated,
     that is, it holds the whole mesh on the calling process.
     :meth:`gather` and :meth:`distribute` convert between the two.
+
+    The eight corners of an element follow the corner convention
+    :data:`CORNER_IJK`. The geometry built from the corners, such as
+    :meth:`to_sem_mesh` and the functions of
+    :mod:`pysemtools.datatypes.corner_mesh_geometry`, relies on it, so a
+    subclass for a file format that stores the corners in another order must
+    reorder them in :attr:`corner_coordinates`. Centroids and the bounding
+    box do not depend on the order.
 
     Parameters
     ----------
@@ -62,7 +81,7 @@ class CornerMesh:
     # -- to be provided by subclasses -------------------------------------
     @property
     def corner_coordinates(self):
-        """Coordinates of the local element corners, shape (nelv, 8, 3)."""
+        """Coordinates of the local element corners, shape (nelv, 8, 3), in the order of :data:`CORNER_IJK`."""
         raise NotImplementedError
 
     @property
@@ -148,6 +167,10 @@ class CornerMesh:
             Mesh with ``x``, ``y``, ``z`` of shape (nelv, lx, lx, lx) and
             ``elmap`` set to the global element ids.
         """
+        # The geometry module depends on the corner convention defined here,
+        # so it is imported when needed instead of at the top of the module.
+        from .corner_mesh_geometry import to_sem_mesh  # pylint: disable=import-outside-toplevel
+
         if comm is None:
             comm = self.comm if self.comm is not None else MPI.COMM_WORLD
         source = self if self.comm is not None else self.distribute(comm)

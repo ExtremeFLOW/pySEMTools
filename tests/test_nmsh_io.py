@@ -28,7 +28,7 @@ from pysemtools.io.nmsh import (
 )
 from pysemtools.io.re2 import read_re2, Re2FormatError, RE2_EL_DT
 from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
-from pysemtools.datatypes.corner_mesh import deduplicate_points
+from pysemtools.datatypes.corner_mesh import deduplicate_points, CORNER_IJK
 from pysemtools.datatypes.corner_mesh_geometry import gll_nodes, gll_coordinates, min_jacobian
 
 #==============================================================================
@@ -311,3 +311,23 @@ def test_deduplicate_points():
     two = np.zeros((1, 8, 3))
     two[0, 1, 0] = -0.0
     assert deduplicate_points(two)[1] == 2
+
+
+def test_corner_convention():
+
+    # Both mesh file formats store corners in the corner convention, so their data types
+    # return the records unchanged
+    assert np.array_equal(CORNER_IJK, VERTEX_IJK)
+
+    # With two GLL points per direction the GLL points are the corners themselves, numbered
+    # i + 2 j + 4 k; the trilinear map must put corner c at its reference position
+    cube = CORNER_IJK.astype(np.float64)[None]
+    xyz = gll_coordinates(cube, n=2)[0]
+    for c, (i, j, k) in enumerate(CORNER_IJK):
+        assert np.array_equal(xyz[i + 2 * j + 4 * k], cube[0, c])
+    assert min_jacobian(cube, n=3)[0] == pytest.approx(0.125)
+
+    # Swapping two corners breaks the convention, which the Jacobian exposes
+    twisted = cube.copy()
+    twisted[0, [2, 3]] = twisted[0, [3, 2]]
+    assert min_jacobian(twisted, n=3)[0] <= 0.0

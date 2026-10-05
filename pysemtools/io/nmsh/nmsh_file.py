@@ -113,7 +113,8 @@ EDGE_VERTICES = (
 )
 
 #: Position of each of the eight vertex slots in the reference cube, as
-#: (i, j, k) offsets in {0, 1}.
+#: (i, j, k) offsets in {0, 1}. This coincides with the corner convention of
+#: the corner mesh data types, ``pysemtools.datatypes.corner_mesh.CORNER_IJK``.
 VERTEX_IJK = np.array(
     [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]],
     dtype=np.int64,

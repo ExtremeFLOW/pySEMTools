@@ -321,7 +321,13 @@ class NmshMesh(CornerMesh):
 
     @property
     def corner_coordinates(self):
-        """Coordinates of the local element corners, shape (nelv, 8, 3)."""
+        """
+        Coordinates of the local element corners, shape (nelv, 8, 3).
+
+        A ``.nmsh`` file stores the corners in the order of
+        :data:`pysemtools.datatypes.corner_mesh.CORNER_IJK`, so the records
+        are returned as they are.
+        """
         return self.elems["v"]["xyz"]
 
     @property

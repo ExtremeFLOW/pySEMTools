@@ -29,7 +29,7 @@ class Re2Mesh(CornerMesh):
     the eight corners, plus curved edge records and boundary condition
     records that refer to elements by their position in the file. Unlike a
     Neko ``.nmsh`` there are no global point ids; those are created when the
-    mesh is converted with the tools of ``pysemtools.nmsh``.
+    mesh is converted to ``.nmsh`` with :mod:`pysemtools.convert`.
 
     Parameters
     ----------
@@ -251,7 +251,13 @@ class Re2Mesh(CornerMesh):
 
     @property
     def corner_coordinates(self):
-        """Coordinates of the local element corners, shape (nelv, 8, 3)."""
+        """
+        Coordinates of the local element corners, shape (nelv, 8, 3).
+
+        A ``.re2`` file stores the corners in the order of
+        :data:`pysemtools.datatypes.corner_mesh.CORNER_IJK`, so only the
+        separate x, y and z arrays of the records are stacked.
+        """
         return np.stack([self.elems["x"], self.elems["y"], self.elems["z"]], axis=2)
 
     @property
