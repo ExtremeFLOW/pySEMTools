@@ -15,7 +15,7 @@ from ..monitoring.logger import Logger
 from ..comm.utils import require_single_rank
 from ..datatypes.nmsh import NmshMesh
 from ..datatypes.re2 import Re2Mesh
-from ..datatypes.corner_mesh import deduplicate_points
+from ..datatypes.corner_mesh_topology import deduplicate_points
 from ..io.nmsh import (
     EL_DT,
     ZONE_DT,
@@ -184,7 +184,7 @@ def merge_periodic(pid, vid, coords, pairs, tol):
         place.
     vid : ndarray
         0-based point index of the element corners, shape (nelv, 8), as
-        returned by :func:`pysemtools.datatypes.corner_mesh.deduplicate_points`.
+        returned by :func:`pysemtools.datatypes.corner_mesh_topology.deduplicate_points`.
     coords : ndarray
         Coordinates of each point, shape (npts, 3).
     pairs : list of tuple

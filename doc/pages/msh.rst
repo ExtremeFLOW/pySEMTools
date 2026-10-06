@@ -45,14 +45,11 @@ Both mesh file types share the behaviour of their base class:
     :members:
     :exclude-members: __weakref__ __dict__
 
-The corner convention shared by all corner meshes:
+The canonical topology shared by all corner meshes, and the topological
+operations on it:
 
-.. autodata :: pysemtools.datatypes.corner_mesh.CORNER_IJK
-    :no-value:
-
-Numbering the distinct corner points, as the ``.re2`` reader of Neko does:
-
-.. autofunction :: pysemtools.datatypes.corner_mesh.deduplicate_points
+.. automodule :: pysemtools.datatypes.corner_mesh_topology
+    :members:
 
 The straight-sided geometry of the element corners at the GLL points, used by ``to_sem_mesh``:
 
