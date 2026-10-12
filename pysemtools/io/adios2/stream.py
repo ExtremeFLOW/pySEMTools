@@ -190,15 +190,37 @@ class DataStreamer:
             Returns the field that was recieved.
         """
 
-        if isinstance(fld, NoneType):
-            fld = np.zeros((self.py2f_field_my_count), dtype=np.double)
-
-        # Begin a step
+        # Begin step
         self.step_status = self.reader_st.BeginStep()
-
+        
         if self.step_status == adios2.StepStatus.OK:
-            # Set up the offsets
+
+            # Inquire the variable to check the type that is being sent,
+            # float64 or float32
             f2py_field = self.io_asynchronous.InquireVariable(variable)
+            try:
+                var_dtype = f2py_field.Type()
+            except Exception as e:
+                print(e)
+                raise TypeError(f"Could not check the type of variable {variable}!")
+
+            # Assign the correct numpy type to the variable
+            if var_dtype == "double":
+                dtype = np.double
+            elif var_dtype == "float": # yes it's float and not "single"
+                dtype = np.single
+            else:
+                raise TypeError(f"{var_dtype}: Unsupported data type")
+        
+            # Instanciate an fld object of the correct type
+            if isinstance(fld, NoneType):
+                fld = np.zeros((self.py2f_field_my_count), dtype=dtype)
+            else:
+                if fld.dtype != dtype:
+                    raise TypeError(f"Type mismatch: receiving array is \
+                            {fld.dtype}, but ADIOS2 is streaming as {dtype}")
+
+            # Set up the offsets and receive the data
             f2py_field.SetSelection(
                 [[self.py2f_field_my_start], [self.py2f_field_my_count]]
             )
