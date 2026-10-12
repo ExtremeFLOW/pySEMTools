@@ -10,6 +10,7 @@ The presently included submodules are:
 
     pysemtools.cli
     pysemtools.comm
+    pysemtools.convert
     pysemtools.datatypes
     pysemtools.interpolation
     pysemtools.io.ppymech
@@ -41,6 +42,12 @@ comm
 ~~~~
 
 .. automodule :: pysemtools.comm
+    :members:
+
+convert
+~~~~~~~
+
+.. automodule :: pysemtools.convert
     :members:
 
 datatypes

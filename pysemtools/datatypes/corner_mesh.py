@@ -9,7 +9,7 @@ from ..comm.router import Router
 from ..comm.distribution import linear_distribution
 from .corner_mesh_geometry import to_sem_mesh
 
-__all__ = ["CornerMesh"]
+__all__ = ["CornerMesh", "deduplicate_points"]
 
 
 class CornerMesh:
@@ -185,3 +185,92 @@ class CornerMesh:
         if all_records is None:
             return None
         return all_records[np.argsort(all_index, kind="stable")]
+
+
+def deduplicate_points(xyz):
+    """
+    Number the distinct corner coordinates.
+
+    Every corner gets the index of its point, 0-based and in order of first
+    appearance. Coordinates are compared bit-exactly as float64 triples,
+    which matches the point table of Neko's ``.re2`` reader.
+
+    Parameters
+    ----------
+    xyz : ndarray
+        Corner coordinates, shape (nelv, 8, 3), float64.
+
+    Returns
+    -------
+    vid : ndarray
+        Point index of every corner, shape (nelv, 8), int64.
+    n_unique : int
+        Number of distinct points.
+
+    Notes
+    -----
+    The corners are sorted as triples of 64-bit integers with a stable sort,
+    so equal corners become adjacent and the first appearance leads each
+    group. The transient memory cost is roughly 36 bytes per corner on top
+    of the input.
+    """
+    # The comments follow a small example with four corners and three distinct
+    # points, written as letters:
+    #
+    #   corner i:  0  1  2  3
+    #   point:     B  A  B  C
+    #
+    # The expected result numbers the points in order of first appearance,
+    # B = 0, A = 1, C = 2, so vid = [0, 1, 0, 2].
+
+    # One row per corner, in element order. The contiguous layout is needed
+    # for the integer view below.
+    n8 = xyz.shape[0] * 8
+    flat = np.ascontiguousarray(xyz, dtype=np.float64).reshape(n8, 3)
+
+    # Reinterpret the three float64 of each row as three 64-bit integers,
+    # without copying. Two corners are then equal exactly when their integers
+    # are, and integers sort faster than floats and need no NaN handling.
+    u = flat.view(np.uint64)
+
+    # Stable sort of the corners by (x, y, z). Equal corners become adjacent,
+    # and because the sort is stable the corner that appears first in the
+    # mesh leads its group. order[s] is the corner at sorted position s.
+    # Example, assuming the integer order A < B < C:
+    #   sorted positions 0..3 hold A, B, B, C
+    #   order = [1, 0, 2, 3]
+    order = np.lexsort((u[:, 2], u[:, 1], u[:, 0]))
+
+    # new[s] is True where sorted position s starts a new group, that is
+    # where the corner differs from the one before it. The sorted copy is
+    # the largest temporary of the function and is dropped right away.
+    # Example: new = [True, True, False, True]
+    new = np.empty(n8, dtype=bool)
+    new[0] = True
+    sorted_u = u[order]
+    np.any(sorted_u[1:] != sorted_u[:-1], axis=1, out=new[1:])
+    del sorted_u
+
+    # grp[s]: group of sorted position s, numbered in sorted order.
+    # first[k]: the first corner of group k, which by stability is where the
+    # point first appears in the mesh.
+    # Example: grp = [0, 1, 1, 2] and first = [1, 0, 3]
+    grp = np.cumsum(new) - 1
+    first = order[new]
+
+    # Sorted order is meaningless, so convert it into first-appearance
+    # order. Sorting first gives the groups in order of appearance, and the
+    # scatter assignment inverts that permutation: rank[k] is the appearance
+    # rank of group k.
+    # Example: argsort(first) = [1, 0, 2] (B, A, C), so rank = [1, 0, 2],
+    # that is A has rank 1, B rank 0 and C rank 2.
+    rank = np.empty(first.size, dtype=np.int64)
+    rank[np.argsort(first, kind="stable")] = np.arange(first.size)
+
+    # Scatter the rank of every group back from sorted positions to corners
+    # and restore the (nelv, 8) layout.
+    # Example: rank[grp] = [1, 0, 0, 2], written to corners [1, 0, 2, 3],
+    # so vid = [0, 1, 0, 2].
+    vid = np.empty(n8, dtype=np.int64)
+    vid[order] = rank[grp]
+    return vid.reshape(-1, 8), int(first.size)

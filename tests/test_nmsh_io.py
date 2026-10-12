@@ -28,6 +28,7 @@ from pysemtools.io.nmsh import (
 )
 from pysemtools.io.re2 import read_re2, Re2FormatError, RE2_EL_DT
 from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
+from pysemtools.datatypes.corner_mesh import deduplicate_points
 from pysemtools.datatypes.corner_mesh_geometry import gll_nodes, gll_coordinates, min_jacobian
 
 #==============================================================================
@@ -282,3 +283,31 @@ def test_re2_mesh(tmp_path):
     assert np.all(hi > lo)
     coef = Coef(msh_re2, comm)
     assert comm.allreduce(float(coef.B.sum())) > 0
+
+
+def test_deduplicate_points():
+
+    # The worked example of the comments: corners B, A, B, C are numbered 0, 1, 0, 2
+    A, B, C = [0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]
+    rest = [[float(k), 1.0, 0.0] for k in range(4)]
+    vid, nuniq = deduplicate_points(np.array([[B, A, B, C] + rest]))
+    assert vid.dtype == np.int64 and vid.shape == (1, 8)
+    assert vid[0].tolist() == [0, 1, 0, 2, 3, 4, 5, 6] and nuniq == 7
+
+    # Random corners drawn from a small pool, checked against a brute force numbering
+    rng = np.random.default_rng(7)
+    pool = rng.random((50, 3))
+    pick = rng.integers(0, pool.shape[0], size=(40, 8))
+    xyz = pool[pick]
+    vid, nuniq = deduplicate_points(xyz)
+    seen, expected = {}, []
+    for row in xyz.reshape(-1, 3):
+        key = row.tobytes()
+        expected.append(seen.setdefault(key, len(seen)))
+    assert vid.reshape(-1).tolist() == expected
+    assert nuniq == len(seen)
+
+    # Bit-exact comparison: -0.0 and 0.0 are different points
+    two = np.zeros((1, 8, 3))
+    two[0, 1, 0] = -0.0
+    assert deduplicate_points(two)[1] == 2
