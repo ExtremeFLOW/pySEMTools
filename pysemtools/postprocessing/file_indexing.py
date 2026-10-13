@@ -568,8 +568,10 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
             logger.write("warning", f"Skipping writing index {output_fname}")
 
     if write_index:
-        with open(output_fname, "w") as outfile:
-            outfile.write(json.dumps(consolidated_index, indent=4))
+        if comm.Get_rank() == 0:
+            with open(output_fname, "w") as outfile:
+                outfile.write(json.dumps(consolidated_index, indent=4))
+        comm.Barrier()
 
     del logger
 
