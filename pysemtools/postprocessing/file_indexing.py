@@ -452,7 +452,8 @@ def index_files_from_folder(
     del logger
 
 
-def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, overwrite=None):
+def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, overwrite=None,
+                      chain_time_intervals=False):
     """
     Merge index files into one.
 
@@ -475,6 +476,12 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
         Sort the index files by time. Default is False.
     overwrite : bool, optional
         Whether to overwrite existing file. If not provided, the user is prompted in case of file name collision.
+    chain_time_intervals : bool
+        Treat the merged entries as one time series: measure each
+        time_interval from the entry before it in time, instead of from the
+        start time its own index was given. Only entries that disagree with
+        their predecessor are changed. Requires sort_by_time.
+        Default is False, since merged indices are not always one series.
 
     Returns
     -------
@@ -490,6 +497,12 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
 
     if len(index_list) == 0:
         raise ValueError("index_list must contain at least one index file")
+
+    if chain_time_intervals and not sort_by_time:
+        raise ValueError(
+            "chain_time_intervals needs sort_by_time, since the intervals are "
+            "chained along the merged sequence"
+        )
 
     logger = Logger(comm=comm, module_name="merge_index_files")
 
@@ -520,6 +533,14 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
                     consolidated_index["simulation_start_time"] = index[key]
                 continue
 
+            elif key == "statistics_start_time":
+                if (
+                    "statistics_start_time" not in consolidated_index
+                    or index[key] < consolidated_index["statistics_start_time"]
+                ):
+                    consolidated_index["statistics_start_time"] = index[key]
+                continue
+
             elif isinstance(index[key], dict):
                 if index[key]["path"] != "file_not_in_folder":
                     consolidated_index[consolidated_key] = index[key]
@@ -541,7 +562,7 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
 
         unsorted_key = np.array(unsorted_key)
 
-        sorted_indices = np.argsort(time)
+        sorted_indices = np.argsort(time, kind="stable")
         sorted_key = unsorted_key[sorted_indices]
 
         sorted_consolidated_index = {}
@@ -549,12 +570,57 @@ def merge_index_files(comm, index_list="", output_fname="", sort_by_time=False, 
         sorted_consolidated_index["simulation_start_time"] = consolidated_index[
             "simulation_start_time"
         ]
+        if "statistics_start_time" in consolidated_index:
+            sorted_consolidated_index["statistics_start_time"] = consolidated_index[
+                "statistics_start_time"
+            ]
 
         for key in sorted_key:
             sorted_consolidated_index[sorted_consolidated_key] = consolidated_index[key]
             sorted_consolidated_key += 1
 
         consolidated_index = sorted_consolidated_index
+
+        # Find entries whose time_previous_output is not the time of the file
+        # before them in the merged sequence.
+        numeric_keys = sorted(
+            (key for key in consolidated_index.keys() if str(key).isdigit()),
+            key=int,
+        )
+
+        seams = []
+        for i in range(1, len(numeric_keys)):
+            entry = consolidated_index[numeric_keys[i]]
+            previous_entry = consolidated_index[numeric_keys[i - 1]]
+
+            if "time_previous_output" not in entry:
+                continue
+
+            if entry["time_previous_output"] != previous_entry["time"]:
+                seams.append((numeric_keys[i], numeric_keys[i - 1]))
+
+        if seams and chain_time_intervals:
+            for key, previous_key in seams:
+                entry = consolidated_index[key]
+                previous_entry = consolidated_index[previous_key]
+                entry["time_previous_output"] = previous_entry["time"]
+                entry["time_interval"] = entry["time"] - previous_entry["time"]
+
+            logger.write(
+                "info", f"Chained the time interval of {len(seams)} entries"
+            )
+
+        elif seams:
+            logger.write(
+                "warning",
+                f"{len(seams)} time intervals are not measured from the entry "
+                "before them in time",
+            )
+            logger.write(
+                "warning",
+                "Pass chain_time_intervals=True if these indices are one "
+                "time series",
+            )
 
     logger.write("info", f"Writing consolidated index file: {output_fname}")
 
