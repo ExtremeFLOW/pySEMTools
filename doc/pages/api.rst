@@ -10,12 +10,15 @@ The presently included submodules are:
 
     pysemtools.cli
     pysemtools.comm
+    pysemtools.convert
     pysemtools.datatypes
     pysemtools.interpolation
     pysemtools.io.ppymech
     pysemtools.io.adios2
     pysemtools.io.hdf
     pysemtools.io.catalyst
+    pysemtools.io.nmsh
+    pysemtools.io.re2
     pysemtools.io.wrappers
     pysemtools.monitoring
     pysemtools.rom
@@ -39,6 +42,12 @@ comm
 ~~~~
 
 .. automodule :: pysemtools.comm
+    :members:
+
+convert
+~~~~~~~
+
+.. automodule :: pysemtools.convert
     :members:
 
 datatypes
@@ -84,6 +93,18 @@ Catalyst2
 ^^^^^^^^^
 
 .. automodule :: pysemtools.io.catalyst
+    :members:
+
+nmsh
+^^^^
+
+.. automodule :: pysemtools.io.nmsh
+    :members:
+
+re2
+^^^
+
+.. automodule :: pysemtools.io.re2
     :members:
 
 wrappers

@@ -10,6 +10,7 @@ The most prominent features of the packages are the following:
 * **Reduced-order modeling**: Objects to perform parallel and streaming proper orthogonal decomposition (POD).
 * **Data compression/streaming**: Through the use of ADIOS2 [@adios2], a set of interfaces is available to perform data compression or to connect Python scripts to running simulations to perform in-situ data processing. 
 * **Visualization**: Given that the data is available in Python, visualizations can be performed from readily available packages. 
+* **Format conversion**: Conversion between the file formats known to the package, such as NEKTON `.re2` and Neko `.nmsh` meshes and Nek5000 field files, also available from the command line as `pysemtools_convert`.
 
 
 **Documentation** is available [here](https://extremeflow.github.io/pySEMTools/).
@@ -143,6 +144,13 @@ To perform visualizations in this way, you need to [install catalyst](https://ca
 # Use
 
 To get an idea on how the codes are used, feel free to check the examples we have provided. Please note that most of the routines included here work in parallel. In fact, python scripts are encouraged rather than notebooks to take advantage of this capability.
+
+Installing the package also installs a few command line tools. `pysemtools_convert` converts files between formats, choosing the conversion from the file names:
+```bash
+pysemtools_convert hemi.re2 hemi.nmsh                            # NEKTON .re2 mesh to Neko .nmsh
+mpirun -n 4 pysemtools_convert hemi.nmsh hemi0.f00000 --order 5  # mesh GLL points to a Nek5000 field file
+pysemtools_convert --list                                        # available conversions and their options
+```
 
 # Tests
 

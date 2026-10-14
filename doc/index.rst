@@ -17,6 +17,7 @@ The following pages contain documentation for some of the most relevant classes 
    ./pages/datatypes
    ./pages/interpolation
    ./pages/io
+   ./pages/convert
 
 
 The previous functions are the ones that, according to our experience, are more likely to be used by a general user. 

@@ -6,5 +6,7 @@ from .field import Field, FieldRegistry
 from .coef import Coef
 from .msh_partitioning import MeshPartitioner
 from .msh_vtk import VTKMesh
+from .nmsh import NmshMesh
+from .re2 import Re2Mesh
 
-__all__ = ["Coef", "Field", "FieldRegistry", "Mesh", "MeshConnectivity", "MeshPartitioner", "VTKMesh"]
+__all__ = ["Coef", "Field", "FieldRegistry", "Mesh", "MeshConnectivity", "MeshPartitioner", "NmshMesh", "Re2Mesh", "VTKMesh"]
