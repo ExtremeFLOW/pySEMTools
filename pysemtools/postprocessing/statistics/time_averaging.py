@@ -77,8 +77,12 @@ def average_field_files(
     logger.write("info", f"Output files will be saved in: {output_folder}")
 
     # Read the json index file
-    with open(field_index_name, "r") as f:
-        file_index = json.load(f)
+    if comm.Get_rank() == 0:
+        with open(field_index_name, "r") as f:
+            file_index = json.load(f)
+    else:
+        file_index = None
+    file_index = comm.bcast(file_index, root=0)
 
     logger.write(
         "info", f"Files will be averaged in batches of {output_batch_t_len} time units"
