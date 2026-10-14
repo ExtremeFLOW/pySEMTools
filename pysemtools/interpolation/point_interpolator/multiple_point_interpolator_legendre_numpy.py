@@ -12,6 +12,7 @@ from .multiple_point_helper_functions_numpy import (
     lag_interp_matrix_at_xtest,
     bar_interp_matrix_at_xtest,
 )
+from .point_search_utils import test_pattern_field
 
 
 NoneType = type(None)
@@ -203,7 +204,13 @@ class LegendreInterpolator(MultiplePointInterpolator):
         return x, y, z
 
     def find_rst_from_xyz(
-        self, xj, yj, zj, tol=np.finfo(np.double).eps * 10, max_iterations=50
+        self,
+        xj,
+        yj,
+        zj,
+        tol=np.finfo(np.double).eps * 10,
+        max_iterations=50,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """
 
@@ -295,8 +302,9 @@ class LegendreInterpolator(MultiplePointInterpolator):
             # Update the number of iterations only if the point has newly been found
             iterations_per_point[(points_found_this_it & ~points_already_found)] = self.iterations
 
-        # Check if points are inside the element
-        limit = 1 + np.finfo(np.single).eps
+        # Check if points are inside the element. rst_tol is the slack allowed outside
+        # the reference element [-1, 1]^3
+        limit = 1 + rst_tol
         t1 = (abs(self.rj[:npoints, :nelems, 0, 0]) <= limit).reshape(
             npoints, nelems, 1, 1
         )
@@ -435,6 +443,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
         find_pts_max_iterations = settings.get("find_pts_max_iterations", 50)
+        find_pts_rst_tol = settings.get("find_pts_rst_tol", np.finfo(np.single).eps)
         # Buffers
         r = buffers.get("r", None)
         s = buffers.get("s", None)
@@ -525,6 +534,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                             probes[pt_not_found_indices, 2].reshape(probe_new_shape),
                             tol=find_pts_tol,
                             max_iterations=find_pts_max_iterations,
+                            rst_tol=find_pts_rst_tol,
                         )
                     )
 
@@ -565,19 +575,17 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         test_probe_new_shape = (ntest, nelems, 1, 1)
                         test_elem_new_shape = (ntest, nelems, x.shape[1], x.shape[2], x.shape[3])
 
-                        # Define new arrays (On the cpu)
+                        # Test pattern x^2 + y^2 + z^2 in double precision, with the
+                        # normalization of its error (see point_search_utils)
                         test_elems = np.array(elem_to_check_per_point)[pt_not_found_this_it]
-                        test_fields = (
-                            x[test_elems, :, :, :] ** 2
-                            + y[test_elems, :, :, :] ** 2
-                            + z[test_elems, :, :, :] ** 2
+                        test_fields, test_probes, test_scale = test_pattern_field(
+                            (x[test_elems], y[test_elems], z[test_elems]),
+                            (
+                                probes[real_index_pt_not_found_this_it, 0],
+                                probes[real_index_pt_not_found_this_it, 1],
+                                probes[real_index_pt_not_found_this_it, 2],
+                            ),
                         )
-                        test_probes = (
-                            probes[real_index_pt_not_found_this_it, 0] ** 2
-                            + probes[real_index_pt_not_found_this_it, 1] ** 2
-                            + probes[real_index_pt_not_found_this_it, 2] ** 2
-                        )
-
                         # Perform the test interpolation
                         test_interp[:ntest, :nelems] = self.interpolate_field_at_rst(
                             result_r[pt_not_found_this_it].reshape(test_probe_new_shape),
@@ -588,7 +596,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         test_result = test_interp[:ntest, :nelems].reshape(ntest)
 
                         # Check if the test pattern is satisfied
-                        test_error = abs(test_probes - test_result)
+                        test_error = abs(test_probes - test_result) / test_scale
 
                         # Now assign
                         real_list = np.array(real_index_pt_not_found_this_it)
@@ -659,6 +667,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
         find_pts_max_iterations = settings.get("find_pts_max_iterations", 50)
+        find_pts_rst_tol = settings.get("find_pts_rst_tol", np.finfo(np.single).eps)
         # Buffers
         r = buffers.get("r", None)
         s = buffers.get("s", None)
@@ -738,6 +747,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         probes[pt_not_found_indices, 2].reshape(probe_new_shape),
                         tol=find_pts_tol,
                         max_iterations=find_pts_max_iterations,
+                        rst_tol=find_pts_rst_tol,
                     )
                 )
 
@@ -797,19 +807,17 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         x.shape[3],
                     )
 
-                    # Define new arrays (On the cpu)
+                    # Test pattern x^2 + y^2 + z^2 in double precision, with the
+                    # normalization of its error (see point_search_utils)
                     test_elems = np.array(elem_to_check_per_point)[pt_not_found_this_it]
-                    test_fields = (
-                        x[test_elems, :, :, :] ** 2
-                        + y[test_elems, :, :, :] ** 2
-                        + z[test_elems, :, :, :] ** 2
+                    test_fields, test_probes, test_scale = test_pattern_field(
+                        (x[test_elems], y[test_elems], z[test_elems]),
+                        (
+                            probes[real_index_pt_not_found_this_it, 0],
+                            probes[real_index_pt_not_found_this_it, 1],
+                            probes[real_index_pt_not_found_this_it, 2],
+                        ),
                     )
-                    test_probes = (
-                        probes[real_index_pt_not_found_this_it, 0] ** 2
-                        + probes[real_index_pt_not_found_this_it, 1] ** 2
-                        + probes[real_index_pt_not_found_this_it, 2] ** 2
-                    )
-
                     # Perform the test interpolation
                     test_interp[:ntest, :nelems] = self.interpolate_field_at_rst(
                         result_r[pt_not_found_this_it].reshape(test_probe_new_shape),
@@ -820,7 +828,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     test_result = test_interp[:ntest, :nelems].reshape(ntest)
 
                     # Check if the test pattern is satisfied
-                    test_error = abs(test_probes - test_result)
+                    test_error = abs(test_probes - test_result) / test_scale
 
                     # Now assign
                     real_list = np.array(real_index_pt_not_found_this_it)

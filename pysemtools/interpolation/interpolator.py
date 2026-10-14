@@ -720,6 +720,7 @@ class Interpolator:
         tol=np.finfo(INTERPOLATION_DTYPE).eps * 10,
         max_iter=50,
         use_oriented_bbox = False,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Public method to find points across ranks and elements"""
         self.log.write(
@@ -746,6 +747,7 @@ class Interpolator:
                 elem_percent_expansion=elem_percent_expansion,
                 tol=tol,
                 max_iter=max_iter,
+                rst_tol=rst_tol,
                 use_oriented_bbox = use_oriented_bbox,
             )
         elif ((find_points_comm_pattern == "point_to_point") or (find_points_comm_pattern == "collective")) and not find_points_iterative[0]:
@@ -756,6 +758,7 @@ class Interpolator:
                 elem_percent_expansion=elem_percent_expansion,
                 tol=tol,
                 max_iter=max_iter,
+                rst_tol=rst_tol,
                 comm_pattern = find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -768,6 +771,7 @@ class Interpolator:
                 tol=tol,
                 batch_size=find_points_iterative[1],
                 max_iter=max_iter,
+                rst_tol=rst_tol,
                 comm_pattern= find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -779,6 +783,7 @@ class Interpolator:
                 elem_percent_expansion=elem_percent_expansion,
                 tol=tol,
                 max_iter=max_iter,
+                rst_tol=rst_tol,
                 use_oriented_bbox = use_oriented_bbox,
             )
 
@@ -791,6 +796,7 @@ class Interpolator:
         tol=np.finfo(INTERPOLATION_DTYPE).eps * 10,
         max_iter=50,
         use_oriented_bbox = False,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Find points using the collective implementation"""
         rank = comm.Get_rank()
@@ -1063,6 +1069,7 @@ class Interpolator:
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
                     settings["find_pts_max_iterations"] = max_iter
+                    settings["find_pts_rst_tol"] = rst_tol
 
                     buffers = {}
                     buffers["r"] = self.r
@@ -1245,6 +1252,7 @@ class Interpolator:
         max_iter=50,
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1336,6 +1344,7 @@ class Interpolator:
         settings["progress_bar"] = self.progress_bar
         settings["find_pts_tol"] = tol
         settings["find_pts_max_iterations"] = max_iter
+        settings["find_pts_rst_tol"] = rst_tol
 
         buffers = {}
         buffers["r"] = self.r
@@ -1483,6 +1492,7 @@ class Interpolator:
         batch_size=5000,
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1622,6 +1632,7 @@ class Interpolator:
             settings["progress_bar"] = self.progress_bar
             settings["find_pts_tol"] = tol
             settings["find_pts_max_iterations"] = max_iter
+            settings["find_pts_rst_tol"] = rst_tol
 
             buffers = {}
             buffers["r"] = self.r
@@ -1774,6 +1785,7 @@ class Interpolator:
         tol=np.finfo(INTERPOLATION_DTYPE).eps * 10,
         max_iter=50,
         use_oriented_bbox = False,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1990,6 +2002,7 @@ class Interpolator:
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
                     settings["find_pts_max_iterations"] = max_iter
+                    settings["find_pts_rst_tol"] = rst_tol
 
                     buffers = {}
                     buffers["r"] = self.r

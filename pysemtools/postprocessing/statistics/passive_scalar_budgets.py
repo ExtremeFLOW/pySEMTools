@@ -1104,6 +1104,8 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     if_pass_points_to_rank0_only=True,
     interpolation_output_fname="interpolated_scalar_fields.hdf5",
     find_points_tol=None,
+    find_points_test_tol=None,
+    find_points_rst_tol=None,
     use_hashtable=False,
 ):
 
@@ -1237,6 +1239,10 @@ def interpolate_all_stat_and_sstat_fields_onto_points(
     } 
     if find_points_tol is not None:
         probe_kwargs["find_points_tol"] = find_points_tol
+    if find_points_test_tol is not None:
+        probe_kwargs["find_points_test_tol"] = find_points_test_tol
+    if find_points_rst_tol is not None:
+        probe_kwargs["find_points_rst_tol"] = find_points_rst_tol
   
     if not if_pass_points_to_rank0_only:
         probes = Probes(probes=xyz, **probe_kwargs)

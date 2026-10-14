@@ -237,5 +237,122 @@ def test_probes_msh_double():
 
 # =============================================================================
 
+def test_probes_gap_between_elements():
+    """
+    Regression test: a probe that falls in the micro gap between two elements.
+
+    Meshes stored in single precision can have shared-face nodes that differ by one
+    float32 ulp between the two neighbouring elements (each element carries its own
+    copy of the face nodes). A probe located in such a gap is strictly outside every
+    element and can only be accepted through the test pattern fallback. That fallback
+    must be evaluated in double precision and be independent of the magnitude of the
+    coordinates: at |x| ~ 3e3 the float32 spacing of x**2 + y**2 + z**2 is 1.0 and at
+    |x| ~ 3e6 the float64 spacing is 2e-3, both far above the default tolerance.
+    The same points must be found normally (error code 1) when the slack allowed
+    outside the reference element (find_points_rst_tol) covers the gap.
+
+    Note: with PYSEMTOOLS_INTERPOLATION_DTYPE=single the probe coordinates are rounded
+    to float32, the probe in the gap collapses onto the element face and is found
+    normally, so in that configuration this test only checks that nothing breaks.
+    """
+    from pysemtools.interpolation.point_interpolator.single_point_helper_functions import GLL_pwts
+
+    lx = 8
+    xi = np.sort(GLL_pwts(lx)[0])
+    h = 5.0
+
+    # (mesh dtype, position of the two elements, gap between them)
+    # float32 spacing at x ~ 3000 is 2.44e-4: use exactly one ulp.
+    # In double precision use a gap of 1e-6 relative to the element size.
+    cases = [(np.single, 3000.0, None), (np.double, 3.0e6, 1e-6 * h)]
+
+    point_interpolators = ["single_point_legendre", "multiple_point_legendre_numpy"]
+    if have_torch:
+        point_interpolators.append("multiple_point_legendre_torch")
+
+    passed = True
+    for ddtype, x0, gap in cases:
+
+        # Two hexahedral elements side by side in x, shape (nelv, lz, ly, lx)
+        xa = x0 + h * (1 + xi) / 2
+        xb = x0 + h + h * (1 + xi) / 2
+        yz = h * (1 + xi) / 2
+        X = np.zeros((2, lx, lx, lx))
+        Y = np.zeros((2, lx, lx, lx))
+        Z = np.zeros((2, lx, lx, lx))
+        X[0, :, :, :] = xa.reshape(1, 1, lx)
+        X[1, :, :, :] = xb.reshape(1, 1, lx)
+        Y[:, :, :, :] = yz.reshape(1, 1, lx, 1)
+        Z[:, :, :, :] = yz.reshape(1, lx, 1, 1)
+        X = X.astype(ddtype)
+        Y = Y.astype(ddtype)
+        Z = Z.astype(ddtype)
+
+        # Element 1 carries its own copy of the shared face, shifted to the right
+        if gap is None:
+            X[1, :, :, 0] = np.nextafter(X[1, :, :, 0], ddtype(np.inf))
+        else:
+            X[1, :, :, 0] = X[1, :, :, 0] + ddtype(gap)
+        gap = float(X[1, 0, 0, 0]) - float(X[0, 0, 0, -1])
+        assert gap > 0
+
+        msh = Mesh(comm, create_connectivity=False, x=X, y=Y, z=Z)
+
+        # One probe in the gap, one well inside each element
+        if comm.Get_rank() == 0:
+            xyz = np.array(
+                [
+                    [float(X[0, 0, 0, -1]) + gap / 2, h / 2, h / 2],
+                    [x0 + h / 4, h / 3, h / 5],
+                    [x0 + 7 * h / 4, h / 3, h / 5],
+                ]
+            )
+        else:
+            xyz = None
+
+        # A linear field is reproduced exactly by the interpolant,
+        # also when extrapolating by a fraction of a ulp outside the element
+        fld = (X.astype(np.double) + 2.0 * Y + 3.0 * Z).astype(np.double)
+
+        for point_int in point_interpolators:
+            for rst_tol in [np.finfo(np.single).eps, 1e-4]:
+                probes = Probes(
+                    comm,
+                    probes=xyz,
+                    msh=msh,
+                    point_interpolator_type=point_int,
+                    write_coords=False,
+                    find_points_rst_tol=rst_tol,
+                )
+                probes.interpolate_from_field_list(0.0, [fld], comm, write_data=False)
+
+                if comm.Get_rank() == 0:
+                    err_code = probes.itp.err_code
+                    test_pattern = probes.itp.test_pattern
+                    reference = xyz[:, 0] + 2.0 * xyz[:, 1] + 3.0 * xyz[:, 2]
+                    interpolated = probes.interpolated_fields[:, 1]
+                    error = np.max(np.abs(interpolated - reference) / np.abs(reference))
+                    log.write(
+                        "info",
+                        f"{np.dtype(ddtype).name}, x0={x0:.0e}, {point_int}, rst_tol={rst_tol:.1e}: "
+                        f"err_code = {err_code}, test_pattern[gap point] = {test_pattern[0]:.3e}, "
+                        f"max relative error = {error:.3e}",
+                    )
+                    # The point in the gap must never be marked as not found (error code 0)
+                    # and must be interpolated correctly
+                    passed = passed and err_code[0] != 0
+                    passed = passed and np.all(err_code[1:] == 1)
+                    passed = passed and (err_code[0] == 1 or test_pattern[0] < 1e-4)
+                    passed = passed and error < 1e-6
+                    # With a slack that covers the gap the point is found normally
+                    if rst_tol > 1e-5:
+                        passed = passed and err_code[0] == 1
+
+    passed = comm.bcast(passed, root=0)
+    assert passed
+
+# =============================================================================
+
 test_probes_msh_single()
 test_probes_msh_double()
+test_probes_gap_between_elements()

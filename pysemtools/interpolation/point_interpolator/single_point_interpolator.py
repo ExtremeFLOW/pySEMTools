@@ -2,6 +2,7 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
+from .point_search_utils import test_pattern_field
 from tqdm import tqdm
 from .single_point_helper_functions import (
     apply_operators_3d,
@@ -51,7 +52,13 @@ class SinglePointInterpolator(ABC):
         self.if_interpolated_vector = False
 
     def find_rst_from_xyz(
-        self, xj, yj, zj, tol=np.finfo(np.double).eps * 10, max_iterations=50
+        self,
+        xj,
+        yj,
+        zj,
+        tol=np.finfo(np.double).eps * 10,
+        max_iterations=50,
+        rst_tol=np.finfo(np.single).eps,
     ):
         """Find the rst coordinates from the xyz coordinates using the newton method"""
         self.point_inside_element = False
@@ -93,7 +100,7 @@ class SinglePointInterpolator(ABC):
             self.tj[0] = self.rstj[2, 0]
             self.iterations += 1
 
-        limit = 1 + np.finfo(np.single).eps
+        limit = 1 + rst_tol
         if (
             abs(self.rj[0]) <= limit
             and abs(self.sj[0]) <= limit
@@ -191,6 +198,7 @@ class SinglePointInterpolator(ABC):
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
         find_pts_max_iterations = settings.get("find_pts_max_iterations", 50)
+        find_pts_rst_tol = settings.get("find_pts_rst_tol", np.finfo(np.single).eps)
 
         # Reset the element owner and the error code so this rank checks again
         err_code[:] = not_found_code
@@ -228,6 +236,7 @@ class SinglePointInterpolator(ABC):
                         probes[pts, 2],
                         tol=find_pts_tol,
                         max_iterations=find_pts_max_iterations,
+                        rst_tol=find_pts_rst_tol,
                     )
                     if self.point_inside_element:
                         probes_rst[pts, 0] = r
@@ -243,21 +252,17 @@ class SinglePointInterpolator(ABC):
                         # Perform test interpolation and update if the
                         # results are better than previously stored
                         if use_test_pattern:
-                            test_field = (
-                                x[e, :, :, :] ** 2
-                                + y[e, :, :, :] ** 2
-                                + z[e, :, :, :] ** 2
-                            )
-                            test_probe = (
-                                probes[pts, 0] ** 2
-                                + probes[pts, 1] ** 2
-                                + probes[pts, 2] ** 2
+                            # Test pattern x^2 + y^2 + z^2 in double precision, with the
+                            # normalization of its error (see point_search_utils)
+                            test_field, test_probe, test_scale = test_pattern_field(
+                                (x[e, :, :, :], y[e, :, :, :], z[e, :, :, :]),
+                                (probes[pts, 0], probes[pts, 1], probes[pts, 2]),
                             )
                             test_interp = self.interpolate_field_at_rst(
                                 r, s, t, test_field
                             )
 
-                            test_error = abs(test_probe - test_interp)
+                            test_error = abs(test_probe - test_interp) / test_scale
 
                             if test_error < test_pattern[pts]:
                                 probes_rst[pts, 0] = r
