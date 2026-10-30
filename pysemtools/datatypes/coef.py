@@ -36,6 +36,12 @@ class Coef:
         If True, the multidimensional operators will be stored in the object. (Default value = False).
         Note that if apply_1d_operators is false, the multidimensional operators will be stored regardless of this option.
 
+    device : str or torch.device, optional
+        Explicit device for the Torch backend, e.g. "cpu" for reference tests
+        or the current rank's CUDA device. None retains automatic selection.
+        Fixed coordinate inputs may be NumPy arrays; field derivatives retain
+        autograd when supplied as Torch tensors.
+
     Attributes
     ----------
     drdx : ndarray
@@ -78,7 +84,7 @@ class Coef:
     >>> coef = Coef(msh, comm)
     """
 
-    def __init__(self, msh, comm, get_area=False, apply_1d_operators=True, bckend = "numpy", store_multidimensional_operators=False):
+    def __init__(self, msh, comm, get_area=False, apply_1d_operators=True, bckend = "numpy", store_multidimensional_operators=False, device=None):
 
         self.log = Logger(comm=comm, module_name="Coef")
         self.log.tic()
@@ -96,7 +102,7 @@ class Coef:
 
             if sys.modules.get("torch") is None:
                 raise ImportError("torch is not installed/imported. Please install it and import it in your driver python script to use the torch backend.")
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device(device) if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
             # Correct dtype if input is torch tensor
             if self.dtype == torch.float64:
@@ -376,6 +382,38 @@ class Coef:
         self.log.write("debug", "Coef object initialized")
         self.log.write("debug", f"Coef data is of type: {self.B.dtype}")
         self.log.toc(message= f"Coef object initialized - dtype: {self.B.dtype}")
+
+    def nodal_to_modal(self, field):
+        """Transform ``(..., lz, ly, lx)`` to the discrete GLL Legendre basis.
+
+        With ``n`` GLL points, modal degrees are 0 through n-1. The basis is
+        quadrature-normalized, including the highest-degree GLL correction.
+        Leading element/channel/batch axes are preserved. With the Torch
+        backend, operations preserve autograd through ``field``.
+        """
+        return self._apply_modal_transform(field, self.vinv)
+
+    def modal_to_nodal(self, field):
+        """Inverse of :meth:`nodal_to_modal`, preserving leading axes."""
+        return self._apply_modal_transform(field, self.v)
+
+    def _apply_modal_transform(self, field, operator):
+        """Adapt leading axes to the existing NumPy/Torch operator helpers."""
+        if not self.apply_1d_operators:
+            raise ValueError("Modal transforms require apply_1d_operators=True")
+        n = operator.shape[0]
+        if field.ndim < self.gdim or tuple(field.shape[-self.gdim:]) != (n,) * self.gdim:
+            raise ValueError("Modal transforms require equal point counts on each spatial axis")
+        shape = field.shape
+        if self.bckend == 'torch':
+            field = torch.as_tensor(field, dtype=self.dtype_d, device=self.device)
+            apply = apply_1d_operators_torch
+        else:
+            apply = apply_1d_operators
+        matrix = operator.reshape(1, 1, n, n)
+        columns = field.reshape(-1, 1, n ** self.gdim, 1)
+        return apply(columns, matrix, matrix,
+                     matrix if self.gdim == 3 else None).reshape(shape)
 
     def dudrst(self, field, direction="r"):
         """
@@ -749,10 +787,13 @@ class Coef:
         torch.Tensor
             Derivative of the field with respect to r/s/t. Shape is the same as the input field.
         """
+        # as_tensor preserves an existing tensor's graph, unlike torch.tensor.
+        # It also permits the NumPy coordinates of a NumPy Mesh at setup.
+        field = torch.as_tensor(field, dtype=self.dtype_d, device=self.device)
         nelv, lz, ly, lx = field.shape  # Read dimensions
 
         # Reshape the field for batch-wise matrix multiplication
-        field_reshaped = field.view(nelv, 1, lz * ly * lx, 1)
+        field_reshaped = field.reshape(nelv, 1, lz * ly * lx, 1)
 
         # Reshape the operators
         dr = dr.view(1, 1, lx, lx)
@@ -1217,7 +1258,7 @@ def get_transform_matrix(n, dim, apply_1d_operators=False, dtype=np.double):
     Parameters
     ----------
     n : int
-        Polynomial degree (order - 1).
+        Number of GLL points. Represented polynomial degrees are 0 through n-1.
 
     dim : int
         Dimension of the problem.
