@@ -207,7 +207,7 @@ def put_field_in_hexadata(data, field, prefix, qoi):
 
 
 def get_gradient(msh, coef, field_list=None):
-    """
+    r"""
     Get gradient from a 3D field vector field wrt x, y, z directions.
 
     The gradient of a vector field is a tensor. The gradient of a scalar field is a vector field.
@@ -278,7 +278,7 @@ def get_gradient(msh, coef, field_list=None):
 
 
 def get_strain_tensor(grad_u, msh):
-    """
+    r"""
     Calculate the symetric part of the gradient.
 
     Calculate the symetric part of the gradient tensor, defined as:
@@ -326,7 +326,7 @@ def get_strain_tensor(grad_u, msh):
 
 
 def get_angular_rotation_tensor(grad_u, msh):
-    """
+    r"""
     Calculate the antisymetric part of the gradient.
 
     Calculate the antisymetric part of the gradient tensor, defined as:

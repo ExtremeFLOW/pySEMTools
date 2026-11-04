@@ -37,10 +37,8 @@ class Coef:
         Note that if apply_1d_operators is false, the multidimensional operators will be stored regardless of this option.
 
     device : str or torch.device, optional
-        Explicit device for the Torch backend, e.g. "cpu" for reference tests
-        or the current rank's CUDA device. None retains automatic selection.
-        Fixed coordinate inputs may be NumPy arrays; field derivatives retain
-        autograd when supplied as Torch tensors.
+        Torch device, e.g. "cpu" or this rank's CUDA device.
+        None retains automatic device selection.
 
     Attributes
     ----------
@@ -384,13 +382,7 @@ class Coef:
         self.log.toc(message= f"Coef object initialized - dtype: {self.B.dtype}")
 
     def nodal_to_modal(self, field):
-        """Transform ``(..., lz, ly, lx)`` to the discrete GLL Legendre basis.
-
-        With ``n`` GLL points, modal degrees are 0 through n-1. The basis is
-        quadrature-normalized, including the highest-degree GLL correction.
-        Leading element/channel/batch axes are preserved. With the Torch
-        backend, operations preserve autograd through ``field``.
-        """
+        """Map nodal fields to GLL-normalized coefficients; preserve leading axes."""
         return self._apply_modal_transform(field, self.vinv)
 
     def modal_to_nodal(self, field):
@@ -401,15 +393,19 @@ class Coef:
         """Adapt leading axes to the existing NumPy/Torch operator helpers."""
         if not self.apply_1d_operators:
             raise ValueError("Modal transforms require apply_1d_operators=True")
+
         n = operator.shape[0]
         if field.ndim < self.gdim or tuple(field.shape[-self.gdim:]) != (n,) * self.gdim:
             raise ValueError("Modal transforms require equal point counts on each spatial axis")
+
         shape = field.shape
         if self.bckend == 'torch':
             field = torch.as_tensor(field, dtype=self.dtype_d, device=self.device)
             apply = apply_1d_operators_torch
         else:
             apply = apply_1d_operators
+
+        # Fold batch/channel axes into the existing column layout.
         matrix = operator.reshape(1, 1, n, n)
         columns = field.reshape(-1, 1, n ** self.gdim, 1)
         return apply(columns, matrix, matrix,
@@ -787,8 +783,7 @@ class Coef:
         torch.Tensor
             Derivative of the field with respect to r/s/t. Shape is the same as the input field.
         """
-        # as_tensor preserves an existing tensor's graph, unlike torch.tensor.
-        # It also permits the NumPy coordinates of a NumPy Mesh at setup.
+        # Preserve tensor autograd; also accept NumPy mesh coordinates.
         field = torch.as_tensor(field, dtype=self.dtype_d, device=self.device)
         nelv, lz, ly, lx = field.shape  # Read dimensions
 
