@@ -19,6 +19,8 @@ from pysemtools.io.nmsh import (
     ZONE_DT,
     CURVE_DT,
     VERTEX_IJK,
+    FACE_VERTICES,
+    EDGE_VERTICES,
     ZONE_PERIODIC,
     ZONE_LABELLED,
     NmshFormatError,
@@ -26,10 +28,28 @@ from pysemtools.io.nmsh import (
     write_nmsh,
     iter_nmsh_elements,
 )
-from pysemtools.io.re2 import read_re2, Re2FormatError, RE2_EL_DT
+from pysemtools.io.re2 import (
+    read_re2,
+    Re2FormatError,
+    RE2_EL_DT,
+    RE2_CURVE_DT,
+    RE2_BC_DT,
+    RE2_TO_NEKO_FACET,
+)
+from pysemtools.comm.distribution import linear_distribution
 from pysemtools.datatypes import NmshMesh, Re2Mesh, Coef
-from pysemtools.datatypes.corner_mesh import deduplicate_points
-from pysemtools.datatypes.corner_mesh_geometry import gll_nodes, gll_coordinates, min_jacobian
+from pysemtools.datatypes.corner_mesh_topology import (
+    deduplicate_points,
+    CORNER_IJK,
+    FACET_CORNERS,
+    EDGE_CORNERS,
+)
+from pysemtools.datatypes.corner_mesh_geometry import (
+    gll_nodes,
+    gll_coordinates,
+    min_jacobian,
+    facet_gll_mask,
+)
 
 #==============================================================================
 
@@ -311,3 +331,155 @@ def test_deduplicate_points():
     two = np.zeros((1, 8, 3))
     two[0, 1, 0] = -0.0
     assert deduplicate_points(two)[1] == 2
+
+
+def test_corner_convention():
+
+    # Both mesh file formats store corners in the corner convention, so their data types
+    # return the records unchanged
+    assert np.array_equal(CORNER_IJK, VERTEX_IJK)
+
+    # With two GLL points per direction the GLL points are the corners themselves, numbered
+    # i + 2 j + 4 k; the trilinear map must put corner c at its reference position
+    cube = CORNER_IJK.astype(np.float64)[None]
+    xyz = gll_coordinates(cube, n=2)[0]
+    for c, (i, j, k) in enumerate(CORNER_IJK):
+        assert np.array_equal(xyz[i + 2 * j + 4 * k], cube[0, c])
+    assert min_jacobian(cube, n=3)[0] == pytest.approx(0.125)
+
+    # Swapping two corners breaks the convention, which the Jacobian exposes
+    twisted = cube.copy()
+    twisted[0, [2, 3]] = twisted[0, [3, 2]]
+    assert min_jacobian(twisted, n=3)[0] <= 0.0
+
+
+def test_canonical_tables():
+
+    # The canonical corners and facets are those of the .nmsh format
+    assert np.array_equal(CORNER_IJK, VERTEX_IJK)
+    assert np.array_equal(FACET_CORNERS, FACE_VERTICES)
+
+    # Facet f is the face where reference direction f // 2 is at its low (even f) or high end
+    for f, corners in enumerate(FACET_CORNERS):
+        ref = CORNER_IJK[corners]
+        fixed = np.flatnonzero((ref == ref[0]).all(axis=0))
+        assert fixed.tolist() == [f // 2] and ref[0, f // 2] == f % 2
+
+    # The GLL points of each facet, derived from the table, are the expected index ranges
+    for n in range(2, 6):
+        idx = np.arange(n**3)
+        ijk = (idx % n, (idx // n) % n, idx // (n * n))
+        mask = facet_gll_mask(n)
+        for f in range(6):
+            assert np.array_equal(mask[f], ijk[f // 2] == (f % 2) * (n - 1))
+
+    # The edges are the twelve edges of the cube, numbered like the curve records: round the
+    # bottom face, round the top face, then the vertical edges
+    assert {tuple(sorted(e)) for e in EDGE_CORNERS} == {tuple(sorted(e)) for e in EDGE_VERTICES}
+    for e, (a, b) in enumerate(EDGE_CORNERS):
+        assert np.abs(CORNER_IJK[a] - CORNER_IJK[b]).sum() == 1
+        if e < 8:
+            base = 4 * (e // 4)
+            assert (a, b) == (base + e % 4, base + (e + 1) % 4)
+        else:
+            assert (a, b) == (e - 8, e - 4)
+
+
+def test_deduplicate_points_distributed():
+
+    rank, size = comm.Get_rank(), comm.Get_size()
+    rng = np.random.default_rng(11)
+    pool = rng.random((60, 3))
+    pool[0] = 0.0
+    pool[1] = (-0.0, 0.0, 0.0)  # bitwise different from pool[0]
+    for glb in (50, 1):
+        xyz = pool[rng.integers(0, pool.shape[0], size=(glb, 8))]
+        serial, n_serial = deduplicate_points(xyz)
+
+        # On a single rank the parallel numbering is the serial one
+        single, n_single = deduplicate_points(xyz, MPI.COMM_SELF)
+        assert np.array_equal(single, serial) and n_single == n_serial
+
+        # Every rank holds a block of the elements, some ranks may hold none
+        n, off = linear_distribution(glb, comm)
+        local, n_unique = deduplicate_points(xyz[off : off + n], comm)
+        assert local.shape == (n, 8) and local.dtype == np.int64
+        assert n_unique == n_serial
+        dist = np.concatenate(comm.allgather(local)).reshape(-1)
+
+        # The same points get the same ids on all ranks: a bijection with the serial ids,
+        # and the ids are dense
+        pairs = np.unique(np.stack([serial.reshape(-1), dist], axis=1), axis=0)
+        assert pairs.shape[0] == n_serial
+        assert np.unique(pairs[:, 1]).size == n_serial
+        assert np.array_equal(np.unique(dist), np.arange(n_serial))
+
+
+def test_point_ids():
+
+    # Neko's rea2nbin numbered the points of hemi.nmsh in order of first appearance, which is
+    # also the numbering of a replicated Re2Mesh; hemi has no periodic facets
+    re2 = Re2Mesh.from_file("examples/data/hemi.re2", log_level="hide")
+    nmsh = NmshMesh.from_file("examples/data/hemi.nmsh", log_level="hide")
+    assert np.array_equal(nmsh.point_ids(), nmsh.vertex_ids - 1)
+    assert np.array_equal(re2.point_ids(), nmsh.point_ids())
+
+    # Distributed: the nmsh ids come from the file, the re2 ids are numbered in parallel and
+    # must identify the same points
+    nmsh_dist = NmshMesh.from_file("examples/data/hemi.nmsh", comm, log_level="hide")
+    lo, hi = nmsh_dist.offset_el, nmsh_dist.offset_el + nmsh_dist.nelv
+    assert np.array_equal(nmsh_dist.point_ids(), nmsh.point_ids()[lo:hi])
+    re2_dist = Re2Mesh.from_file("examples/data/hemi.re2", comm, log_level="hide")
+    ids = np.concatenate(comm.allgather(re2_dist.point_ids())).reshape(-1)
+    pairs = np.unique(np.stack([re2.point_ids().reshape(-1), ids], axis=1), axis=0)
+    nuniq = np.unique(re2.point_ids()).size
+    assert pairs.shape[0] == nuniq and np.unique(pairs[:, 1]).size == nuniq
+
+
+def re2_from_nmsh_records(elems, zones):
+    """The records of an Re2Mesh with the corners and zones of an nmsh box."""
+    neko_to_re2 = {int(RE2_TO_NEKO_FACET[k]): k + 1 for k in range(6)}
+    re2_elems = np.zeros(elems.shape[0], dtype=RE2_EL_DT)
+    for c, name in enumerate("xyz"):
+        re2_elems[name] = elems["v"]["xyz"][:, :, c]
+    bcs = np.zeros(zones.shape[0], dtype=RE2_BC_DT)
+    bcs["e"] = zones["e"]
+    bcs["f"] = [neko_to_re2[int(f)] for f in zones["f"]]
+    periodic = zones["t"] == ZONE_PERIODIC
+    bcs["t"] = np.where(periodic, b"P       ", b"MSH     ")
+    bcs["d"][periodic, 0] = zones["p_e"][periodic]
+    bcs["d"][periodic, 1] = [neko_to_re2[int(f)] for f in zones["p_f"][periodic]]
+    bcs["d"][~periodic, 4] = zones["p_f"][~periodic]
+    return re2_elems, np.zeros(0, dtype=RE2_CURVE_DT), bcs
+
+
+def test_periodic_pairs_and_boundary_facets():
+
+    elems, zones, curves = build_box()
+    nmsh = NmshMesh(elems, zones, curves)
+    re2 = Re2Mesh(*re2_from_nmsh_records(elems, zones))
+
+    # Both data types give the same canonical pairs and boundary facets
+    nx, ny, nz = NEL
+    pairs = np.stack(nmsh.periodic_pairs(), axis=1)
+    assert pairs.shape == (nx * ny, 4)
+    assert (pairs[:, 1] == 4).all() and (pairs[:, 3] == 5).all()  # t = -1 paired with t = +1
+    assert np.array_equal(np.stack(re2.periodic_pairs(), axis=1), pairs)
+    e7, f7, label = nmsh.boundary_facets()
+    assert (f7 == 0).all() and (label == 4).all() and e7.size == ny * nz
+    e_re2, f_re2, tag = re2.boundary_facets()
+    assert np.array_equal(e_re2, e7) and np.array_equal(f_re2, f7)
+    assert set(tag.tolist()) == {"MSH"}
+
+    # Distributed: every rank lists the facets of its own elements, and together they are the
+    # facets of the replicated mesh
+    for mesh in (nmsh, re2):
+        dist = mesh.distribute(comm)
+        local = np.stack(dist.periodic_pairs(), axis=1)
+        own = (local[:, 0] >= dist.offset_el) & (local[:, 0] < dist.offset_el + dist.nelv)
+        assert own.all()
+        glb = np.concatenate(comm.allgather(local))
+        assert np.array_equal(glb[np.lexsort(glb.T[::-1])], pairs[np.lexsort(pairs.T[::-1])])
+        e_loc, f_loc, _ = dist.boundary_facets()
+        e_glb = np.concatenate(comm.allgather(e_loc))
+        assert np.array_equal(np.sort(e_glb), np.sort(e7))

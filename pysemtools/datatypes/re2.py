@@ -15,8 +15,14 @@ from ..io.re2 import (
     write_re2,
     validate_re2_records,
     bc_type_str,
+    RE2_TO_NEKO_FACET,
 )
 from .corner_mesh import CornerMesh
+from .corner_mesh_topology import deduplicate_points
+
+#: Boundary condition types that are not boundaries: internal faces, empty
+#: fields and periodic faces, which :meth:`Re2Mesh.periodic_pairs` lists.
+_NOT_BOUNDARY = ("E", "e", "", "P")
 
 __all__ = ["Re2Mesh"]
 
@@ -28,8 +34,8 @@ class Re2Mesh(CornerMesh):
     A ``.re2`` stores, for every element, a group id and the coordinates of
     the eight corners, plus curved edge records and boundary condition
     records that refer to elements by their position in the file. Unlike a
-    Neko ``.nmsh`` there are no global point ids; those are created when the
-    mesh is converted with the tools of ``pysemtools.nmsh``.
+    Neko ``.nmsh`` there are no global point ids; those can be created by
+    calling :meth:`point_ids`.
 
     Parameters
     ----------
@@ -251,7 +257,13 @@ class Re2Mesh(CornerMesh):
 
     @property
     def corner_coordinates(self):
-        """Coordinates of the local element corners, shape (nelv, 8, 3)."""
+        """
+        Coordinates of the local element corners, shape (nelv, 8, 3).
+
+        A ``.re2`` file stores the corners in the order of
+        :data:`pysemtools.datatypes.corner_mesh_topology.CORNER_IJK`, so only the
+        separate x, y and z arrays of the records are stacked.
+        """
         return np.stack([self.elems["x"], self.elems["y"], self.elems["z"]], axis=2)
 
     @property
@@ -274,3 +286,72 @@ class Re2Mesh(CornerMesh):
             One entry per record in ``bcs``, e.g. ``"W"``, ``"v"``, ``"P"``.
         """
         return [bc_type_str(t) for t in self.bcs["t"]]
+
+    def point_ids(self):
+        """
+        Canonical point ids of the local element corners.
+
+        A ``.re2`` stores no point ids, so the corners are numbered with
+        :func:`pysemtools.datatypes.corner_mesh_topology.deduplicate_points`.
+        A replicated mesh numbers its points in order of first appearance. A
+        distributed mesh numbers them in parallel, which gives the same
+        points the same ids on all ranks in an unspecified order. The call
+        is collective on a distributed mesh.
+
+        Returns
+        -------
+        ndarray
+            Point ids, shape (nelv, 8), int64.
+        """
+        return deduplicate_points(self.corner_coordinates, comm=self.comm)[0]
+
+    def _canonical_facet(self, re2_face):
+        """Canonical 0-based facet of 1-based NEKTON face numbers."""
+        return RE2_TO_NEKO_FACET[np.asarray(re2_face, dtype=np.int64) - 1] - 1
+
+    def periodic_pairs(self):
+        """
+        Periodic facet pairs of the local elements.
+
+        Taken from the boundary condition records of type ``P``, whose first
+        two parameters name the partner element and face. The NEKTON face
+        numbers are translated into the canonical facet numbering. See
+        :meth:`CornerMesh.periodic_pairs`.
+
+        Returns
+        -------
+        elem, facet, partner_elem, partner_facet : ndarray
+            Global element indices and facets, each of shape (n,), int64.
+        """
+        bcs = self.bcs[np.array(self.bc_types(), dtype=str) == "P"]
+        return (
+            bcs["e"].astype(np.int64) - 1,
+            self._canonical_facet(bcs["f"]),
+            bcs["d"][:, 0].astype(np.int64) - 1,
+            self._canonical_facet(bcs["d"][:, 1]),
+        )
+
+    def boundary_facets(self):
+        """
+        Boundary facets of the local elements with their boundary condition type.
+
+        Taken from the boundary condition records, leaving out internal and
+        periodic faces. The NEKTON face numbers are translated into the
+        canonical facet numbering. See :meth:`CornerMesh.boundary_facets`.
+
+        Returns
+        -------
+        elem, facet : ndarray
+            Global element indices and facets, each of shape (n,), int64.
+        tag : ndarray
+            The boundary condition type of each facet, for example ``"W"``
+            or ``"v"``, shape (n,), str.
+        """
+        types = np.array(self.bc_types(), dtype=str)
+        keep = ~np.isin(types, _NOT_BOUNDARY)
+        bcs = self.bcs[keep]
+        return (
+            bcs["e"].astype(np.int64) - 1,
+            self._canonical_facet(bcs["f"]),
+            types[keep],
+        )

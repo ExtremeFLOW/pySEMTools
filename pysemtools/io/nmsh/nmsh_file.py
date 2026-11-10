@@ -81,7 +81,9 @@ COUNT_BYTES = 4
 # ---------------------------------------------------------------------------
 
 #: The four vertex slots (0-based) that make up each of the six facets, in
-#: the order Neko uses when storing periodic point ids.
+#: the order Neko uses when storing periodic point ids. This coincides with
+#: the canonical facets of the corner mesh data types,
+#: ``pysemtools.datatypes.corner_mesh_topology.FACET_CORNERS``.
 FACE_VERTICES = (
     np.array(
         [[1, 5, 8, 4], [2, 6, 7, 3], [1, 2, 6, 5], [4, 3, 7, 8], [1, 2, 3, 4], [5, 6, 7, 8]],
@@ -91,6 +93,9 @@ FACE_VERTICES = (
 )
 
 #: The two vertex slots (0-based) that make up each of the twelve edges.
+#: These are the same edges as the canonical ones,
+#: ``pysemtools.datatypes.corner_mesh_topology.EDGE_CORNERS``, but in another
+#: order, which is not the edge numbering of the curve records.
 EDGE_VERTICES = (
     np.array(
         [
@@ -113,7 +118,9 @@ EDGE_VERTICES = (
 )
 
 #: Position of each of the eight vertex slots in the reference cube, as
-#: (i, j, k) offsets in {0, 1}.
+#: (i, j, k) offsets in {0, 1}. This coincides with the canonical corners of
+#: the corner mesh data types,
+#: ``pysemtools.datatypes.corner_mesh_topology.CORNER_IJK``.
 VERTEX_IJK = np.array(
     [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]],
     dtype=np.int64,

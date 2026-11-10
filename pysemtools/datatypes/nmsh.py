@@ -321,8 +321,71 @@ class NmshMesh(CornerMesh):
 
     @property
     def corner_coordinates(self):
-        """Coordinates of the local element corners, shape (nelv, 8, 3)."""
+        """
+        Coordinates of the local element corners, shape (nelv, 8, 3).
+
+        A ``.nmsh`` file stores the corners in the order of
+        :data:`pysemtools.datatypes.corner_mesh_topology.CORNER_IJK`, so the
+        records are returned as they are.
+        """
         return self.elems["v"]["xyz"]
+
+    def point_ids(self):
+        """
+        Canonical point ids of the local element corners.
+
+        These are the point ids of the file, which start at 1, minus one.
+        They are global already, so no communication is needed.
+
+        Returns
+        -------
+        ndarray
+            Point ids, shape (nelv, 8), int64.
+        """
+        return self.elems["v"]["idx"].astype(np.int64) - 1
+
+    def periodic_pairs(self):
+        """
+        Periodic facet pairs of the local elements.
+
+        Taken from the periodic zone records, which name an element and its
+        partner by their ids and use the canonical facet numbering, starting
+        at 1. See :meth:`CornerMesh.periodic_pairs`.
+
+        Returns
+        -------
+        elem, facet, partner_elem, partner_facet : ndarray
+            Global element indices and facets, each of shape (n,), int64.
+        """
+        z5 = self.periodic_zones
+        return (
+            z5["e"].astype(np.int64) - 1,
+            z5["f"].astype(np.int64) - 1,
+            z5["p_e"].astype(np.int64) - 1,
+            z5["p_f"].astype(np.int64) - 1,
+        )
+
+    def boundary_facets(self):
+        """
+        Boundary facets of the local elements with their label.
+
+        Taken from the labelled zone records. The legacy zone types 1 to 4
+        are not included, since Neko ignores them. See
+        :meth:`CornerMesh.boundary_facets`.
+
+        Returns
+        -------
+        elem, facet : ndarray
+            Global element indices and facets, each of shape (n,), int64.
+        tag : ndarray
+            The boundary label of each facet, shape (n,), int64.
+        """
+        z7 = self.labelled_zones
+        return (
+            z7["e"].astype(np.int64) - 1,
+            z7["f"].astype(np.int64) - 1,
+            z7["p_f"].astype(np.int64),
+        )
 
     @property
     def periodic_zones(self):
@@ -338,6 +401,45 @@ class NmshMesh(CornerMesh):
     def legacy_zones(self):
         """Local zone records of the legacy types 1 to 4, which current Neko ignores."""
         return self.zones[(self.zones["t"] >= 1) & (self.zones["t"] <= 4)]
+
+    def periodic_targets(self):
+        """
+        Periodic facets of a replicated mesh with the point ids Neko merges them into.
+
+        Besides the partner facet, a periodic zone record of a ``.nmsh``
+        stores the point ids that the four facet corners are identified
+        with, as Neko computed them when the file was written. Neko applies
+        these when it reads the mesh, so they are needed to reproduce what
+        Neko sees, while :meth:`periodic_pairs` gives the format-neutral
+        pairs. This returns them with 0-based element positions and facet
+        indices, which is the form taken by the periodic merges of
+        :mod:`pysemtools.datatypes.corner_mesh_topology`. The order of the
+        zone records is kept.
+
+        Returns
+        -------
+        elem : ndarray
+            0-based record position of the element of each periodic facet,
+            shape (n,), int64.
+        facet : ndarray
+            0-based facet index, shape (n,), int64. The corners of the facet
+            are ``FACET_CORNERS[facet]``.
+        targets : ndarray
+            Point ids of the file that the corners are identified with,
+            shape (n, 4), int64.
+
+        Raises
+        ------
+        RuntimeError
+            If the mesh is distributed. Call :meth:`gather` first.
+        """
+        z5 = self.periodic_zones
+        pos = self.element_positions()
+        return (
+            pos[z5["e"].astype(np.int64)],
+            z5["f"].astype(np.int64) - 1,
+            z5["g"].astype(np.int64),
+        )
 
     def element_positions(self):
         """

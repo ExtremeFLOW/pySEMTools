@@ -5,13 +5,15 @@ The eight corners of an element define a trilinear map from the reference
 cube to physical space. This module evaluates that map and its Jacobian at
 the GLL points of a chosen polynomial order and bridges to the GLL based
 :class:`pysemtools.datatypes.msh.Mesh` used by the rest of the package.
+Corners and facets follow the canonical topology of
+:mod:`pysemtools.datatypes.corner_mesh_topology`.
 """
 
 import numpy as np
 
 from .coef import GLL_pwts
 from .msh import Mesh
-from ..io.nmsh import VERTEX_IJK
+from .corner_mesh_topology import CORNER_IJK, FACET_CORNERS
 
 __all__ = [
     "gll_nodes",
@@ -65,7 +67,8 @@ def trilinear_shape_functions(n=3):
     Returns
     -------
     shape : ndarray
-        Shape function values, shape (n**3, 8).
+        Shape function values, shape (n**3, 8). Column ``c`` belongs to
+        corner ``c`` of :data:`pysemtools.datatypes.corner_mesh_topology.CORNER_IJK`.
     dshape : ndarray
         Derivatives with respect to r, s and t, shape (3, n**3, 8).
     """
@@ -84,8 +87,8 @@ def trilinear_shape_functions(n=3):
         return _shape_cache[n]
 
     # (8, 3): reference coordinates (r_k, s_k, t_k) of the eight corners, in
-    # the vertex slot order of the .nmsh format (VERTEX_IJK maps 0/1 -> -1/+1).
-    rst_corner = 2.0 * VERTEX_IJK.astype(np.float64) - 1.0
+    # the canonical corner order (CORNER_IJK maps 0/1 -> -1/+1).
+    rst_corner = 2.0 * CORNER_IJK.astype(np.float64) - 1.0
 
     # (n**3, 3): the GLL points of the reference cube. Naming the meshgrid
     # outputs (t, s, r) with indexing="ij" makes r the fastest index after
@@ -120,7 +123,8 @@ def gll_coordinates(corners, n=3):
     Parameters
     ----------
     corners : ndarray
-        Corner coordinates, shape (m, 8, 3).
+        Corner coordinates, shape (m, 8, 3), in the order of
+        :data:`pysemtools.datatypes.corner_mesh_topology.CORNER_IJK`.
     n : int, optional
         Number of GLL points per direction. Default is 3.
 
@@ -144,7 +148,8 @@ def min_jacobian(corners, n=3, chunk=2**20):
     Parameters
     ----------
     corners : ndarray
-        Corner coordinates, shape (m, 8, 3).
+        Corner coordinates, shape (m, 8, 3), in the order of
+        :data:`pysemtools.datatypes.corner_mesh_topology.CORNER_IJK`.
     n : int, optional
         Number of GLL points per direction. Default is 3.
     chunk : int, optional
@@ -192,25 +197,33 @@ def facet_gll_mask(n=3):
     -------
     ndarray
         Boolean array of shape (6, n**3), row ``f`` marks the points on
-        Neko facet ``f + 1``.
+        facet ``f`` of
+        :data:`pysemtools.datatypes.corner_mesh_topology.FACET_CORNERS`.
     """
+    # (n**3, 3): the (i, j, k) index of every GLL point along (r, s, t), in
+    # the point ordering of trilinear_shape_functions.
     idx = np.arange(n**3)
-    ir, is_, it = idx % n, (idx // n) % n, idx // (n * n)
+    ijk = np.stack([idx % n, (idx // n) % n, idx // (n * n)], axis=1)
     mask = np.zeros((6, n**3), dtype=bool)
-    mask[0], mask[1] = ir == 0, ir == n - 1
-    mask[2], mask[3] = is_ == 0, is_ == n - 1
-    mask[4], mask[5] = it == 0, it == n - 1
+    for f, corners in enumerate(FACET_CORNERS):
+        # The four corners of a facet share one reference coordinate, 0 or 1,
+        # and the facet holds the GLL points with the first or last index in
+        # that direction.
+        ref = CORNER_IJK[corners]
+        axis = int(np.flatnonzero((ref == ref[0]).all(axis=0))[0])
+        mask[f] = ijk[:, axis] == ref[0, axis] * (n - 1)
     return mask
 
 
-def to_sem_mesh(nmsh, comm, lx=3, create_connectivity=False):
+def to_sem_mesh(mesh, comm, lx=3, create_connectivity=False):
     """
     Build a :class:`pysemtools.datatypes.msh.Mesh` from a :class:`pysemtools.datatypes.corner_mesh.CornerMesh`.
 
     Parameters
     ----------
-    nmsh : CornerMesh
-        The mesh given by its element corners (an ``NmshMesh`` or ``Re2Mesh``).
+    mesh : CornerMesh
+        The mesh given by its element corners, for example an ``NmshMesh``
+        or an ``Re2Mesh``.
     comm : MPI.Comm
         MPI communicator for the ``Mesh`` object.
     lx : int, optional
@@ -224,12 +237,12 @@ def to_sem_mesh(nmsh, comm, lx=3, create_connectivity=False):
         Mesh with coordinates of shape (nelv, lx, lx, lx) and ``elmap`` set
         to the global element ids in record order.
     """
-    xyz = gll_coordinates(nmsh.corner_coordinates, lx)
+    xyz = gll_coordinates(mesh.corner_coordinates, lx)
     nelv = xyz.shape[0]
     x = np.ascontiguousarray(xyz[:, :, 0].reshape(nelv, lx, lx, lx))
     y = np.ascontiguousarray(xyz[:, :, 1].reshape(nelv, lx, lx, lx))
     z = np.ascontiguousarray(xyz[:, :, 2].reshape(nelv, lx, lx, lx))
-    elmap = nmsh.element_ids.astype(np.int32).copy()
+    elmap = mesh.element_ids.astype(np.int32).copy()
     return Mesh(
         comm, x=x, y=y, z=z, elmap=elmap, create_connectivity=create_connectivity
     )
