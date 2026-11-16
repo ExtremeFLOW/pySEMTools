@@ -30,6 +30,13 @@ class IoHelp:
         Data type of the mass matrix. The default is np.double.
     module_name : str, optional
         Name of the module for logging purposes. The default is "io_helper".
+    bckend : str, optional
+        Buffer backend, "numpy" (default) or "torch". NumPy and Torch dtypes
+        are accepted for Torch buffers.
+    device : str or torch.device, optional
+        Device for Torch buffers. Defaults to CUDA if available, otherwise CPU.
+        Tensor inputs already on this device are copied directly into the
+        buffers without transferring through CPU memory.
     """
 
     def __init__(
@@ -41,6 +48,8 @@ class IoHelp:
         field_data_type=np.double,
         mass_matrix_data_type=np.double,
         module_name="io_helper",
+        bckend="numpy",
+        device=None,
     ):
 
         self.number_of_fields = number_of_fields
@@ -48,22 +57,40 @@ class IoHelp:
         self.field_size = field_size
         self.nf = int(field_size * number_of_fields)
 
+        self.bckend = bckend
+        self.device = None
+        allocation_kwargs = {}
+        if bckend == "torch":
+            import torch
+
+            self.device = torch.device(device) if device is not None else torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            )
+            if not isinstance(field_data_type, torch.dtype):
+                field_data_type = torch.from_numpy(np.empty((), dtype=field_data_type)).dtype
+            if not isinstance(mass_matrix_data_type, torch.dtype):
+                mass_matrix_data_type = torch.from_numpy(np.empty((), dtype=mass_matrix_data_type)).dtype
+            zeros = torch.zeros
+            allocation_kwargs["device"] = self.device
+        else:
+            zeros = np.zeros
+
         # Allocate the buffers
-        self.xi = np.zeros(
-            (int(field_size * number_of_fields), 1), dtype=field_data_type
+        self.xi = zeros(
+            (int(field_size * number_of_fields), 1), dtype=field_data_type, **allocation_kwargs
         )
-        self.buff = np.zeros(
-            (int(field_size * number_of_fields), self.batch_size), dtype=field_data_type
+        self.buff = zeros(
+            (int(field_size * number_of_fields), self.batch_size), dtype=field_data_type, **allocation_kwargs
         )
 
         # Allocate the mass matrix
-        self.bm1 = np.zeros(
-            (int(field_size * number_of_fields), 1), dtype=mass_matrix_data_type
+        self.bm1 = zeros(
+            (int(field_size * number_of_fields), 1), dtype=mass_matrix_data_type, **allocation_kwargs
         )
 
         # Allocate the square root of the mass matrix
-        self.bm1sqrt = np.zeros(
-            (int(field_size * number_of_fields), 1), dtype=mass_matrix_data_type
+        self.bm1sqrt = zeros(
+            (int(field_size * number_of_fields), 1), dtype=mass_matrix_data_type, **allocation_kwargs
         )
 
         # Instance object
@@ -85,7 +112,7 @@ class IoHelp:
         
         Parameters
         ----------
-        field_list : list of np.ndarray
+        field_list : list of np.ndarray or torch.Tensor
             List of fields to be copied into xi.
         
         Returns
@@ -96,7 +123,14 @@ class IoHelp:
         if field_list is None:
             field_list = []
 
-        field_size = field_list[0].size
+        if self.bckend == "torch":
+            import torch
+
+            field_list = [torch.as_tensor(field, dtype=self.xi.dtype, device=self.device)
+                          for field in field_list]
+            field_size = field_list[0].numel()
+        else:
+            field_size = field_list[0].size
 
         for i in range(0, len(field_list)):
             self.xi[i * field_size : (i + 1) * field_size, 0] = field_list[i].reshape(
@@ -111,15 +145,20 @@ class IoHelp:
         
         Parameters
         ----------
-        array : np.ndarray
+        array : np.ndarray or torch.Tensor
             Array to be split into fields.
 
         Returns
         -------
-        field_list1d : list of np.ndarray
+        field_list1d : list of np.ndarray or torch.Tensor
             List of fields obtained from splitting the array.
         
         """
+        if self.bckend == "torch":
+            import torch
+
+            array = torch.as_tensor(array, device=self.device)
+
         field_size = self.field_size
         number_of_fields = array.shape[0] // field_size
         if number_of_fields != self.number_of_fields:
@@ -128,7 +167,10 @@ class IoHelp:
 
         for i in range(0, number_of_fields):
             temp_field = array[i * field_size : (i + 1) * field_size]
-            field_list1d.append(np.copy(temp_field))
+            if self.bckend == "torch":
+                field_list1d.append(temp_field.clone())
+            else:
+                field_list1d.append(np.copy(temp_field))
 
         return field_list1d
 
@@ -160,7 +202,10 @@ class IoHelp:
             self.math.scale_data(self.xi, self.bm1sqrt, self.nf, 1, "mult")
 
         # Fill the buffer
-        self.buff[:, self.buffer_index] = np.copy(self.xi[:, 0])
+        if self.bckend == "torch":
+            self.buff[:, self.buffer_index].copy_(self.xi[:, 0])
+        else:
+            self.buff[:, self.buffer_index] = np.copy(self.xi[:, 0])
 
         if self.buffer_index == self.buffer_max_index:
             self.log.write(

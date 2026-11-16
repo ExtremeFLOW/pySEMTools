@@ -353,7 +353,7 @@ class SVD:
             y = torch.empty((m * size, m), dtype=xi.dtype, device=xi.device)
         
         # Gather yi into y at rank 0; ensure tensors are on CPU for MPI compatibility
-        yi_cpu = yi.cpu()
+        yi_cpu = yi.cpu().contiguous()
         y_cpu = None
         if rank == 0:
             y_cpu = torch.empty((m * size, m), dtype=yi.dtype)
@@ -367,9 +367,10 @@ class SVD:
         self.log.write("debug", "Performing SVD of combined eigen matrix in rank 0")
         if rank == 0:
             uy, dy, vty = torch.linalg.svd(y, full_matrices=False)
-            uy = uy.cpu()
-            dy = dy.cpu()
-            vty = vty.cpu()
+            # Match the row-major receive buffers on the other ranks.
+            uy = uy.cpu().contiguous()
+            dy = dy.cpu().contiguous()
+            vty = vty.cpu().contiguous()
         else:
             # Prepare buffers for broadcast
             uy = torch.empty((m * size, m), dtype=xi.dtype, device='cpu')
