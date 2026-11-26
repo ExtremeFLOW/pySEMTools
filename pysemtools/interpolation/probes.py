@@ -95,12 +95,13 @@ class Probes:
         Tolerance for the test pattern used to accept points that are not found strictly
         inside any element, for example points in the tiny gaps between elements of a
         mesh stored in single precision, or points a fraction of an element outside the
-        domain. For such points, the candidate element in which the interpolation of the
-        test field x**2 + y**2 + z**2 best matches its exact value is kept and the error,
-        normalized by max(1, x**2 + y**2 + z**2) at the probe, is stored in test_pattern.
+        domain. Among candidates that meet the tolerance, the search minimizes the
+        largest overshoot outside [-1, 1] across r, s, and t. Ties are broken by
+        the interpolation error of x**2 + y**2 + z**2, normalized by
+        max(1, x**2 + y**2 + z**2) at the probe and stored in test_pattern.
         The test field is evaluated in double precision for any mesh dtype. Points with
-        an error above this tolerance are marked as not found (error code 0) and
-        interpolate to 0. Points below it get error code -10 and are interpolated
+        no candidate within this tolerance are marked as not found (error code 0) and
+        interpolate to 0. Accepted fallback points get error code -10 and are interpolated
         normally. Points with error code 0 and -10 are both listed in the warning file.
         Default is 1e-4. Note that test_pattern is a diagnostic of the consistency of
         the geometry mapping at the rst coordinates found, not a measure of the distance

@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
-from .point_search_utils import test_pattern_field
+from .point_search_utils import select_test_candidate, test_pattern_field
 from tqdm import tqdm
 from .single_point_helper_functions import (
     apply_operators_3d,
@@ -194,6 +194,7 @@ class SinglePointInterpolator(ABC):
         # Settings
         not_found_code = settings.get("not_found_code", -10)
         use_test_pattern = settings.get("use_test_pattern", True)
+        test_tol = settings.get("test_tol", 1e-4)
         elem_percent_expansion = settings.get("elem_percent_expansion", 0.01)
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
@@ -264,7 +265,11 @@ class SinglePointInterpolator(ABC):
 
                             test_error = abs(test_probe - test_interp) / test_scale
 
-                            if test_error < test_pattern[pts]:
+                            if select_test_candidate(
+                                (probes_rst[pts], (r, s, t)),
+                                (test_pattern[pts], test_error),
+                                test_tol,
+                            ) == 1:
                                 probes_rst[pts, 0] = r
                                 probes_rst[pts, 1] = s
                                 probes_rst[pts, 2] = t

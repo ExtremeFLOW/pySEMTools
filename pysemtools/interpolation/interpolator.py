@@ -8,6 +8,7 @@ import numpy as np
 from scipy.spatial import KDTree
 from tqdm import tqdm
 from .point_interpolator.point_interpolator_factory import get_point_interpolator
+from .point_interpolator.point_search_utils import select_test_candidate
 from ..monitoring.logger import Logger
 from ..comm.router import Router
 from ..comm.distribution import linear_distribution
@@ -1065,6 +1066,7 @@ class Interpolator:
                     settings = {}
                     settings["not_found_code"] = -10
                     settings["use_test_pattern"] = True
+                    settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
@@ -1340,6 +1342,7 @@ class Interpolator:
         settings = {}
         settings["not_found_code"] = -10
         settings["use_test_pattern"] = True
+        settings["test_tol"] = test_tol
         settings["elem_percent_expansion"] = elem_percent_expansion
         settings["progress_bar"] = self.progress_bar
         settings["find_pts_tol"] = tol
@@ -1446,16 +1449,10 @@ class Interpolator:
                 # skip the rest of the loop
                 continue
 
-            # If the point was not found with certainty, then choose as
-            # owner the the one that produced the smaller error in the test pattern
-            try:
-                min_test_pattern = np.where(
-                    np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                )[0]
-            except ValueError:
-                min_test_pattern = np.array([])
-            if min_test_pattern.size > 0:
-                index = min_test_pattern[0]
+            # Rank fallback candidates by overshoot, then test error.
+            if all_test_patterns:
+                rst = [arr[point] for arr in obuff_probes_rst]
+                index = select_test_candidate(rst, all_test_patterns, test_tol)
                 self.probe_partition[point, :] = obuff_probes[index][point, :]
                 self.probe_rst_partition[point, :] = obuff_probes_rst[index][point, :]
                 self.el_owner_partition[point] = obuff_el_owner[index][point]
@@ -1628,6 +1625,7 @@ class Interpolator:
             settings = {}
             settings["not_found_code"] = -10
             settings["use_test_pattern"] = True
+            settings["test_tol"] = test_tol
             settings["elem_percent_expansion"] = elem_percent_expansion
             settings["progress_bar"] = self.progress_bar
             settings["find_pts_tol"] = tol
@@ -1740,17 +1738,14 @@ class Interpolator:
                     # skip the rest of the loop
                     continue
 
-                # If the point was not found with certainty, then choose as
-                # owner the the one that produced the smaller error in the test pattern
-                try:
-                    min_test_pattern = np.where(
-                        np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                    )[0]
-                except ValueError:
-                    min_test_pattern = np.array([])
-                if min_test_pattern.size > 0:
-                    index = min_test_pattern[0]
-                    if obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]:
+                # Rank fallback candidates by overshoot, then test error.
+                if all_test_patterns:
+                    rst = [self.probe_rst_partition[absolute_point]]
+                    rst.extend(arr[relative_point] for arr in obuff_probes_rst)
+                    test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                    # Candidate zero is the owner already stored on this rank.
+                    index = select_test_candidate(rst, test_patterns, test_tol) - 1
+                    if index >= 0:
                         self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                         self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
                         self.el_owner_partition[absolute_point] = obuff_el_owner[index][relative_point]
@@ -1998,6 +1993,7 @@ class Interpolator:
                     settings = {}
                     settings["not_found_code"] = -10
                     settings["use_test_pattern"] = True
+                    settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
@@ -2111,17 +2107,14 @@ class Interpolator:
                         # skip the rest of the loop
                         continue
 
-                    # If the point was not found with certainty, then choose as
-                    # owner the the one that produced the smaller error in the test pattern
-                    try:
-                        min_test_pattern = np.where(
-                            np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                        )[0]
-                    except ValueError:
-                        min_test_pattern = np.array([])
-                    if min_test_pattern.size > 0:
-                        index = min_test_pattern[0]
-                        if (obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]) and (self.err_code_partition[absolute_point] != 1):
+                    # Rank fallback candidates by overshoot, then test error.
+                    if all_test_patterns and self.err_code_partition[absolute_point] != 1:
+                        rst = [self.probe_rst_partition[absolute_point]]
+                        rst.extend(arr[relative_point] for arr in obuff_probes_rst)
+                        test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                        # Candidate zero is the owner already stored on this rank.
+                        index = select_test_candidate(rst, test_patterns, test_tol) - 1
+                        if index >= 0:
                             self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                             self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
                             self.el_owner_partition[absolute_point] = obuff_el_owner[index][relative_point]

@@ -49,3 +49,13 @@ def test_pattern_field(elem_xyz, probe_xyz):
     test_scale = np.maximum(1.0, test_probe)
 
     return test_field, test_probe, test_scale
+
+
+def select_test_candidate(rst, test_error, test_tol):
+    """Return the best candidate index for each probe along the first axis."""
+    test_error = np.asarray(test_error)
+    overshoot = np.maximum(0.0, np.max(np.abs(rst), axis=-1) - 1.0)
+    # A test score of 1 is the initial value for probes without a candidate.
+    acceptable = (test_error < 1) & (test_error <= test_tol) & np.isfinite(overshoot)
+    overshoot = np.where(acceptable, overshoot, np.inf)
+    return np.lexsort((test_error, overshoot), axis=0)[0]

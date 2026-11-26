@@ -12,7 +12,7 @@ from .multiple_point_helper_functions_numpy import (
     lag_interp_matrix_at_xtest,
     bar_interp_matrix_at_xtest,
 )
-from .point_search_utils import test_pattern_field
+from .point_search_utils import select_test_candidate, test_pattern_field
 
 
 NoneType = type(None)
@@ -439,6 +439,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
         # Settings
         not_found_code = settings.get("not_found_code", -10)
         use_test_pattern = settings.get("use_test_pattern", True)
+        test_tol = settings.get("test_tol", 1e-4)
         elem_percent_expansion = settings.get("elem_percent_expansion", 0.01)
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
@@ -599,11 +600,19 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         test_error = abs(test_probes - test_result) / test_scale
 
                         # Now assign
-                        real_list = np.array(real_index_pt_not_found_this_it)
+                        real_list = pt_not_found_indices[pt_not_found_this_it]
                         relative_list = np.array(pt_not_found_this_it)
-                        better_test = np.where(
-                            test_error < test_pattern[real_index_pt_not_found_this_it]
-                        )[0]
+                        candidate_rst = np.column_stack((
+                            result_r[relative_list],
+                            result_s[relative_list],
+                            result_t[relative_list],
+                        ))
+                        best_candidate = select_test_candidate(
+                            (probes_rst[real_list], candidate_rst),
+                            (test_pattern[real_list], test_error),
+                            test_tol,
+                        )
+                        better_test = np.where(best_candidate == 1)[0]
 
                         if len(better_test) > 0:
                             probes_rst[real_list[better_test], 0] = result_r[relative_list[better_test]]
@@ -663,6 +672,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
         # Settings
         not_found_code = settings.get("not_found_code", -10)
         use_test_pattern = settings.get("use_test_pattern", True)
+        test_tol = settings.get("test_tol", 1e-4)
         elem_percent_expansion = settings.get("elem_percent_expansion", 0.01)
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
@@ -831,11 +841,19 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     test_error = abs(test_probes - test_result) / test_scale
 
                     # Now assign
-                    real_list = np.array(real_index_pt_not_found_this_it)
+                    real_list = pt_not_found_indices[pt_not_found_this_it]
                     relative_list = np.array(pt_not_found_this_it)
-                    better_test = np.where(
-                        test_error < test_pattern[real_index_pt_not_found_this_it]
-                    )[0]
+                    candidate_rst = np.column_stack((
+                        result_r[relative_list],
+                        result_s[relative_list],
+                        result_t[relative_list],
+                    ))
+                    best_candidate = select_test_candidate(
+                        (probes_rst[real_list], candidate_rst),
+                        (test_pattern[real_list], test_error),
+                        test_tol,
+                    )
+                    better_test = np.where(best_candidate == 1)[0]
 
                     if len(better_test) > 0:
                         probes_rst[real_list[better_test], 0] = result_r[
