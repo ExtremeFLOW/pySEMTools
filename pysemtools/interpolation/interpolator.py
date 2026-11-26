@@ -808,8 +808,9 @@ class Interpolator:
                 use_oriented_bbox = use_oriented_bbox,
             )
 
-        if not use_test_pattern:
-            self.glb_el_owner_partition[self.rank_owner_partition < 0] = -1
+        no_candidate = self.rank_owner_partition < 0
+        self.glb_el_owner_partition[no_candidate] = -1
+        self.err_code_partition[no_candidate] = 0
 
     def find_points_broadcast(
         self,

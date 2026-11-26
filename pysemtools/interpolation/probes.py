@@ -133,8 +133,8 @@ class Probes:
         set by find_points_rst_tol. Probes without an inside match are marked as not
         found (error code 0). The warning file includes the rst and element ID of the
         candidate with the smallest reference coordinate overshoot, when available.
-        An element ID of -1 means no candidate was retained. Default is False, which
-        allows the test pattern fallback.
+        Default is False, which allows the test pattern fallback. In either mode,
+        an element ID of -1 in the diagnostics means no candidate was retained.
 
     Attributes
     ----------
@@ -239,8 +239,8 @@ class Probes:
             self.log.write(
                 "warning",
                 f"find_points_test_tol = {find_points_test_tol} is not smaller than the "
-                "initial value of the test pattern. Points without candidate elements "
-                "will not be marked as not found",
+                "initial value of the test pattern. Fallback scores of 1 or higher "
+                "cannot be selected",
             )
 
         # Check for errors
