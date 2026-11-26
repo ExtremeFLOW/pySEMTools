@@ -123,6 +123,11 @@ class Probes:
         points that far outside the domain are accepted with error code 1 and do not
         appear in the warning file. A warning is logged if the value exceeds 1e-2.
 
+    strict_search : bool
+        If True, accept only probes that pass the inside check, including the slack
+        set by find_points_rst_tol. Probes without an inside match are marked as not
+        found (error code 0). Default is False, which allows the test pattern fallback.
+
     Attributes
     ----------
     probes : ndarray
@@ -185,6 +190,7 @@ class Probes:
         clean_search_traces: bool = False,
         find_points_test_tol: float = 1e-4,
         find_points_rst_tol: float = np.finfo(np.single).eps,
+        strict_search: bool = False,
     ):
 
         rank = comm.Get_rank()
@@ -208,6 +214,7 @@ class Probes:
         self.log.write("debug", f"find_points_max_iter: {find_points_max_iter}")
         self.log.write("debug", f"find_points_test_tol: {find_points_test_tol}")
         self.log.write("debug", f"find_points_rst_tol: {find_points_rst_tol}")
+        self.log.write("debug", f"strict_search: {strict_search}")
         self.log.write("debug", f"local_data_structure: {local_data_structure}")
         self.log.write("debug", f"use_oriented_bbox: {use_oriented_bbox}")
         self.log.write("debug", f" ========================")
@@ -220,7 +227,7 @@ class Probes:
                 "up to a percent of an element outside of it. Points slightly outside of "
                 "the domain will be extrapolated without warning",
             )
-        if find_points_test_tol >= 1:
+        if not strict_search and find_points_test_tol >= 1:
             self.log.write(
                 "warning",
                 f"find_points_test_tol = {find_points_test_tol} is not smaller than the "
@@ -353,6 +360,7 @@ class Probes:
             max_iter=find_points_max_iter,
             test_tol=find_points_test_tol,
             rst_tol=find_points_rst_tol,
+            use_test_pattern=not strict_search,
             local_data_structure=local_data_structure,
             use_oriented_bbox=use_oriented_bbox
         )

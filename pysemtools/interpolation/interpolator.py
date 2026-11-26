@@ -722,6 +722,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Public method to find points across ranks and elements"""
         self.log.write(
@@ -749,6 +750,7 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
         elif ((find_points_comm_pattern == "point_to_point") or (find_points_comm_pattern == "collective")) and not find_points_iterative[0]:
@@ -760,6 +762,7 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 comm_pattern = find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -773,6 +776,7 @@ class Interpolator:
                 batch_size=find_points_iterative[1],
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 comm_pattern= find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -785,6 +789,7 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
 
@@ -798,6 +803,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the collective implementation"""
         rank = comm.Get_rank()
@@ -1065,7 +1071,7 @@ class Interpolator:
 
                     settings = {}
                     settings["not_found_code"] = -10
-                    settings["use_test_pattern"] = True
+                    settings["use_test_pattern"] = use_test_pattern
                     settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
@@ -1233,7 +1239,7 @@ class Interpolator:
             # were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1255,6 +1261,7 @@ class Interpolator:
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1341,7 +1348,7 @@ class Interpolator:
 
         settings = {}
         settings["not_found_code"] = -10
-        settings["use_test_pattern"] = True
+        settings["use_test_pattern"] = use_test_pattern
         settings["test_tol"] = test_tol
         settings["elem_percent_expansion"] = elem_percent_expansion
         settings["progress_bar"] = self.progress_bar
@@ -1450,7 +1457,7 @@ class Interpolator:
                 continue
 
             # Rank fallback candidates by overshoot, then test error.
-            if all_test_patterns:
+            if use_test_pattern and all_test_patterns:
                 rst = [arr[point] for arr in obuff_probes_rst]
                 index = select_test_candidate(rst, all_test_patterns, test_tol)
                 self.probe_partition[point, :] = obuff_probes[index][point, :]
@@ -1468,7 +1475,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1490,6 +1497,7 @@ class Interpolator:
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1624,7 +1632,7 @@ class Interpolator:
 
             settings = {}
             settings["not_found_code"] = -10
-            settings["use_test_pattern"] = True
+            settings["use_test_pattern"] = use_test_pattern
             settings["test_tol"] = test_tol
             settings["elem_percent_expansion"] = elem_percent_expansion
             settings["progress_bar"] = self.progress_bar
@@ -1739,7 +1747,7 @@ class Interpolator:
                     continue
 
                 # Rank fallback candidates by overshoot, then test error.
-                if all_test_patterns:
+                if use_test_pattern and all_test_patterns:
                     rst = [self.probe_rst_partition[absolute_point]]
                     rst.extend(arr[relative_point] for arr in obuff_probes_rst)
                     test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
@@ -1761,7 +1769,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1781,6 +1789,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1992,7 +2001,7 @@ class Interpolator:
 
                     settings = {}
                     settings["not_found_code"] = -10
-                    settings["use_test_pattern"] = True
+                    settings["use_test_pattern"] = use_test_pattern
                     settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
@@ -2108,7 +2117,7 @@ class Interpolator:
                         continue
 
                     # Rank fallback candidates by overshoot, then test error.
-                    if all_test_patterns and self.err_code_partition[absolute_point] != 1:
+                    if use_test_pattern and all_test_patterns and self.err_code_partition[absolute_point] != 1:
                         rst = [self.probe_rst_partition[absolute_point]]
                         rst.extend(arr[relative_point] for arr in obuff_probes_rst)
                         test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
@@ -2149,7 +2158,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -2287,8 +2296,11 @@ class Interpolator:
         probes = self.probe_partition
         probes_rst = self.probe_rst_partition
         el_owner = self.el_owner_partition
-        rank_owner = self.rank_owner_partition
         err_code = self.err_code_partition
+        # Keep missing probes on their source rank so they return a zero value.
+        rank_owner = np.where(
+            err_code == 0, self.rt.comm.Get_rank(), self.rank_owner_partition
+        )
         local_probe_index = np.arange(0, probes.shape[0], dtype=np.int64)
 
         # Prepare the send buffers
