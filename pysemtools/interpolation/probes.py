@@ -126,7 +126,10 @@ class Probes:
     strict_search : bool
         If True, accept only probes that pass the inside check, including the slack
         set by find_points_rst_tol. Probes without an inside match are marked as not
-        found (error code 0). Default is False, which allows the test pattern fallback.
+        found (error code 0). The warning file includes the rst and element ID of the
+        candidate with the smallest reference coordinate overshoot, when available.
+        An element ID of -1 means no candidate was retained. Default is False, which
+        allows the test pattern fallback.
 
     Attributes
     ----------

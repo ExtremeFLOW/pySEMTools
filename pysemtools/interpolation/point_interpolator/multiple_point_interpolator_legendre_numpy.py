@@ -568,7 +568,6 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     rank_owner[real_index_pt_found_this_it] = rank
                     err_code[real_index_pt_found_this_it] = 1
 
-                    # If user has selected to check a test pattern:
                     if use_test_pattern:
 
                         # Get shapes
@@ -599,40 +598,36 @@ class LegendreInterpolator(MultiplePointInterpolator):
                         # Check if the test pattern is satisfied
                         test_error = abs(test_probes - test_result) / test_scale
 
-                        # Now assign
-                        real_list = pt_not_found_indices[pt_not_found_this_it]
-                        relative_list = np.array(pt_not_found_this_it)
-                        candidate_rst = np.column_stack((
-                            result_r[relative_list],
-                            result_s[relative_list],
-                            result_t[relative_list],
-                        ))
-                        best_candidate = select_test_candidate(
-                            (probes_rst[real_list], candidate_rst),
-                            (test_pattern[real_list], test_error),
-                            test_tol,
-                        )
-                        better_test = np.where(best_candidate == 1)[0]
-
-                        if len(better_test) > 0:
-                            probes_rst[real_list[better_test], 0] = result_r[relative_list[better_test]]
-                            probes_rst[real_list[better_test], 1] = result_s[relative_list[better_test]]
-                            probes_rst[real_list[better_test], 2] = result_t[relative_list[better_test]]
-                            el_owner[real_list[better_test]] = np.array(elem_to_check_per_point)[relative_list[better_test]]
-                            glb_el_owner[real_list[better_test]] = (el_owner[real_list[better_test]] + offset_el)
-                            rank_owner[real_list[better_test]] = rank
-                            err_code[real_list[better_test]] = not_found_code
-                            test_pattern[real_list[better_test]] = test_error[better_test]
-
+                        test_errors = (test_pattern[real_index_pt_not_found_this_it], test_error)
                     else:
+                        test_errors = None
 
-                        probes_rst[real_index_pt_not_found_this_it, 0] = result_r[pt_not_found_this_it]
-                        probes_rst[real_index_pt_not_found_this_it, 1] = result_s[pt_not_found_this_it]
-                        probes_rst[real_index_pt_not_found_this_it, 2] = result_t[pt_not_found_this_it]
-                        el_owner[real_index_pt_not_found_this_it] = np.array(elem_to_check_per_point)[pt_not_found_this_it]
-                        glb_el_owner[real_index_pt_not_found_this_it] = (el_owner[real_index_pt_not_found_this_it] + offset_el)
-                        rank_owner[real_index_pt_not_found_this_it] = rank
-                        err_code[real_index_pt_not_found_this_it] = not_found_code
+                    # Keep the best candidate even if it fails the inside check.
+                    real_list = pt_not_found_indices[pt_not_found_this_it]
+                    relative_list = pt_not_found_this_it
+                    candidate_rst = np.column_stack((
+                        result_r[relative_list],
+                        result_s[relative_list],
+                        result_t[relative_list],
+                    ))
+                    best_candidate = select_test_candidate(
+                        (probes_rst[real_list], candidate_rst),
+                        test_errors,
+                        test_tol,
+                        (rank_owner[real_list], np.full_like(real_list, rank)),
+                    )
+                    better_test = np.where(best_candidate == 1)[0]
+
+                    if len(better_test) > 0:
+                        probes_rst[real_list[better_test], 0] = result_r[relative_list[better_test]]
+                        probes_rst[real_list[better_test], 1] = result_s[relative_list[better_test]]
+                        probes_rst[real_list[better_test], 2] = result_t[relative_list[better_test]]
+                        el_owner[real_list[better_test]] = np.array(elem_to_check_per_point)[relative_list[better_test]]
+                        glb_el_owner[real_list[better_test]] = (el_owner[real_list[better_test]] + offset_el)
+                        rank_owner[real_list[better_test]] = rank
+                        err_code[real_list[better_test]] = not_found_code
+                        if use_test_pattern:
+                            test_pattern[real_list[better_test]] = test_error[better_test]
 
             # end for-e / for-j for this batch
 
@@ -803,7 +798,6 @@ class LegendreInterpolator(MultiplePointInterpolator):
                 rank_owner[real_index_pt_found_this_it] = rank
                 err_code[real_index_pt_found_this_it] = 1
 
-                # If user has selected to check a test pattern:
                 if use_test_pattern:
 
                     # Get shapes
@@ -840,60 +834,46 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     # Check if the test pattern is satisfied
                     test_error = abs(test_probes - test_result) / test_scale
 
-                    # Now assign
-                    real_list = pt_not_found_indices[pt_not_found_this_it]
-                    relative_list = np.array(pt_not_found_this_it)
-                    candidate_rst = np.column_stack((
-                        result_r[relative_list],
-                        result_s[relative_list],
-                        result_t[relative_list],
-                    ))
-                    best_candidate = select_test_candidate(
-                        (probes_rst[real_list], candidate_rst),
-                        (test_pattern[real_list], test_error),
-                        test_tol,
-                    )
-                    better_test = np.where(best_candidate == 1)[0]
-
-                    if len(better_test) > 0:
-                        probes_rst[real_list[better_test], 0] = result_r[
-                            relative_list[better_test]
-                        ]
-                        probes_rst[real_list[better_test], 1] = result_s[
-                            relative_list[better_test]
-                        ]
-                        probes_rst[real_list[better_test], 2] = result_t[
-                            relative_list[better_test]
-                        ]
-                        el_owner[real_list[better_test]] = np.array(
-                            elem_to_check_per_point
-                        )[relative_list[better_test]]
-                        glb_el_owner[real_list[better_test]] = (
-                            el_owner[real_list[better_test]] + offset_el
-                        )
-                        rank_owner[real_list[better_test]] = rank
-                        err_code[real_list[better_test]] = not_found_code
-                        test_pattern[real_list[better_test]] = test_error[better_test]
-
+                    test_errors = (test_pattern[real_index_pt_not_found_this_it], test_error)
                 else:
+                    test_errors = None
 
-                    probes_rst[real_index_pt_not_found_this_it, 0] = result_r[
-                        pt_not_found_this_it
+                # Keep the best candidate even if it fails the inside check.
+                real_list = pt_not_found_indices[pt_not_found_this_it]
+                relative_list = pt_not_found_this_it
+                candidate_rst = np.column_stack((
+                    result_r[relative_list],
+                    result_s[relative_list],
+                    result_t[relative_list],
+                ))
+                best_candidate = select_test_candidate(
+                    (probes_rst[real_list], candidate_rst),
+                    test_errors,
+                    test_tol,
+                    (rank_owner[real_list], np.full_like(real_list, rank)),
+                )
+                better_test = np.where(best_candidate == 1)[0]
+
+                if len(better_test) > 0:
+                    probes_rst[real_list[better_test], 0] = result_r[
+                        relative_list[better_test]
                     ]
-                    probes_rst[real_index_pt_not_found_this_it, 1] = result_s[
-                        pt_not_found_this_it
+                    probes_rst[real_list[better_test], 1] = result_s[
+                        relative_list[better_test]
                     ]
-                    probes_rst[real_index_pt_not_found_this_it, 2] = result_t[
-                        pt_not_found_this_it
+                    probes_rst[real_list[better_test], 2] = result_t[
+                        relative_list[better_test]
                     ]
-                    el_owner[real_index_pt_not_found_this_it] = np.array(
+                    el_owner[real_list[better_test]] = np.array(
                         elem_to_check_per_point
-                    )[pt_not_found_this_it]
-                    glb_el_owner[real_index_pt_not_found_this_it] = (
-                        el_owner[real_index_pt_not_found_this_it] + offset_el
+                    )[relative_list[better_test]]
+                    glb_el_owner[real_list[better_test]] = (
+                        el_owner[real_list[better_test]] + offset_el
                     )
-                    rank_owner[real_index_pt_not_found_this_it] = rank
-                    err_code[real_index_pt_not_found_this_it] = not_found_code
+                    rank_owner[real_list[better_test]] = rank
+                    err_code[real_list[better_test]] = not_found_code
+                    if use_test_pattern:
+                        test_pattern[real_list[better_test]] = test_error[better_test]
 
         return (
             probes,

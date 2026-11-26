@@ -250,8 +250,6 @@ class SinglePointInterpolator(ABC):
                         break
                     else:
 
-                        # Perform test interpolation and update if the
-                        # results are better than previously stored
                         if use_test_pattern:
                             # Test pattern x^2 + y^2 + z^2 in double precision, with the
                             # normalization of its error (see point_search_utils)
@@ -265,22 +263,16 @@ class SinglePointInterpolator(ABC):
 
                             test_error = abs(test_probe - test_interp) / test_scale
 
-                            if select_test_candidate(
-                                (probes_rst[pts], (r, s, t)),
-                                (test_pattern[pts], test_error),
-                                test_tol,
-                            ) == 1:
-                                probes_rst[pts, 0] = r
-                                probes_rst[pts, 1] = s
-                                probes_rst[pts, 2] = t
-                                el_owner[pts] = e
-                                glb_el_owner[pts] = e + offset_el
-                                rank_owner[pts] = rank
-                                err_code[pts] = not_found_code
-                                test_pattern[pts] = test_error
-
-                        # Otherwise progressively update
+                            test_errors = (test_pattern[pts], test_error)
                         else:
+                            test_errors = None
+
+                        if select_test_candidate(
+                            (probes_rst[pts], (r, s, t)),
+                            test_errors,
+                            test_tol,
+                            (rank_owner[pts], rank),
+                        ) == 1:
                             probes_rst[pts, 0] = r
                             probes_rst[pts, 1] = s
                             probes_rst[pts, 2] = t
@@ -288,6 +280,8 @@ class SinglePointInterpolator(ABC):
                             glb_el_owner[pts] = e + offset_el
                             rank_owner[pts] = rank
                             err_code[pts] = not_found_code
+                            if use_test_pattern:
+                                test_pattern[pts] = test_error
 
             if progress_bar:
                 pbar.update(1)

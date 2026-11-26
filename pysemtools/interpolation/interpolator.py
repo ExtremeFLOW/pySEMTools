@@ -793,6 +793,9 @@ class Interpolator:
                 use_oriented_bbox = use_oriented_bbox,
             )
 
+        if not use_test_pattern:
+            self.glb_el_owner_partition[self.rank_owner_partition < 0] = -1
+
     def find_points_broadcast(
         self,
         comm,
@@ -1456,10 +1459,13 @@ class Interpolator:
                 # skip the rest of the loop
                 continue
 
-            # Rank fallback candidates by overshoot, then test error.
-            if use_test_pattern and all_test_patterns:
+            # Keep the best candidate that failed the inside check.
+            if all_test_patterns:
                 rst = [arr[point] for arr in obuff_probes_rst]
-                index = select_test_candidate(rst, all_test_patterns, test_tol)
+                ranks = [arr[point] for arr in obuff_rank_owner]
+                index = select_test_candidate(
+                    rst, all_test_patterns if use_test_pattern else None, test_tol, ranks
+                )
                 self.probe_partition[point, :] = obuff_probes[index][point, :]
                 self.probe_rst_partition[point, :] = obuff_probes_rst[index][point, :]
                 self.el_owner_partition[point] = obuff_el_owner[index][point]
@@ -1746,13 +1752,17 @@ class Interpolator:
                     # skip the rest of the loop
                     continue
 
-                # Rank fallback candidates by overshoot, then test error.
-                if use_test_pattern and all_test_patterns:
+                # Keep the best candidate that failed the inside check.
+                if all_test_patterns:
                     rst = [self.probe_rst_partition[absolute_point]]
                     rst.extend(arr[relative_point] for arr in obuff_probes_rst)
                     test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                    ranks = [self.rank_owner_partition[absolute_point]]
+                    ranks.extend(arr[relative_point] for arr in obuff_rank_owner)
                     # Candidate zero is the owner already stored on this rank.
-                    index = select_test_candidate(rst, test_patterns, test_tol) - 1
+                    index = select_test_candidate(
+                        rst, test_patterns if use_test_pattern else None, test_tol, ranks
+                    ) - 1
                     if index >= 0:
                         self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                         self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
@@ -2116,13 +2126,17 @@ class Interpolator:
                         # skip the rest of the loop
                         continue
 
-                    # Rank fallback candidates by overshoot, then test error.
-                    if use_test_pattern and all_test_patterns and self.err_code_partition[absolute_point] != 1:
+                    # Keep the best candidate that failed the inside check.
+                    if all_test_patterns and self.err_code_partition[absolute_point] != 1:
                         rst = [self.probe_rst_partition[absolute_point]]
                         rst.extend(arr[relative_point] for arr in obuff_probes_rst)
                         test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                        ranks = [self.rank_owner_partition[absolute_point]]
+                        ranks.extend(arr[relative_point] for arr in obuff_rank_owner)
                         # Candidate zero is the owner already stored on this rank.
-                        index = select_test_candidate(rst, test_patterns, test_tol) - 1
+                        index = select_test_candidate(
+                            rst, test_patterns if use_test_pattern else None, test_tol, ranks
+                        ) - 1
                         if index >= 0:
                             self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                             self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
