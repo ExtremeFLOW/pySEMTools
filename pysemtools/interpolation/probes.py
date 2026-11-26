@@ -2,6 +2,7 @@
 
 import json
 import csv
+import logging
 
 try:
     import h5py
@@ -50,6 +51,8 @@ class Probes:
         if it is a Mesh object, the x, y, z coordinates are taken from the object.
     write_coords : bool
         If True, the coordinates of the probes are written to a file. Default is True.
+        If False, probes that were not found are listed in the debug log when
+        PYSEMTOOLS_DEBUG is enabled.
     progress_bar : bool
         If True, a progress bar is shown. Default is False.
     point_interpolator_type : str
@@ -401,23 +404,18 @@ class Probes:
                     write_warnings(self, parallel=False)
             else:
                 write_warnings(self, parallel=True)
-        elif (not self.distributed_probes) and (not write_coords):        
-            if comm.Get_rank() == 0:
-                nfound = len(np.where(self.itp.err_code == 1)[0])
-                nnotfound = len(np.where(self.itp.err_code == 0)[0])
-                nwarning = len(np.where(self.itp.err_code == -10)[0])
-                self.log.write(
-                    "info",
-                    f"Found {nfound} points, {nnotfound} not found, {nwarning} with warnings",
-                )
-        elif self.distributed_probes and (not write_coords):
+        elif self.distributed_probes or rank == 0:
             nfound = len(np.where(self.itp.err_code == 1)[0])
-            nnotfound = len(np.where(self.itp.err_code == 0)[0])
+            not_found = np.flatnonzero(self.itp.err_code == 0)
             nwarning = len(np.where(self.itp.err_code == -10)[0])
             self.log.write(
-                "info_all",
-                f"Found {nfound} points, {nnotfound} not found, {nwarning} with warnings",
+                "info_all" if self.distributed_probes else "info",
+                f"Found {nfound} points, {len(not_found)} not found, {nwarning} with warnings",
             )
+            if self.log.log.isEnabledFor(logging.DEBUG):
+                for point in not_found:
+                    record = probe_warning_record(self.itp, point)
+                    self.log.write("debug_all", f"Probe not found: {json.dumps(record)}")
 
         ## init dummy variables
         self.fld_data = None
@@ -673,6 +671,17 @@ def write_interpolated_data(self, parallel=False):
         raise ValueError("Output file must be a csv or hdf5 file")
 
 
+def probe_warning_record(itp, point):
+    return {
+        "id": int(point),
+        "xyz": [float(coord) for coord in itp.probes[point]],
+        "rst": [float(coord) for coord in itp.probes_rst[point]],
+        "global_el_owner": int(itp.glb_el_owner[point]),
+        "error_code": int(itp.err_code[point]),
+        "test_pattern": float(itp.test_pattern[point]),
+    }
+
+
 def write_warnings(self, parallel=False):
 
     # Write out a file with the points with warnings
@@ -686,26 +695,8 @@ def write_warnings(self, parallel=False):
     point_warning = {}
     # point_warning["mesh_file_path"] = msh_fld_fname
     point_warning["output_file_path"] = self.output_fname
-    i = 0
-    for point in indices:
-        point_warning[i] = {}
-        point_warning[i]["id"] = int(point)
-        point_warning[i]["xyz"] = [
-            float(self.itp.probes[point, 0]),
-            float(self.itp.probes[point, 1]),
-            float(self.itp.probes[point, 2]),
-        ]
-        point_warning[i]["rst"] = [
-            float(self.itp.probes_rst[point, 0]),
-            float(self.itp.probes_rst[point, 1]),
-            float(self.itp.probes_rst[point, 2]),
-        ]
-        # point_warning[i]["local_el_owner"] = int(self.itp.el_owner[point])
-        point_warning[i]["global_el_owner"] = int(self.itp.glb_el_owner[point])
-        point_warning[i]["error_code"] = int(self.itp.err_code[point])
-        point_warning[i]["test_pattern"] = float(self.itp.test_pattern[point])
-
-        i += 1
+    for i, point in enumerate(indices):
+        point_warning[i] = probe_warning_record(self.itp, point)
     path = os.path.dirname(self.output_fname)
     if path == "":
         path = "."

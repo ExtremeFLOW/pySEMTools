@@ -207,10 +207,7 @@ class Logger:
         rank = comm.Get_rank()
 
         if level == "debug_all":
-            # self.log.debug(message)
-            # comm.Barrier()
-            if rank == 0:
-                self.log.debug("This debug message type is not implemented yet.")
+            self.log.debug(f"Rank {rank}: {message}")
 
         if level == "debug":
             if rank == 0:
