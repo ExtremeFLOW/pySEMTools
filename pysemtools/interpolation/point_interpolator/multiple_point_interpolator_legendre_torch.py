@@ -1172,13 +1172,11 @@ class LegendreInterpolator(MultiplePointInterpolator):
 
                 # Transform the points into the reference element coordinates
                 x_tilde = torch.einsum("ijklm,ijkmt->ijklt", jac_inv[:, :, None, :, :], elem_data[:nelems, :ndummy])
-                # Compute the average (center) of the transformed points (reference center)
-                xc_moon = torch.mean(x_tilde, dim=2)
-
                 # Compute the axis-aligned bounding box (AABB) in the reference configuration
                 x_min = torch.min(x_tilde, dim=2)[0]  # shape: (nelems, ndummy, 3, 1)
                 x_max = torch.max(x_tilde, dim=2)[0]  # shape: (nelems, ndummy, 3, 1)
                 x_diff = x_max - x_min              # shape: (nelems, ndummy, 3, 1)
+                xc_moon = x_min + x_diff / 2 # Center of this reference element xc_moon
 
                 scale = 1.05 / 2.0   # factor corresponding to a 5% expansion
                 # Create an identity matrix of shape (3, 3) and add batch dimensions:

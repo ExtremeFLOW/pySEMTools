@@ -974,13 +974,11 @@ class LegendreInterpolator(MultiplePointInterpolator):
             # Apply the jacobian to each point to get the tranformation
             x_tilde = np.einsum("ijklm, ijkmt -> ijklt" , jac_inv[:, :, np.newaxis, :, :], elem_data[:nelems, :ndummy])
 
-            # Get the center of this reference element xc_moon
-            xc_moon = np.mean(x_tilde, axis=(2))
-
             # Now get the AABB of the reference element
             x_min = np.min(x_tilde, axis=(2))
             x_max = np.max(x_tilde, axis=(2))
             x_diff = x_max - x_min
+            xc_moon = x_min + x_diff / 2 # Center of this reference element xc_moon
             # Get the jacobian as indicated by Mittal et al.
             jac_moon = x_diff * np.eye(3) / 2 * (1 + 0.05) # Expand 5% # Hard-coded
 
