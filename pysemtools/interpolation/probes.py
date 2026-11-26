@@ -65,7 +65,8 @@ class Probes:
         Communication pattern for finding points. Default is point_to_point.
         options are: point_to_point, collective, rma
     elem_percent_expansion : float
-        Percentage expansion of the element bounding box. Default is 0.01.
+        Fractional expansion used by the element and rank candidate searches.
+        Default is 0.01, which adds half a percent on each side of a box.
     global_tree_type : str
         How is the global tree constructed to determine rank candidates for the probes.
         Only really used if using tree structures to determine candidates. Default is rank_bbox.
@@ -340,6 +341,7 @@ class Probes:
             find_points_comm_pattern=find_points_comm_pattern,
             global_tree_type=global_tree_type,
             global_tree_nbins=global_tree_nbins,
+            elem_percent_expansion=elem_percent_expansion,
         )
         self.log.sync_toc(message="Interpolator initialized in all ranks")
 
