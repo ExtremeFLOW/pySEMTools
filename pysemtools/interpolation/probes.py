@@ -2,6 +2,7 @@
 
 import json
 import csv
+import logging
 
 try:
     import h5py
@@ -50,6 +51,8 @@ class Probes:
         if it is a Mesh object, the x, y, z coordinates are taken from the object.
     write_coords : bool
         If True, the coordinates of the probes are written to a file. Default is True.
+        If False, probes that were not found are listed in the debug log when
+        PYSEMTOOLS_DEBUG is enabled.
     progress_bar : bool
         If True, a progress bar is shown. Default is False.
     point_interpolator_type : str
@@ -65,7 +68,9 @@ class Probes:
         Communication pattern for finding points. Default is point_to_point.
         options are: point_to_point, collective, rma
     elem_percent_expansion : float
-        Percentage expansion of the element bounding box. Default is 0.01.
+        Fractional expansion used by the element and rank candidate searches.
+        Applies to both axis-aligned and oriented boxes. Default is 0.01, which
+        adds half a percent of the box width on each side.
     global_tree_type : str
         How is the global tree constructed to determine rank candidates for the probes.
         Only really used if using tree structures to determine candidates. Default is rank_bbox.
@@ -95,12 +100,13 @@ class Probes:
         Tolerance for the test pattern used to accept points that are not found strictly
         inside any element, for example points in the tiny gaps between elements of a
         mesh stored in single precision, or points a fraction of an element outside the
-        domain. For such points, the candidate element in which the interpolation of the
-        test field x**2 + y**2 + z**2 best matches its exact value is kept and the error,
-        normalized by max(1, x**2 + y**2 + z**2) at the probe, is stored in test_pattern.
+        domain. Among candidates that meet the tolerance, the search minimizes the
+        largest overshoot outside [-1, 1] across r, s, and t. Ties are broken by
+        the interpolation error of x**2 + y**2 + z**2, normalized by
+        max(1, x**2 + y**2 + z**2) at the probe and stored in test_pattern.
         The test field is evaluated in double precision for any mesh dtype. Points with
-        an error above this tolerance are marked as not found (error code 0) and
-        interpolate to 0. Points below it get error code -10 and are interpolated
+        no candidate within this tolerance are marked as not found (error code 0) and
+        interpolate to 0. Accepted fallback points get error code -10 and are interpolated
         normally. Points with error code 0 and -10 are both listed in the warning file.
         Default is 1e-4. Note that test_pattern is a diagnostic of the consistency of
         the geometry mapping at the rst coordinates found, not a measure of the distance
@@ -121,6 +127,14 @@ class Probes:
         around a shared face the owner is the first candidate element checked, and
         points that far outside the domain are accepted with error code 1 and do not
         appear in the warning file. A warning is logged if the value exceeds 1e-2.
+
+    strict_search : bool
+        If True, accept only probes that pass the inside check, including the slack
+        set by find_points_rst_tol. Probes without an inside match are marked as not
+        found (error code 0). The warning file includes the rst and element ID of the
+        candidate with the smallest reference coordinate overshoot, when available.
+        Default is False, which allows the test pattern fallback. In either mode,
+        an element ID of -1 in the diagnostics means no candidate was retained.
 
     Attributes
     ----------
@@ -184,6 +198,7 @@ class Probes:
         clean_search_traces: bool = False,
         find_points_test_tol: float = 1e-4,
         find_points_rst_tol: float = np.finfo(np.single).eps,
+        strict_search: bool = False,
     ):
 
         rank = comm.Get_rank()
@@ -207,6 +222,7 @@ class Probes:
         self.log.write("debug", f"find_points_max_iter: {find_points_max_iter}")
         self.log.write("debug", f"find_points_test_tol: {find_points_test_tol}")
         self.log.write("debug", f"find_points_rst_tol: {find_points_rst_tol}")
+        self.log.write("debug", f"strict_search: {strict_search}")
         self.log.write("debug", f"local_data_structure: {local_data_structure}")
         self.log.write("debug", f"use_oriented_bbox: {use_oriented_bbox}")
         self.log.write("debug", f" ========================")
@@ -219,12 +235,12 @@ class Probes:
                 "up to a percent of an element outside of it. Points slightly outside of "
                 "the domain will be extrapolated without warning",
             )
-        if find_points_test_tol >= 1:
+        if not strict_search and find_points_test_tol >= 1:
             self.log.write(
                 "warning",
                 f"find_points_test_tol = {find_points_test_tol} is not smaller than the "
-                "initial value of the test pattern. Points without candidate elements "
-                "will not be marked as not found",
+                "initial value of the test pattern. Fallback scores of 1 or higher "
+                "cannot be selected",
             )
 
         # Check for errors
@@ -329,6 +345,7 @@ class Probes:
             find_points_comm_pattern=find_points_comm_pattern,
             global_tree_type=global_tree_type,
             global_tree_nbins=global_tree_nbins,
+            elem_percent_expansion=elem_percent_expansion,
         )
         self.log.sync_toc(message="Interpolator initialized in all ranks")
 
@@ -352,6 +369,7 @@ class Probes:
             max_iter=find_points_max_iter,
             test_tol=find_points_test_tol,
             rst_tol=find_points_rst_tol,
+            use_test_pattern=not strict_search,
             local_data_structure=local_data_structure,
             use_oriented_bbox=use_oriented_bbox
         )
@@ -386,23 +404,18 @@ class Probes:
                     write_warnings(self, parallel=False)
             else:
                 write_warnings(self, parallel=True)
-        elif (not self.distributed_probes) and (not write_coords):        
-            if comm.Get_rank() == 0:
-                nfound = len(np.where(self.itp.err_code == 1)[0])
-                nnotfound = len(np.where(self.itp.err_code == 0)[0])
-                nwarning = len(np.where(self.itp.err_code == -10)[0])
-                self.log.write(
-                    "info",
-                    f"Found {nfound} points, {nnotfound} not found, {nwarning} with warnings",
-                )
-        elif self.distributed_probes and (not write_coords):
+        elif self.distributed_probes or rank == 0:
             nfound = len(np.where(self.itp.err_code == 1)[0])
-            nnotfound = len(np.where(self.itp.err_code == 0)[0])
+            not_found = np.flatnonzero(self.itp.err_code == 0)
             nwarning = len(np.where(self.itp.err_code == -10)[0])
             self.log.write(
-                "info_all",
-                f"Found {nfound} points, {nnotfound} not found, {nwarning} with warnings",
+                "info_all" if self.distributed_probes else "info",
+                f"Found {nfound} points, {len(not_found)} not found, {nwarning} with warnings",
             )
+            if self.log.log.isEnabledFor(logging.DEBUG):
+                for point in not_found:
+                    record = probe_warning_record(self.itp, point)
+                    self.log.write("debug_all", f"Probe not found: {json.dumps(record)}")
 
         ## init dummy variables
         self.fld_data = None
@@ -658,6 +671,17 @@ def write_interpolated_data(self, parallel=False):
         raise ValueError("Output file must be a csv or hdf5 file")
 
 
+def probe_warning_record(itp, point):
+    return {
+        "id": int(point),
+        "xyz": [float(coord) for coord in itp.probes[point]],
+        "rst": [float(coord) for coord in itp.probes_rst[point]],
+        "global_el_owner": int(itp.glb_el_owner[point]),
+        "error_code": int(itp.err_code[point]),
+        "test_pattern": float(itp.test_pattern[point]),
+    }
+
+
 def write_warnings(self, parallel=False):
 
     # Write out a file with the points with warnings
@@ -671,26 +695,8 @@ def write_warnings(self, parallel=False):
     point_warning = {}
     # point_warning["mesh_file_path"] = msh_fld_fname
     point_warning["output_file_path"] = self.output_fname
-    i = 0
-    for point in indices:
-        point_warning[i] = {}
-        point_warning[i]["id"] = int(point)
-        point_warning[i]["xyz"] = [
-            float(self.itp.probes[point, 0]),
-            float(self.itp.probes[point, 1]),
-            float(self.itp.probes[point, 2]),
-        ]
-        point_warning[i]["rst"] = [
-            float(self.itp.probes_rst[point, 0]),
-            float(self.itp.probes_rst[point, 1]),
-            float(self.itp.probes_rst[point, 2]),
-        ]
-        # point_warning[i]["local_el_owner"] = int(self.itp.el_owner[point])
-        point_warning[i]["global_el_owner"] = int(self.itp.glb_el_owner[point])
-        point_warning[i]["error_code"] = int(self.itp.err_code[point])
-        point_warning[i]["test_pattern"] = float(self.itp.test_pattern[point])
-
-        i += 1
+    for i, point in enumerate(indices):
+        point_warning[i] = probe_warning_record(self.itp, point)
     path = os.path.dirname(self.output_fname)
     if path == "":
         path = "."

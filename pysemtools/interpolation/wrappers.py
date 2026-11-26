@@ -29,6 +29,7 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
                                 use_oriented_bbox: bool = False, 
                                 find_points_test_tol: float = 1e-4,
                                 find_points_rst_tol: float = np.finfo(np.single).eps,
+                                strict_search: bool = False,
                                 ) -> None:
     """
     Interpolates fields from disk using the probes object.
@@ -82,6 +83,8 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
         Tolerance of the test pattern used to accept points not strictly inside an element, by default 1e-4. See Probes.
     find_points_rst_tol : float, optional
         Slack allowed outside the reference element to consider a point found, by default np.finfo(np.single).eps. See Probes.
+    strict_search : bool, optional
+        Accept only probes that pass the inside check, including the reference coordinate slack. See Probes.
     """
 
     # Initialize the probes object given the inputs
@@ -104,6 +107,7 @@ def interpolate_fields_from_disk(comm: MPI.Comm,
         use_oriented_bbox= use_oriented_bbox,
         find_points_test_tol = find_points_test_tol,
         find_points_rst_tol = find_points_rst_tol,
+        strict_search = strict_search,
     )
 
     # Prepare a list with the inputs

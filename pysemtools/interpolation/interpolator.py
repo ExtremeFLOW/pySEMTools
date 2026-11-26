@@ -8,6 +8,7 @@ import numpy as np
 from scipy.spatial import KDTree
 from tqdm import tqdm
 from .point_interpolator.point_interpolator_factory import get_point_interpolator
+from .point_interpolator.point_search_utils import select_test_candidate
 from ..monitoring.logger import Logger
 from ..comm.router import Router
 from ..comm.distribution import linear_distribution
@@ -388,6 +389,7 @@ class Interpolator:
         find_points_comm_pattern="point_to_point",
         global_tree_type="rank_bbox",
         global_tree_nbins=None,
+        elem_percent_expansion=0.01,
     ):
 
         if find_points_comm_pattern == "broadcast":
@@ -404,7 +406,8 @@ class Interpolator:
                 )
             elif global_tree_type == "domain_binning":
                 self.set_up_global_tree_domain_binning_(
-                    comm, global_tree_nbins=global_tree_nbins
+                    comm, global_tree_nbins=global_tree_nbins,
+                    elem_percent_expansion=elem_percent_expansion,
                 )
 
     def set_up_global_tree_rank_bbox_(self, comm, global_tree_nbins=None):
@@ -469,20 +472,23 @@ class Interpolator:
         n_bins_1d = self.bin_size_1d
         max_bins_1d = n_bins_1d - 1
 
-        bin_x = (np.floor((x - x_min) / ((x_max - x_min) / max_bins_1d))).astype(np.int32)
-        bin_y = (np.floor((y - y_min) / ((y_max - y_min) / max_bins_1d))).astype(np.int32)
-        bin_z = (np.floor((z - z_min) / ((z_max - z_min) / max_bins_1d))).astype(np.int32)
+        x, y, z = (np.asarray(coord, dtype=INTERPOLATION_DTYPE) for coord in (x, y, z))
+        bin_x = np.floor((x - x_min) * (max_bins_1d / (x_max - x_min))) if x_max > x_min else np.zeros_like(x)
+        bin_y = np.floor((y - y_min) * (max_bins_1d / (y_max - y_min))) if y_max > y_min else np.zeros_like(y)
+        bin_z = np.floor((z - z_min) * (max_bins_1d / (z_max - z_min))) if z_max > z_min else np.zeros_like(z)
 
         # Clip the bins to be in the range [0, n_bins_1d - 1]
-        bin_x = np.clip(bin_x, 0, max_bins_1d)
-        bin_y = np.clip(bin_y, 0, max_bins_1d)
-        bin_z = np.clip(bin_z, 0, max_bins_1d)
+        bin_x = np.clip(bin_x, 0, max_bins_1d).astype(np.int32)
+        bin_y = np.clip(bin_y, 0, max_bins_1d).astype(np.int32)
+        bin_z = np.clip(bin_z, 0, max_bins_1d).astype(np.int32)
 
         bin = bin_x + bin_y * n_bins_1d + bin_z * n_bins_1d**2
         
         return bin
 
-    def set_up_global_tree_domain_binning_(self, comm, global_tree_nbins=None):
+    def set_up_global_tree_domain_binning_(
+        self, comm, global_tree_nbins=None, elem_percent_expansion=0.01
+    ):
 
         self.log.tic()
 
@@ -524,8 +530,18 @@ class Interpolator:
         self.bin_size_1d = bin_size_1d
         self.bins_per_rank = bins_per_rank
 
-        # Check in which bins the points are and check wich are the rank owners of those bins
-        bins_of_points = self.binning_hash(self.x, self.y, self.z)
+        # Register every bin intersected by an expanded element box.
+        bbox = get_bbox_from_coordinates_rtree(
+            self.x, self.y, self.z, rel_tol=elem_percent_expansion
+        )
+        first_bins = self.binning_hash(bbox[:, 0], bbox[:, 1], bbox[:, 2])
+        last_bins = self.binning_hash(bbox[:, 3], bbox[:, 4], bbox[:, 5])
+        occupied_bins = set()
+        for first, last in zip(first_bins, last_bins):
+            occupied_bins.update(bbox_bin_ids(first, last, bin_size_1d))
+            if len(occupied_bins) == bin_size:
+                break
+        bins_of_points = np.asarray(sorted(occupied_bins), dtype=np.int32)
         bin_owner = np.floor(bins_of_points / bins_per_rank).astype(np.int32)
 
         # Let the rank owner of the bins know that I have data in those bins
@@ -721,6 +737,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Public method to find points across ranks and elements"""
         self.log.write(
@@ -748,6 +765,7 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
         elif ((find_points_comm_pattern == "point_to_point") or (find_points_comm_pattern == "collective")) and not find_points_iterative[0]:
@@ -759,6 +777,7 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 comm_pattern = find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -772,6 +791,7 @@ class Interpolator:
                 batch_size=find_points_iterative[1],
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 comm_pattern= find_points_comm_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
@@ -784,8 +804,13 @@ class Interpolator:
                 tol=tol,
                 max_iter=max_iter,
                 rst_tol=rst_tol,
+                use_test_pattern=use_test_pattern,
                 use_oriented_bbox = use_oriented_bbox,
             )
+
+        no_candidate = self.rank_owner_partition < 0
+        self.glb_el_owner_partition[no_candidate] = -1
+        self.err_code_partition[no_candidate] = 0
 
     def find_points_broadcast(
         self,
@@ -797,6 +822,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the collective implementation"""
         rank = comm.Get_rank()
@@ -926,9 +952,9 @@ class Interpolator:
                         # Query the tree with the probes to reduce the bbox search
                         candidate_elements = broadcaster_tree.query_ball_point(
                             x=probe_not_found,
-                            r=bbox_maxdist * (1 + 1e-6),
+                            r=bbox_maxdist * (1 + elem_percent_expansion) * (1 + 1e-6),
                             p=2.0,
-                            eps=elem_percent_expansion,
+                            eps=0,
                             workers=1,
                             return_sorted=False,
                             return_length=False,
@@ -1064,7 +1090,8 @@ class Interpolator:
 
                     settings = {}
                     settings["not_found_code"] = -10
-                    settings["use_test_pattern"] = True
+                    settings["use_test_pattern"] = use_test_pattern
+                    settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
@@ -1231,7 +1258,7 @@ class Interpolator:
             # were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1253,6 +1280,7 @@ class Interpolator:
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1288,7 +1316,7 @@ class Interpolator:
         # Get candidate ranks from a global kd tree
         # These are the destination ranks
         self.log.write("debug", "Obtaining candidate ranks and sources")
-        my_dest, _ = get_candidate_ranks(self, comm)
+        my_dest, _ = get_candidate_ranks(self, comm, elem_percent_expansion)
 
         # Create temporary arrays that store the points that have not been found
         not_found = np.where(self.err_code_partition != 1)[0]
@@ -1339,7 +1367,8 @@ class Interpolator:
 
         settings = {}
         settings["not_found_code"] = -10
-        settings["use_test_pattern"] = True
+        settings["use_test_pattern"] = use_test_pattern
+        settings["test_tol"] = test_tol
         settings["elem_percent_expansion"] = elem_percent_expansion
         settings["progress_bar"] = self.progress_bar
         settings["find_pts_tol"] = tol
@@ -1446,16 +1475,13 @@ class Interpolator:
                 # skip the rest of the loop
                 continue
 
-            # If the point was not found with certainty, then choose as
-            # owner the the one that produced the smaller error in the test pattern
-            try:
-                min_test_pattern = np.where(
-                    np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                )[0]
-            except ValueError:
-                min_test_pattern = np.array([])
-            if min_test_pattern.size > 0:
-                index = min_test_pattern[0]
+            # Keep the best candidate that failed the inside check.
+            if all_test_patterns:
+                rst = [arr[point] for arr in obuff_probes_rst]
+                ranks = [arr[point] for arr in obuff_rank_owner]
+                index = select_test_candidate(
+                    rst, all_test_patterns if use_test_pattern else None, test_tol, ranks
+                )
                 self.probe_partition[point, :] = obuff_probes[index][point, :]
                 self.probe_rst_partition[point, :] = obuff_probes_rst[index][point, :]
                 self.el_owner_partition[point] = obuff_el_owner[index][point]
@@ -1471,7 +1497,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1493,6 +1519,7 @@ class Interpolator:
         comm_pattern = "point_to_point",
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1528,7 +1555,7 @@ class Interpolator:
         # Get candidate ranks from a global kd tree
         # These are the destination ranks
         self.log.write("debug", "Obtaining candidate ranks and sources")
-        my_dest, candidate_ranks_list = get_candidate_ranks(self, comm)
+        my_dest, candidate_ranks_list = get_candidate_ranks(self, comm, elem_percent_expansion)
         
         self.log.write("debug", "Determining maximun number of candidates")
         max_candidates = np.ones((1), dtype=np.int32) * len(my_dest)
@@ -1627,7 +1654,8 @@ class Interpolator:
 
             settings = {}
             settings["not_found_code"] = -10
-            settings["use_test_pattern"] = True
+            settings["use_test_pattern"] = use_test_pattern
+            settings["test_tol"] = test_tol
             settings["elem_percent_expansion"] = elem_percent_expansion
             settings["progress_bar"] = self.progress_bar
             settings["find_pts_tol"] = tol
@@ -1740,17 +1768,18 @@ class Interpolator:
                     # skip the rest of the loop
                     continue
 
-                # If the point was not found with certainty, then choose as
-                # owner the the one that produced the smaller error in the test pattern
-                try:
-                    min_test_pattern = np.where(
-                        np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                    )[0]
-                except ValueError:
-                    min_test_pattern = np.array([])
-                if min_test_pattern.size > 0:
-                    index = min_test_pattern[0]
-                    if obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]:
+                # Keep the best candidate that failed the inside check.
+                if all_test_patterns:
+                    rst = [self.probe_rst_partition[absolute_point]]
+                    rst.extend(arr[relative_point] for arr in obuff_probes_rst)
+                    test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                    ranks = [self.rank_owner_partition[absolute_point]]
+                    ranks.extend(arr[relative_point] for arr in obuff_rank_owner)
+                    # Candidate zero is the owner already stored on this rank.
+                    index = select_test_candidate(
+                        rst, test_patterns if use_test_pattern else None, test_tol, ranks
+                    ) - 1
+                    if index >= 0:
                         self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                         self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
                         self.el_owner_partition[absolute_point] = obuff_el_owner[index][relative_point]
@@ -1766,7 +1795,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -1786,6 +1815,7 @@ class Interpolator:
         max_iter=50,
         use_oriented_bbox = False,
         rst_tol=np.finfo(np.single).eps,
+        use_test_pattern=True,
     ):
         """Find points using the point to point implementation"""
         rank = comm.Get_rank()
@@ -1830,7 +1860,7 @@ class Interpolator:
         # Get candidate ranks from a global data structure
         # These are the destination ranks
         self.log.write("debug", "Obtaining candidate ranks and sources")
-        my_dest, candidate_ranks_list = get_candidate_ranks(self, comm)
+        my_dest, candidate_ranks_list = get_candidate_ranks(self, comm, elem_percent_expansion)
         # Put my own rank first if it is in the list
         if comm.Get_rank() in my_dest:
             my_dest_ = [comm.Get_rank()] + my_dest
@@ -1997,7 +2027,8 @@ class Interpolator:
 
                     settings = {}
                     settings["not_found_code"] = -10
-                    settings["use_test_pattern"] = True
+                    settings["use_test_pattern"] = use_test_pattern
+                    settings["test_tol"] = test_tol
                     settings["elem_percent_expansion"] = elem_percent_expansion
                     settings["progress_bar"] = self.progress_bar
                     settings["find_pts_tol"] = tol
@@ -2111,17 +2142,18 @@ class Interpolator:
                         # skip the rest of the loop
                         continue
 
-                    # If the point was not found with certainty, then choose as
-                    # owner the the one that produced the smaller error in the test pattern
-                    try:
-                        min_test_pattern = np.where(
-                            np.array(all_test_patterns) == np.array(all_test_patterns).min()
-                        )[0]
-                    except ValueError:
-                        min_test_pattern = np.array([])
-                    if min_test_pattern.size > 0:
-                        index = min_test_pattern[0]
-                        if (obuff_test_pattern[index][relative_point] < self.test_pattern_partition[absolute_point]) and (self.err_code_partition[absolute_point] != 1):
+                    # Keep the best candidate that failed the inside check.
+                    if all_test_patterns and self.err_code_partition[absolute_point] != 1:
+                        rst = [self.probe_rst_partition[absolute_point]]
+                        rst.extend(arr[relative_point] for arr in obuff_probes_rst)
+                        test_patterns = [self.test_pattern_partition[absolute_point]] + all_test_patterns
+                        ranks = [self.rank_owner_partition[absolute_point]]
+                        ranks.extend(arr[relative_point] for arr in obuff_rank_owner)
+                        # Candidate zero is the owner already stored on this rank.
+                        index = select_test_candidate(
+                            rst, test_patterns if use_test_pattern else None, test_tol, ranks
+                        ) - 1
+                        if index >= 0:
                             self.probe_partition[absolute_point, :] = obuff_probes[index][relative_point, :]
                             self.probe_rst_partition[absolute_point, :] = obuff_probes_rst[index][relative_point, :]
                             self.el_owner_partition[absolute_point] = obuff_el_owner[index][relative_point]
@@ -2156,7 +2188,7 @@ class Interpolator:
             #  were not found. Use the error code and the test pattern
             if (
                 self.err_code_partition[j] != 1
-                and self.test_pattern_partition[j] > test_tol
+                and (not use_test_pattern or self.test_pattern_partition[j] > test_tol)
             ):
                 self.err_code_partition[j] = 0
 
@@ -2294,8 +2326,11 @@ class Interpolator:
         probes = self.probe_partition
         probes_rst = self.probe_rst_partition
         el_owner = self.el_owner_partition
-        rank_owner = self.rank_owner_partition
         err_code = self.err_code_partition
+        # Keep missing probes on their source rank so they return a zero value.
+        rank_owner = np.where(
+            err_code == 0, self.rt.comm.Get_rank(), self.rank_owner_partition
+        )
         local_probe_index = np.arange(0, probes.shape[0], dtype=np.int64)
 
         # Prepare the send buffers
@@ -2645,7 +2680,7 @@ def domain_binning_map_bin_to_rank(mesh_to_bin, nx, ny, nz, comm):
     return bin_to_rank_map
 
 
-def get_candidate_ranks(self, comm):
+def get_candidate_ranks(self, comm, elem_percent_expansion=0.01):
     """
     Get the candidate ranks for each rank.
     """
@@ -2670,15 +2705,15 @@ def get_candidate_ranks(self, comm):
 
             candidate_ranks_per_point_ = self.global_tree.query_ball_point(
                 x=self.probe_partition[start:end],
-                r=self.search_radious * (1 + 1e-6),
+                r=self.search_radious * (1 + elem_percent_expansion) * (1 + 1e-6),
                 p=2.0,
-                eps=1e-8,
+                eps=0,
                 workers=1,
                 return_sorted=False,
                 return_length=False,
             )
 
-            refined_candidates = refine_candidates(probes=self.probe_partition[start:end], candidate_elements=candidate_ranks_per_point_, bboxes=self.global_bbox, rel_tol=0.01)
+            refined_candidates = refine_candidates(probes=self.probe_partition[start:end], candidate_elements=candidate_ranks_per_point_, bboxes=self.global_bbox, rel_tol=elem_percent_expansion)
 
             candidate_ranks_per_point.extend(refined_candidates)
 
@@ -2965,7 +3000,10 @@ class dstructure_kdtree(dstructure):
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")
@@ -2991,7 +3029,7 @@ class dstructure_kdtree(dstructure):
     
         # Get bbox centroids and max radius from center to corner
         self.my_bbox_centroids, self.my_bbox_maxdist = (
-            get_bbox_centroids_and_max_dist(self.my_bbox)
+            get_bbox_centroids_and_max_dist(self.expanded_bbox)
         )
 
         # Build a KDtree with my information
@@ -3014,7 +3052,7 @@ class dstructure_kdtree(dstructure):
                 x=probes[start:end],
                 r=self.my_bbox_maxdist * (1 + 1e-6),
                 p=2.0,
-                eps=self.elem_percent_expansion,
+                eps=0,
                 workers=1,
                 return_sorted=False,
                 return_length=False,
@@ -3063,7 +3101,10 @@ class dstructure_rtree(dstructure):
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")
@@ -3105,23 +3146,22 @@ class dstructure_hashtable(dstructure):
         
         # First each rank finds their bounding box
         self.log.write("debug", "Finding bounding box of sem mesh")
-        self.my_bbox = get_bbox_from_coordinates(x, y, z)
+        bbox = get_bbox_from_coordinates_rtree(x, y, z, rel_tol=self.elem_percent_expansion)
+        self.my_bbox = bbox[:, [0, 3, 1, 4, 2, 5]]
         
         # Get the oriented bbox data
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")
 
-        # Make the mesh fill the space of its bounding box
-        self.log.write("debug", "Filling bbox space for correct hashtable finding")
-        x_r, y_r, z_r, _ = linearize_elements(x, y, z, factor=2, rel_tol=self.elem_percent_expansion)
-
-        bin_size = x.shape[0]
-        bin_size_1d = int(np.round(np.cbrt(bin_size))) 
+        bin_size_1d = int(np.round(np.cbrt(x.shape[0])))
         bin_size = bin_size_1d**3
 
         # Find the values that delimit a cubic boundin box
@@ -3136,43 +3176,15 @@ class dstructure_hashtable(dstructure):
         self.domain_max_z = np.max(z) 
         self.bin_size_1d = bin_size_1d
 
-        # See wich element has points in which bin
+        # Register each element in every bin intersected by its expanded box.
         self.log.write("debug", "Creating bin mesh for the rank")
-        bins_of_points = self.binning_hash(x_r, y_r, z_r)
-        
-        # Create the empty bin to rank map
-        approach = 1
-        if approach == 0:
-        
-            self.bin_to_elem_map = {i : (np.unique(np.where(bins_of_points == i)[0]).astype(np.int32)).tolist() for i in range(0, bin_size)}
+        first_bins = self.binning_hash(bbox[:, 0], bbox[:, 1], bbox[:, 2])
+        last_bins = self.binning_hash(bbox[:, 3], bbox[:, 4], bbox[:, 5])
+        self.bin_to_elem_map = {i: [] for i in range(bin_size)}
 
-        # Optimized 
-        elif approach == 1:
-
-            nelv = bins_of_points.shape[0]
-            bin_size = bin_size_1d ** 3
-
-            # Initialize an empty dictionary
-            bin_to_elem_map = {}
-
-            # Fill the bins
-            for el in range(nelv):
-                
-                unique_bins = np.unique(bins_of_points[el])
-                for b in unique_bins:
-                    if b not in bin_to_elem_map:
-                        bin_to_elem_map[b] = []
-                    
-                    if el not in bin_to_elem_map[b]:
-                        bin_to_elem_map[b].append(el)
-
-            # Fill the empty bins for completion
-            for i in range(bin_size):
-                if i not in bin_to_elem_map:
-                    bin_to_elem_map[i] = []
-
-            self.bin_to_elem_map = bin_to_elem_map
-
+        for el, (first, last) in enumerate(zip(first_bins, last_bins)):
+            for bin_id in bbox_bin_ids(first, last, bin_size_1d):
+                self.bin_to_elem_map[bin_id].append(el)
 
     def binning_hash(self, x, y, z):
         """
@@ -3187,14 +3199,15 @@ class dstructure_hashtable(dstructure):
         n_bins_1d = self.bin_size_1d
         max_bins_1d = n_bins_1d - 1
 
-        bin_x = (np.floor((x - x_min) / ((x_max - x_min) / max_bins_1d))).astype(np.int32)
-        bin_y = (np.floor((y - y_min) / ((y_max - y_min) / max_bins_1d))).astype(np.int32)
-        bin_z = (np.floor((z - z_min) / ((z_max - z_min) / max_bins_1d))).astype(np.int32)
+        x, y, z = (np.asarray(coord, dtype=INTERPOLATION_DTYPE) for coord in (x, y, z))
+        bin_x = np.floor((x - x_min) * (max_bins_1d / (x_max - x_min))) if x_max > x_min else np.zeros_like(x)
+        bin_y = np.floor((y - y_min) * (max_bins_1d / (y_max - y_min))) if y_max > y_min else np.zeros_like(y)
+        bin_z = np.floor((z - z_min) * (max_bins_1d / (z_max - z_min))) if z_max > z_min else np.zeros_like(z)
 
         # Clip the bins to be in the range [0, n_bins_1d - 1]
-        bin_x = np.clip(bin_x, 0, max_bins_1d)
-        bin_y = np.clip(bin_y, 0, max_bins_1d)
-        bin_z = np.clip(bin_z, 0, max_bins_1d)
+        bin_x = np.clip(bin_x, 0, max_bins_1d).astype(np.int32)
+        bin_y = np.clip(bin_y, 0, max_bins_1d).astype(np.int32)
+        bin_z = np.clip(bin_z, 0, max_bins_1d).astype(np.int32)
 
         bin = bin_x + bin_y * n_bins_1d + bin_z * n_bins_1d**2
         
@@ -3207,7 +3220,7 @@ class dstructure_hashtable(dstructure):
 
         element_candidates = [self.bin_to_elem_map[probe_to_bin[i]] for i in range(0, probes.shape[0])]
 
-        element_candidates = refine_candidates(probes, element_candidates, self.my_bbox, rel_tol=self.elem_percent_expansion)
+        element_candidates = refine_candidates(probes, element_candidates, self.my_bbox, rel_tol=0)
         
         if self.use_obb:
                 
@@ -3217,6 +3230,19 @@ class dstructure_hashtable(dstructure):
             self.log.write("debug", "obb was used to refine search")
 
         return element_candidates
+
+def bbox_bin_ids(first, last, n_bins_1d):
+    """Return all bin IDs between opposite corners of a box."""
+    first_z, first_xy = divmod(first, n_bins_1d**2)
+    last_z, last_xy = divmod(last, n_bins_1d**2)
+    first_y, first_x = divmod(first_xy, n_bins_1d)
+    last_y, last_x = divmod(last_xy, n_bins_1d)
+
+    x = np.arange(first_x, last_x + 1)
+    y = np.arange(first_y, last_y + 1) * n_bins_1d
+    z = np.arange(first_z, last_z + 1) * n_bins_1d**2
+    return (x[None, None, :] + y[None, :, None] + z[:, None, None]).ravel()
+
 
 def refine_candidates(probes, candidate_elements, bboxes, rel_tol=0.01):
     """
@@ -3282,7 +3308,7 @@ def refine_candidates(probes, candidate_elements, bboxes, rel_tol=0.01):
         candidate_bboxes = bboxes[candidate_indices]
 
         # Compute expanded bounds
-        if rel_tol > 1e-6:
+        if rel_tol > 0:
             dx = candidate_bboxes[:, 1] - candidate_bboxes[:, 0]
             dy = candidate_bboxes[:, 3] - candidate_bboxes[:, 2]
             dz = candidate_bboxes[:, 5] - candidate_bboxes[:, 4]

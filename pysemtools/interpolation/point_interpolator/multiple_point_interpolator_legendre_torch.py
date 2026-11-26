@@ -1,7 +1,7 @@
 """ Contains class to interpolate multiple points using numpy"""
 
 import numpy as np
-from .point_search_utils import test_pattern_field
+from .point_search_utils import select_test_candidate, test_pattern_field
 import torch
 
 from tqdm import tqdm
@@ -854,6 +854,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
         # Settings
         not_found_code = settings.get("not_found_code", -10)
         use_test_pattern = settings.get("use_test_pattern", True)
+        test_tol = settings.get("test_tol", 1e-4)
         elem_percent_expansion = settings.get("elem_percent_expansion", 0.01)
         progress_bar = settings.get("progress_bar", False)
         find_pts_tol = settings.get("find_pts_tol", np.finfo(np.double).eps * 10)
@@ -992,7 +993,6 @@ class LegendreInterpolator(MultiplePointInterpolator):
                 rank_owner[real_index_pt_found_this_it] = rank
                 err_code[real_index_pt_found_this_it] = 1
 
-                # If user has selected to check a test pattern:
                 if use_test_pattern:
 
                     # Get shapes
@@ -1029,56 +1029,46 @@ class LegendreInterpolator(MultiplePointInterpolator):
                     # Check if the test pattern is satisfied
                     test_error = abs(test_probes - test_result.cpu().numpy()) / test_scale
 
-                    # Now assign
-                    real_list = np.array(real_index_pt_not_found_this_it)
-                    relative_list = np.array(pt_not_found_this_it)
-                    better_test = np.where(
-                        test_error < test_pattern[real_index_pt_not_found_this_it]
-                    )[0]
-                    #set_as_found = np.where(test_error < test_pattern_for_found)[0]
-
-                    if len(better_test) > 0:
-                        probes_rst[real_list[better_test], 0] = result_r[
-                            relative_list[better_test]
-                        ]
-                        probes_rst[real_list[better_test], 1] = result_s[
-                            relative_list[better_test]
-                        ]
-                        probes_rst[real_list[better_test], 2] = result_t[
-                            relative_list[better_test]
-                        ]
-                        el_owner[real_list[better_test]] = np.array(
-                            elem_to_check_per_point
-                        )[relative_list[better_test]]
-                        glb_el_owner[real_list[better_test]] = (
-                            el_owner[real_list[better_test]] + offset_el
-                        )
-                        rank_owner[real_list[better_test]] = rank
-                        err_code[real_list[better_test]] = not_found_code
-                        test_pattern[real_list[better_test]] = test_error[better_test]
-
-                    # if len(set_as_found) > 0:
-                    #    err_code[real_list[set_as_found]] = 1
-
+                    test_errors = (test_pattern[real_index_pt_not_found_this_it], test_error)
                 else:
+                    test_errors = None
 
-                    probes_rst[real_index_pt_not_found_this_it, 0] = result_r[
-                        pt_not_found_this_it
+                # Keep the best candidate even if it fails the inside check.
+                real_list = pt_not_found_indices[pt_not_found_this_it]
+                relative_list = pt_not_found_this_it
+                candidate_rst = np.column_stack((
+                    result_r[relative_list],
+                    result_s[relative_list],
+                    result_t[relative_list],
+                ))
+                best_candidate = select_test_candidate(
+                    (probes_rst[real_list], candidate_rst),
+                    test_errors,
+                    test_tol,
+                    (rank_owner[real_list], np.full_like(real_list, rank)),
+                )
+                better_test = np.where(best_candidate == 1)[0]
+
+                if len(better_test) > 0:
+                    probes_rst[real_list[better_test], 0] = result_r[
+                        relative_list[better_test]
                     ]
-                    probes_rst[real_index_pt_not_found_this_it, 1] = result_s[
-                        pt_not_found_this_it
+                    probes_rst[real_list[better_test], 1] = result_s[
+                        relative_list[better_test]
                     ]
-                    probes_rst[real_index_pt_not_found_this_it, 2] = result_t[
-                        pt_not_found_this_it
+                    probes_rst[real_list[better_test], 2] = result_t[
+                        relative_list[better_test]
                     ]
-                    el_owner[real_index_pt_not_found_this_it] = np.array(
+                    el_owner[real_list[better_test]] = np.array(
                         elem_to_check_per_point
-                    )[pt_not_found_this_it]
-                    glb_el_owner[real_index_pt_not_found_this_it] = (
-                        el_owner[real_index_pt_not_found_this_it] + offset_el
+                    )[relative_list[better_test]]
+                    glb_el_owner[real_list[better_test]] = (
+                        el_owner[real_list[better_test]] + offset_el
                     )
-                    rank_owner[real_index_pt_not_found_this_it] = rank
-                    err_code[real_index_pt_not_found_this_it] = not_found_code
+                    rank_owner[real_list[better_test]] = rank
+                    err_code[real_list[better_test]] = not_found_code
+                    if use_test_pattern:
+                        test_pattern[real_list[better_test]] = test_error[better_test]
 
         return (
             probes,
@@ -1135,7 +1125,10 @@ class LegendreInterpolator(MultiplePointInterpolator):
 
         return sampled_field_at_probe
 
-    def get_obb(self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int = 256, ndummy: int = 1):
+    def get_obb(
+        self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int = 256,
+        ndummy: int = 1, elem_percent_expansion: float = 0.01,
+    ):
         """
         Obtain the oriented bounding box (OBB) of the element as described by Mittal et al.
         Internal computations are performed using torch tensors and only the outputs
@@ -1182,15 +1175,13 @@ class LegendreInterpolator(MultiplePointInterpolator):
 
                 # Transform the points into the reference element coordinates
                 x_tilde = torch.einsum("ijklm,ijkmt->ijklt", jac_inv[:, :, None, :, :], elem_data[:nelems, :ndummy])
-                # Compute the average (center) of the transformed points (reference center)
-                xc_moon = torch.mean(x_tilde, dim=2)
-
                 # Compute the axis-aligned bounding box (AABB) in the reference configuration
                 x_min = torch.min(x_tilde, dim=2)[0]  # shape: (nelems, ndummy, 3, 1)
                 x_max = torch.max(x_tilde, dim=2)[0]  # shape: (nelems, ndummy, 3, 1)
                 x_diff = x_max - x_min              # shape: (nelems, ndummy, 3, 1)
+                xc_moon = x_min + x_diff / 2 # Center of this reference element xc_moon
 
-                scale = 1.05 / 2.0   # factor corresponding to a 5% expansion
+                scale = (1 + elem_percent_expansion) / 2.0
                 # Create an identity matrix of shape (3, 3) and add batch dimensions:
                 I = torch.eye(3, dtype=torch.float64, device=x_diff.device).unsqueeze(0).unsqueeze(0)  # shape: (1, 1, 3, 3)
                 # Multiply: x_diff has shape (nelems, ndummy, 3, 1), broadcast I along the first two axes.
