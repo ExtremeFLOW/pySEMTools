@@ -1125,7 +1125,10 @@ class LegendreInterpolator(MultiplePointInterpolator):
 
         return sampled_field_at_probe
 
-    def get_obb(self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int = 256, ndummy: int = 1):
+    def get_obb(
+        self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int = 256,
+        ndummy: int = 1, elem_percent_expansion: float = 0.01,
+    ):
         """
         Obtain the oriented bounding box (OBB) of the element as described by Mittal et al.
         Internal computations are performed using torch tensors and only the outputs
@@ -1178,7 +1181,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
                 x_diff = x_max - x_min              # shape: (nelems, ndummy, 3, 1)
                 xc_moon = x_min + x_diff / 2 # Center of this reference element xc_moon
 
-                scale = 1.05 / 2.0   # factor corresponding to a 5% expansion
+                scale = (1 + elem_percent_expansion) / 2.0
                 # Create an identity matrix of shape (3, 3) and add batch dimensions:
                 I = torch.eye(3, dtype=torch.float64, device=x_diff.device).unsqueeze(0).unsqueeze(0)  # shape: (1, 1, 3, 3)
                 # Multiply: x_diff has shape (nelems, ndummy, 3, 1), broadcast I along the first two axes.

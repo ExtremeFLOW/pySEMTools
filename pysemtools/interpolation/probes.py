@@ -66,7 +66,8 @@ class Probes:
         options are: point_to_point, collective, rma
     elem_percent_expansion : float
         Fractional expansion used by the element and rank candidate searches.
-        Default is 0.01, which adds half a percent on each side of a box.
+        Applies to both axis-aligned and oriented boxes. Default is 0.01, which
+        adds half a percent of the box width on each side.
     global_tree_type : str
         How is the global tree constructed to determine rank candidates for the probes.
         Only really used if using tree structures to determine candidates. Default is rank_bbox.

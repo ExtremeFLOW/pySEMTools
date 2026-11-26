@@ -2999,7 +2999,10 @@ class dstructure_kdtree(dstructure):
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")
@@ -3097,7 +3100,10 @@ class dstructure_rtree(dstructure):
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")
@@ -3146,7 +3152,10 @@ class dstructure_hashtable(dstructure):
         if self.use_obb:
             if hasattr(ei, "get_obb"): 
                 self.log.write("debug", "Finding oriented bounding box of sem mesh")
-                self.obb_c, self.obb_jinv = ei.get_obb(x, y, z, max_pts=self.max_pts)
+                self.obb_c, self.obb_jinv = ei.get_obb(
+                    x, y, z, max_pts=self.max_pts,
+                    elem_percent_expansion=self.elem_percent_expansion,
+                )
             else:
                 self.log.write("error", "You are trying to use the OBB feature, but the ei object does not have the get_obb method. Please check your code.")
                 raise ValueError("The ei object does not have the get_obb method. Please check your code.")

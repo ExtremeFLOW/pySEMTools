@@ -928,7 +928,10 @@ class LegendreInterpolator(MultiplePointInterpolator):
                 
         return sampled_field_at_probe
     
-    def get_obb(self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int =256, ndummy: int = 1):
+    def get_obb(
+        self, x: np.ndarray, y: np.ndarray, z: np.ndarray, max_pts: int = 256,
+        ndummy: int = 1, elem_percent_expansion: float = 0.01,
+    ):
         """
         Obtain the oriented bounding boxed of the element as shown by Mittal et al.
         """
@@ -980,7 +983,7 @@ class LegendreInterpolator(MultiplePointInterpolator):
             x_diff = x_max - x_min
             xc_moon = x_min + x_diff / 2 # Center of this reference element xc_moon
             # Get the jacobian as indicated by Mittal et al.
-            jac_moon = x_diff * np.eye(3) / 2 * (1 + 0.05) # Expand 5% # Hard-coded
+            jac_moon = x_diff * np.eye(3) / 2 * (1 + elem_percent_expansion)
 
             # Save the centers
             xc_t =  np.concatenate((xc, yc, zc), axis=2) + np.matmul(jac, xc_moon)
